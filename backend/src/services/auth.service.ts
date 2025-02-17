@@ -41,7 +41,6 @@ export async function verifyTwoFactorAuth(fastify: FastifyInstance, email: strin
 		throw new Error("Invalid 2FA code");
 	}
 
-	// Используем переданный FastifyInstance для генерации JWT
 	const token = fastify.jwt.sign({ userId: user.id }, { expiresIn: "1h" });
 
 	await updateJWT(user.id, token);
