@@ -1,7 +1,7 @@
 import fastify from 'fastify';
 import fastifyCookie from "@fastify/cookie";
 import fastifyFormbody from "@fastify/formbody";
-import fastifyJson from "@fastify/express";
+import fastifyJwt from "@fastify/jwt";
 import authPlugin from './plugins/jwt.plugin';
 import authRoutes from './routes/auth.routes';
 import "./database";
@@ -13,7 +13,9 @@ server.register(fastifyCookie, {
 	parseOptions: {},
 });
 server.register(fastifyFormbody);
-server.register(fastifyJson);
+server.register(fastifyJwt, {
+	secret: process.env.JWT_SECRET || "supersecret",
+});
 
 server.register(authPlugin);
 server.register(authRoutes, { prefix: "/auth" });

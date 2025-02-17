@@ -1,93 +1,32 @@
-import { FastifyRequest, FastifyReply } from "fastify";
-import bcrypt from "bcrypt";
-import db from "../database";
-import { RegisterBody, LoginBody, User } from "../types/auth.types"
-import crypto from "crypto";
+import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { registerUser, loginUser, verifyTwoFactorAuth } from "../services/auth.service";
+import { RegisterBody, LoginBody } from "../@types/auth.types";
+import { getErrorMessage } from "../utils/errorHandler"
 
 export async function register(req: FastifyRequest<{ Body: RegisterBody }>, res: FastifyReply) {
-	const { username, email, password } = req.body;
-
-	if (!username || !email || !password) {
-		return res.status(400).send({ error: "All fields are required" });
-	}
-
-	const hashedPassword = await bcrypt.hash(password, 10);
-
 	try {
-		const userId = await new Promise<number>((resolve, reject) => {
-			db.run(
-				"INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
-				[username, email, hashedPassword],
-				function (err) {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(this.lastID);
-					}
-				}
-			);
-		});
-
-		return res.status(201).send({ message: "User registered!", userId });
-
+		const response = await registerUser(res.server, req.body.username, req.body.email, req.body.password);
+		return res.status(201).send(response);
 	} catch (error) {
-		console.error("❌ Registration error:", error);
-		return res.status(500).send({ error: "User already exists" });
+		return res.status(400).send({ error: getErrorMessage(error) });
 	}
 }
-
-
-
-
-async function getUserByEmail(email: string): Promise<User | null> {
-	return new Promise((resolve, reject) => {
-		db.get("SELECT * FROM users WHERE email = ?", [email], (err, user: User | undefined) => {
-			if (err) reject(err);
-			resolve(user || null);
-		});
-	});
-}
-
-
-async function save2FACode(userId: number, code: string, expiresAt: string) {
-	return new Promise<void>((resolve, reject) => {
-		db.run(
-			"UPDATE sessions SET two_factor_code = ?, expires_at = ? WHERE user_id = ?",
-			[code, expiresAt, userId],
-			function (err) {
-				if (err) reject(err);
-				resolve();
-			}
-		);
-	});
-}
-
 
 export async function login(req: FastifyRequest<{ Body: LoginBody }>, res: FastifyReply) {
-	const { email, password } = req.body;
-
-	if (!email || !password) {
-		return res.status(400).send({ error: "Email and password are required" });
-	}
-
 	try {
-		const user = await getUserByEmail(email);
-
-		if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-			return res.status(401).send({ error: "Invalid credentials" });
-		}
-
-		const twoFactorCode = crypto.randomInt(100000, 999999).toString();
-		const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-
-		await save2FACode(user.id, twoFactorCode, expiresAt);
-
-		console.log(`📩 2FA Code for user ${user.email}: ${twoFactorCode}`);
-
-		return res.send({ message: "2FA code sent to email" });
-
+		const response = await loginUser(res.server, req.body.email, req.body.password);
+		return res.send(response);
 	} catch (error) {
-		console.error("❌ Login error:", error);
-		return res.status(500).send({ error: "Internal Server Error" });
+		return res.status(400).send({ error: getErrorMessage(error) });
+	}
+}
+
+export async function verify2FA(req: FastifyRequest<{ Body: { email: string; code: string } }>, res: FastifyReply) {
+	try {
+		const response = await verifyTwoFactorAuth(res.server, req.body.email, req.body.code);
+		res.setCookie("token", response.token, { httpOnly: true, secure: false });
+		return res.send(response);
+	} catch (error) {
+		return res.status(400).send({ error: getErrorMessage(error) });
 	}
 }
