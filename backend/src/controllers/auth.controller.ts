@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcrypt";
 import db from "../database";
 import { RegisterBody, LoginBody, User } from "../types/auth.types"
+import crypto from "crypto";
 
 export async function register(req: FastifyRequest<{ Body: RegisterBody }>, res: FastifyReply) {
 	const { username, email, password } = req.body;
@@ -47,10 +48,24 @@ async function getUserByEmail(email: string): Promise<User | null> {
 	});
 }
 
+
+async function save2FACode(userId: number, code: string, expiresAt: string) {
+	return new Promise<void>((resolve, reject) => {
+		db.run(
+			"UPDATE sessions SET two_factor_code = ?, expires_at = ? WHERE user_id = ?",
+			[code, expiresAt, userId],
+			function (err) {
+				if (err) reject(err);
+				resolve();
+			}
+		);
+	});
+}
+
+
 export async function login(req: FastifyRequest<{ Body: LoginBody }>, res: FastifyReply) {
 	const { email, password } = req.body;
 
-	console.log(req.body);
 	if (!email || !password) {
 		return res.status(400).send({ error: "Email and password are required" });
 	}
@@ -62,11 +77,14 @@ export async function login(req: FastifyRequest<{ Body: LoginBody }>, res: Fasti
 			return res.status(401).send({ error: "Invalid credentials" });
 		}
 
-		const token = req.server.jwt.sign({ id: user.id, email: user.email });
+		const twoFactorCode = crypto.randomInt(100000, 999999).toString();
+		const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-		res.setCookie("token", token, { httpOnly: true, secure: false });
+		await save2FACode(user.id, twoFactorCode, expiresAt);
 
-		return res.send({ message: "Login successful!", token });
+		console.log(`📩 2FA Code for user ${user.email}: ${twoFactorCode}`);
+
+		return res.send({ message: "2FA code sent to email" });
 
 	} catch (error) {
 		console.error("❌ Login error:", error);
