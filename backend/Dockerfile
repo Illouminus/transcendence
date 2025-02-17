@@ -8,6 +8,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 8000
+EXPOSE 8080
 
-CMD ["node", "server.js"]
+CMD ["npx", "ts-node", "src/server.ts"]

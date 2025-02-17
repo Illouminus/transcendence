@@ -1,12 +1,13 @@
 import fastify from 'fastify'
+import "./database";
 
 const server = fastify()
 
 server.get('/', async (request, reply) => {
-	return 'pong\n'
+	return 'pongo\n'
 })
 
-server.listen({ port: 8080 }, (err, address) => {
+server.listen({ port: 8080, host: "0.0.0.0" }, (err, address) => {
 	if (err) {
 		console.error(err)
 		process.exit(1)
