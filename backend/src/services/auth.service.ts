@@ -4,46 +4,59 @@ import crypto from "crypto";
 import { getUserByEmail, createUser } from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
 
-export async function registerUser(fastify: FastifyInstance, username: string, email: string, password: string) {
-	if (!username || !email || !password) {
-		throw new Error("All fields are required");
-	}
+export async function registerUser(
+  fastify: FastifyInstance,
+  username: string,
+  email: string,
+  password: string,
+) {
+  if (!username || !email || !password) {
+    throw new Error("All fields are required");
+  }
 
-	const hashedPassword = await bcrypt.hash(password, 10);
-	const userId = await createUser(username, email, hashedPassword);
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const userId = await createUser(username, email, hashedPassword);
 
-	return { message: "User registered!", userId };
+  return { message: "User registered!", userId };
 }
 
-export async function loginUser(fastify: FastifyInstance, email: string, password: string) {
-	const user = await getUserByEmail(email);
-	if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-		throw new Error("Invalid credentials");
-	}
+export async function loginUser(
+  fastify: FastifyInstance,
+  email: string,
+  password: string,
+) {
+  const user = await getUserByEmail(email);
+  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+    throw new Error("Invalid credentials");
+  }
 
-	const twoFactorCode = crypto.randomInt(100000, 999999).toString();
-	const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  const twoFactorCode = crypto.randomInt(100000, 999999).toString();
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-	await save2FACode(user.id, twoFactorCode, expiresAt);
-	console.log(`📩 2FA Code for user ${user.email}: ${twoFactorCode}`);
+  await save2FACode(user.id, twoFactorCode, expiresAt);
+  console.log(`📩 2FA Code for user ${user.email}: ${twoFactorCode}`);
 
-	return { message: "2FA code sent to email" };
+  return { message: "2FA code sent to email" };
 }
 
-export async function verifyTwoFactorAuth(fastify: FastifyInstance, email: string, code: string) {
-	const user = await getUserByEmail(email);
-	if (!user) {
-		throw new Error("Invalid credentials");
-	}
+export async function verifyTwoFactorAuth(
+  fastify: FastifyInstance,
+  email: string,
+  code: string,
+) {
+  const user = await getUserByEmail(email);
+  if (!user) {
+    throw new Error("Invalid credentials");
+  }
 
-	const session = await verify2FACode(user.id, code);
-	if (!session) {
-		throw new Error("Invalid 2FA code");
-	}
+  const session = await verify2FACode(user.id, code);
+  if (!session) {
+    throw new Error("Invalid 2FA code");
+  }
 
-	const token = fastify.jwt.sign({ userId: user.id }, { expiresIn: "1h" });
+  const token = fastify.jwt.sign({ userId: user.id }, { expiresIn: "1h" });
 
-	await updateJWT(user.id, token);
+  await updateJWT(user.id, token);
 
-	return { message: "Login successful!", token };
+  return { message: "Login successful!", token };
 }
