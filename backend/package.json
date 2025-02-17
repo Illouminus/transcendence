@@ -14,6 +14,10 @@
 	"type": "commonjs",
 	"description": "",
 	"dependencies": {
+		"@fastify/cookie": "^11.0.2",
+		"@fastify/express": "^4.0.2",
+		"@fastify/formbody": "^8.0.2",
+		"bcrypt": "^5.1.1",
 		"fastify": "^5.2.1",
 		"fastify-cookie": "^5.6.1",
 		"fastify-cors": "^6.0.3",
@@ -23,6 +27,7 @@
 	"devDependencies": {
 		"@fastify/cors": "^10.0.2",
 		"@fastify/jwt": "^9.0.4",
+		"@types/bcrypt": "^5.0.2",
 		"@types/node": "^22.13.4",
 		"nodemon": "^3.1.9",
 		"ts-node": "^10.9.2",
