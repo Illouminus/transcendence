@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { getUserByEmail, createUser } from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
+import { sendEmail } from "./mailer.services";
 
 export async function registerUser(
   fastify: FastifyInstance,
@@ -34,6 +35,7 @@ export async function loginUser(
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
   await save2FACode(user.id, twoFactorCode, expiresAt);
+  sendEmail(email, "2FA Code", `Your 2FA code is: ${twoFactorCode}`);
   console.log(`📩 2FA Code for user ${user.email}: ${twoFactorCode}`);
 
   return { message: "2FA code sent to email" };

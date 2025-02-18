@@ -2,7 +2,10 @@ import sqlite3 from "sqlite3";
 import fs from "fs";
 import path from "path";
 
-const dbPath = path.resolve(__dirname, "../../db/data.sqlite");
+
+const dbPath = path.resolve(__dirname, "../db/data.sqlite"); // Ecole Docker
+
+//const dbPath = path.resolve(__dirname, "../../db/data.sqlite"); - Mac
 const schemaPath = path.resolve(__dirname, "schema.sql");
 
 const db = new sqlite3.Database(dbPath, (err) => {

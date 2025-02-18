@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["npx", "ts-node", "src/server.ts"]
+CMD ["npx", "nodemon", "--legacy-watch", "src/server.ts"]

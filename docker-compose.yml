@@ -2,22 +2,41 @@ version: "3.8"
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: transcendence_backend
     restart: always
+    working_dir: /app
     volumes:
-      - db-data:/db
+      - ./backend:/app  # Подключаем код для live-обновлений
+      - /app/node_modules  # Исключаем node_modules
+      - db-data:/db      # Volume для базы
     ports:
-      - "3000:3000"
-    depends_on:
-      - frontend
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - GMAIL_USER=esiea2023@gmail.com
+      - GMAIL_APP_PASSWORD=xjwihrtagwsctqsz
+      - JWT_SECRET=supersecret
+      - DATABASE_PATH=/db/data.sqlite 
+    command: npx nodemon --legacy-watch src/server.ts
 
-  frontend:
-    build: ./frontend
-    container_name: transcendence_frontend
-    restart: always
-    ports:
-      - "8080:80"
+
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: transcendence_frontend
+  #   restart: always
+  #   working_dir: /app
+  #   volumes:
+  #     - ./frontend:/app  # Подключаем код фронтенда
+  #     - /app/node_modules  # Исключаем node_modules
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
 
 volumes:
   db-data:

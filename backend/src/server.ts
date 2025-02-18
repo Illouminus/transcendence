@@ -11,10 +11,19 @@ const server = fastify();
 server.register(fastifyCookie, {
   secret: "my-secret",
   parseOptions: {},
-});
+}); 
 server.register(fastifyFormbody);
 server.register(fastifyJwt, {
   secret: process.env.JWT_SECRET || "supersecret",
+});
+
+
+interface HelloWorldResponse {
+  hello: string;
+}
+
+server.get<{ Reply: HelloWorldResponse }>("/", async (request, reply) => {
+  return { hello: "huiiiiiiiiiiiiiiii" };
 });
 
 server.register(authPlugin);
