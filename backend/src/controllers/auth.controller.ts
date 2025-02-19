@@ -58,12 +58,17 @@ export async function verify2FA(
 }
 
 
-export async function googleAuth(req: FastifyRequest, res: FastifyReply) {
-	// try {
-	// 	const response = await googleAuthenticator(res.server, req.body.email, req.body.code);
-	// 	res.setCookie("token", response.token, { httpOnly: true, secure: false });
-	// 	return res.send(response);
-	// } catch (error) {
-	// 	return res.status(400).send({ error: getErrorMessage(error) });
-	// }
+export async function googleAuth(req: FastifyRequest<{ Body: { token: string } }>, res: FastifyReply) {
+	try {
+		const { token } = req.body;
+		if (!token) {
+			return res.status(400).send({ error: "Token is required" });
+		}
+
+		// const response = await googleAuthenticator();
+		// res.setCookie("token", response.token, { httpOnly: true, secure: false });
+		// return res.send(response);
+	} catch (error) {
+		return res.status(400).send({ error: getErrorMessage(error) });
+	}
 }
