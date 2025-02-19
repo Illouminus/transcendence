@@ -20,20 +20,20 @@ services:
       - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - DATABASE_PATH=${DATABASE_PATH}
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: transcendence_frontend
-  #   restart: always
-  #   working_dir: /app
-  #   volumes:
-  #     - ./frontend:/app  # Подключаем код фронтенда
-  #     - /app/node_modules  # Исключаем node_modules
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: transcendence_frontend
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   db-data:
