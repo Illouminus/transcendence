@@ -9,30 +9,30 @@ import "./database";
 const server = fastify();
 
 server.register(fastifyCookie, {
-  secret: "my-secret",
-  parseOptions: {},
-}); 
+	secret: "my-secret",
+	parseOptions: {},
+});
 server.register(fastifyFormbody);
 server.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET || "supersecret",
+	secret: process.env.JWT_SECRET || "supersecret",
 });
 
 
 interface HelloWorldResponse {
-  hello: string;
+	hello: string;
 }
 
 server.get<{ Reply: HelloWorldResponse }>("/", async (request, reply) => {
-  return { hello: "huiiiiiiiiiiiiiiii" };
+	return { hello: "Привет люди !" };
 });
 
 server.register(authPlugin);
 server.register(authRoutes, { prefix: "/auth" });
 
-server.listen({ port: 8080, host: "0.0.0.0" }, (err, address) => {
-  if (err) {
-    console.error(err);
-    process.exit(1);
-  }
-  console.log(`🚀 Server listening at ${address}`);
+server.listen({ port: 5000, host: "0.0.0.0" }, (err, address) => {
+	if (err) {
+		console.error(err);
+		process.exit(1);
+	}
+	console.log(`🚀 Server listening at ${address}`);
 });

@@ -9,20 +9,17 @@ services:
     restart: always
     working_dir: /app
     volumes:
-      - ./backend:/app  # Подключаем код для live-обновлений
-      - /app/node_modules  # Исключаем node_modules
-      - db-data:/db      # Volume для базы
+      - /app/node_modules
+      - ./backend:/app
+      - db-data:/db
     ports:
-      - "8080:8080"
+      - "5555:5000"
     environment:
-      - NODE_ENV=development
-      - GMAIL_USER=esiea2023@gmail.com
-      - GMAIL_APP_PASSWORD=xjwihrtagwsctqsz
-      - JWT_SECRET=supersecret
-      - DATABASE_PATH=/db/data.sqlite 
-    command: npx nodemon --legacy-watch src/server.ts
-
-
+      - NODE_ENV=${NODE_ENV}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
   # frontend:
   #   build:
   #     context: ./frontend

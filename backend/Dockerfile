@@ -8,6 +8,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 5000
 
-CMD ["npx", "nodemon", "--legacy-watch", "src/server.ts"]
+CMD ["npm", "run", "dev"] 
