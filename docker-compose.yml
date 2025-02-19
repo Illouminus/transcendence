@@ -2,22 +2,38 @@ version: "3.8"
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: transcendence_backend
     restart: always
+    working_dir: /app
     volumes:
+      - /app/node_modules
+      - ./backend:/app
       - db-data:/db
+    ports:
+      - "5555:5000"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: transcendence_frontend
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
       - "3000:3000"
     depends_on:
-      - frontend
-
-  frontend:
-    build: ./frontend
-    container_name: transcendence_frontend
-    restart: always
-    ports:
-      - "8080:80"
+      - backend
 
 volumes:
   db-data:
