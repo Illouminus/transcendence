@@ -1,5 +1,6 @@
 // Loaders / Pages
-import { loadHomePage } from './loaders/loaders';
+import { loadDashboardPage } from './loaders/loaders';
+import { loadHomePage} from './loaders/loaders';
 import { loadLoginPage } from './loaders/loaders';
 import { loadSignupPage } from './loaders/loaders';
 
@@ -10,6 +11,8 @@ export function handleRouting() {
     loadLoginPage();
   } else if (path === "/signup") {
     loadSignupPage();
+  } else if (path === "/dashboard") {
+        loadDashboardPage();
   } else {
     loadHomePage();
   }

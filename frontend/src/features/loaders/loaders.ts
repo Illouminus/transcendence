@@ -16,6 +16,14 @@ export async function loadHomePage() {
           await loadLoginPage();
         });
       }
+
+      const dashboardButton = document.getElementById("dashboard-button");
+      if (dashboardButton) {
+        dashboardButton.addEventListener("click", async () => {
+          window.history.pushState({}, "", "/dashboard");
+          await loadDashboardPage();
+        });
+      }
     } catch (error) {
       console.error("Erreur :", error);
     }
@@ -58,4 +66,18 @@ export async function loadSignupPage() {
       console.error("Erreur :", error);
     }
 }
-  
+
+
+//Dahsboard
+export async function loadDashboardPage() {
+  try {
+    const response = await fetch("./src/pages/dashboard.html");
+    if (!response.ok) {
+      throw new Error("Erreur lors du chargement de la page d'inscription");
+    }
+    const html = await response.text();
+    document.body.innerHTML = html;
+  } catch (error) {
+    console.error("Erreur :", error);
+  }
+}
