@@ -1,6 +1,7 @@
 import fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import fastifyFormbody from "@fastify/formbody";
+import cors from '@fastify/cors'
 import fastifyStatic from "@fastify/static";
 import fastifyJwt from "@fastify/jwt";
 import authPlugin from "./plugins/jwt.plugin";
@@ -9,6 +10,12 @@ import path from "path";
 import "./database";
 
 const server = fastify();
+
+
+server.register(cors, {
+	origin: "http://localhost:3000",
+	credentials: true
+})
 
 server.register(fastifyCookie, {
 	secret: "my-secret",

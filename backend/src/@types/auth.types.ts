@@ -14,3 +14,10 @@ export interface User {
   email: string;
   password_hash: string;
 }
+
+export interface GoogleUser {
+  name?: string ,
+  email?: string,
+  picture?: string,
+  sub: string
+}
