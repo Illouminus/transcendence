@@ -1,3 +1,6 @@
+// Components
+import { Navbar } from "../../components/Navbar/Navbar";
+
 // Home Page
 export async function loadHomePage() {
     try {
@@ -73,10 +76,16 @@ export async function loadDashboardPage() {
   try {
     const response = await fetch("./src/pages/dashboard.html");
     if (!response.ok) {
-      throw new Error("Erreur lors du chargement de la page d'inscription");
+      throw new Error("Erreur lors du chargement de la page dashboard");
     }
     const html = await response.text();
     document.body.innerHTML = html;
+
+    // Ajouter la Navbar uniquement sur le dashboard
+    const navbar = await new Navbar().render();
+    document.body.insertAdjacentElement("afterbegin", navbar);
+
+    console.log("Dashboard chargé avec la Navbar !");
   } catch (error) {
     console.error("Erreur :", error);
   }

@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+.w-50pourcent
+{
+    width: 50%;
+}
+
+.box-inset-shadow 
+{
+    background: #1c1917;
+    box-shadow: inset 11px 11px 20px #0d0c0b, inset -11px -11px 20px #2b2723;
+}
