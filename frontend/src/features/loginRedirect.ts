@@ -13,6 +13,30 @@ async function loadLoginPage() {
     }
     const html = await response.text();
     document.body.innerHTML = html;
+
+    // Ajouter l'événement de redirection vers "Sign up" dans login
+    const signupLink = document.getElementById("signup-button");
+    if (signupLink) {
+      signupLink.addEventListener("click", async (e) => {
+        e.preventDefault(); // Empêche le comportement par défaut du lien
+        window.history.pushState({}, "", "/signup");
+        await loadSignupPage();
+      });
+    }
+  } catch (error) {
+    console.error("Erreur :", error);
+  }
+}
+
+// Fonction pour charger la page signup
+async function loadSignupPage() {
+  try {
+    const response = await fetch("./src/pages/signup.html");
+    if (!response.ok) {
+      throw new Error("Erreur lors du chargement de la page d'inscription");
+    }
+    const html = await response.text();
+    document.body.innerHTML = html;
   } catch (error) {
     console.error("Erreur :", error);
   }
@@ -43,8 +67,11 @@ async function loadHomePage() {
 
 // Fonction pour gérer les changements d'URL
 function handleRouting() {
+  const path = window.location.pathname;
   if (window.location.pathname === "/login") {
     loadLoginPage();
+  } else if (path == "/signup") {
+    loadSignupPage();
   } else {
     loadHomePage();
   }
