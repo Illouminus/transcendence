@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
 import { getUserByEmail, createUser } from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
 import { sendEmail } from "./mailer.services";
@@ -61,4 +62,23 @@ export async function verifyTwoFactorAuth(
   await updateJWT(user.id, token);
 
   return { message: "Login successful!", token };
+}
+
+
+export async function googleAuthenticator(token: string)
+{
+  const googleClientId = process.env.GOOGLE_CLIENT_ID;
+  const client = new OAuth2Client(googleClientId);
+
+  const ticket = client.verifyIdToken({
+    idToken: token,
+    audience: googleClientId
+  })
+
+  const payload = (await ticket).getPayload;
+  if (!payload) {
+        return({ code: 401,status: "Invalid google token" });
+  }
+
+  console.log(payload);
 }

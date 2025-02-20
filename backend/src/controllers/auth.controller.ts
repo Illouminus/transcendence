@@ -3,6 +3,7 @@ import {
 	registerUser,
 	loginUser,
 	verifyTwoFactorAuth,
+	googleAuthenticator
 } from "../services/auth.service";
 import { RegisterBody, LoginBody } from "../@types/auth.types";
 import { getErrorMessage } from "../utils/errorHandler";
@@ -65,7 +66,7 @@ export async function googleAuth(req: FastifyRequest<{ Body: { token: string } }
 			return res.status(400).send({ error: "Token is required" });
 		}
 
-		// const response = await googleAuthenticator();
+		const response = await googleAuthenticator(token);
 		// res.setCookie("token", response.token, { httpOnly: true, secure: false });
 		// return res.send(response);
 	} catch (error) {

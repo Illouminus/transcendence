@@ -25,14 +25,6 @@ server.register(fastifyStatic, {
 });
 
 
-interface HelloWorldResponse {
-	hello: string;
-}
-
-// server.get<{ Reply: HelloWorldResponse }>("/", async (request, reply) => {
-// 	return { hello: "Привет люди !" };
-// });
-
 server.register(authPlugin);
 server.register(authRoutes, { prefix: "/auth" });
 
