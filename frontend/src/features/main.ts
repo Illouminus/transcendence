@@ -1,5 +1,8 @@
 import "../styles/style.css"
+import "./googleAuth";
 
-import "./loginRedirect"; // Import du script de redirection
+console.log("Hello from TypeScript!");
 
-import "./googleAuth"; // Import srcipt for google auth
+//Routing
+import { setupRouting } from "./router";
+setupRouting();
