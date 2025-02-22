@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
-import { getUserByEmail, createUser, getUserByGoogleId, getUserById, createGooleUser } from "../models/user.model";
+import { getUserByEmail, createUser, getUserByGoogleId, getUserById, createGooleUser, deleteSession } from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
 import { sendEmail } from "./mailer.services";
 import { GoogleUser, User, JwtPayload } from "../@types/auth.types";
@@ -140,3 +140,25 @@ export async function googleAuthenticator(idToken: string): Promise<User> {
 	return user;
 }
 
+
+
+
+export async function logoutUser(
+	fastify: FastifyInstance,
+	req: FastifyRequest,
+	res: FastifyReply
+): Promise<void> {
+	const user = await verifyAuth(fastify, req);
+	if (!user) {
+		throw new Error("Unauthorized");
+	}
+
+	await deleteSession(user.id);
+
+	res.clearCookie("token", {
+		path: "/",
+		httpOnly: true,
+		secure: true,
+		sameSite: "none",
+	});
+}

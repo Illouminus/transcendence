@@ -74,3 +74,16 @@ export async function createGooleUser(user: GoogleUser): Promise<number> {
 		);
 	});
 }
+
+export async function deleteSession(userId: number): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		db.run(
+			"DELETE FROM sessions WHERE user_id = ?",
+			[userId],
+			function (err: Error) {
+				if (err) return reject(err);
+				resolve();
+			}
+		);
+	});
+}

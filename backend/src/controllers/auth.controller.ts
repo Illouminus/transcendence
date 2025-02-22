@@ -4,7 +4,8 @@ import {
 	loginUser,
 	verifyTwoFactorAuth,
 	googleAuthenticator,
-	verifyAuth
+	verifyAuth,
+	logoutUser
 } from "../services/auth.service";
 import { RegisterBody, LoginBody } from "../@types/auth.types";
 import { getErrorMessage } from "../utils/errorHandler";
@@ -85,4 +86,13 @@ export async function authMe(req: FastifyRequest, res: FastifyReply) {
 		return res.status(401).send({ error: "Unauthorized" });
 	}
 	return res.send(user);
+}
+
+export async function logout(req: FastifyRequest, res: FastifyReply) {
+	try {
+		await logoutUser(res.server, req, res);
+		res.send({ message: "Logged out successfully" });
+	} catch (error: any) {
+		res.status(401).send({ error: error.message });
+	}
 }

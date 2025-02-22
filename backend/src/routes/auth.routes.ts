@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { register, login, verify2FA, googleAuth, authMe } from "../controllers/auth.controller";
+import { register, login, verify2FA, googleAuth, authMe, logout } from "../controllers/auth.controller";
 
 export default async function authRoutes(fastify: FastifyInstance) {
 	fastify.post("/register", register);
@@ -7,4 +7,5 @@ export default async function authRoutes(fastify: FastifyInstance) {
 	fastify.post("/verify-2fa", verify2FA);
 	fastify.post("/google-authenticator", googleAuth);
 	fastify.get("/me", authMe);
+	fastify.post("/logout", logout);
 }
