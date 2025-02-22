@@ -73,12 +73,11 @@ export async function googleAuth(
 		}
 		const user = await googleAuthenticator(idToken);
 		const token = await issueAndSetToken(res.server, res, user.id);
-		return res.send({ message: "Login successful!", token });
+		return res.status(200).send({ message: "Login successful!", token });
 	} catch (error) {
 		return res.status(400).send({ error: getErrorMessage(error) });
 	}
 }
-
 
 export async function authMe(req: FastifyRequest, res: FastifyReply) {
 	const user = await verifyAuth(res.server, req);
@@ -88,10 +87,11 @@ export async function authMe(req: FastifyRequest, res: FastifyReply) {
 	return res.send(user);
 }
 
+
 export async function logout(req: FastifyRequest, res: FastifyReply) {
 	try {
 		await logoutUser(res.server, req, res);
-		res.send({ message: "Logged out successfully" });
+		res.status(200).send({ message: "Logged out successfully" });
 	} catch (error: any) {
 		res.status(401).send({ error: error.message });
 	}

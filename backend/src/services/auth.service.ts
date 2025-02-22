@@ -23,32 +23,24 @@ export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyRep
 
 export async function verifyAuth(fastify: FastifyInstance, req: FastifyRequest): Promise<{ id: number; email: string; username: string } | null> {
 	try {
-		// 1️⃣ Получаем токен из куки
 		const token = req.cookies.token;
 		if (!token) {
-			return null; // Нет токена — не авторизован
+			return null;
 		}
 
-		// 2️⃣ Проверяем валидность токена
 		let decoded: JwtPayload;
 		try {
 			decoded = fastify.jwt.verify(token);
 		} catch (err) {
-			return null; // Токен невалидный
+			return null;
 		}
-
-		// 3️⃣ Проверяем, есть ли userId в токене
 		if (!decoded || typeof decoded !== "object" || !decoded.userId) {
 			return null;
 		}
-
-		// 4️⃣ Получаем пользователя из БД
 		const user = await getUserById(decoded.userId);
 		if (!user) {
 			return null;
 		}
-
-		// 5️⃣ Возвращаем данные пользователя
 		return {
 			id: user.id,
 			email: user.email,
@@ -139,8 +131,6 @@ export async function googleAuthenticator(idToken: string): Promise<User> {
 	}
 	return user;
 }
-
-
 
 
 export async function logoutUser(
