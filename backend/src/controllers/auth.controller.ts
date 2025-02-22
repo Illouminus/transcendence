@@ -38,7 +38,7 @@ export async function login(
 			req.body.email,
 			req.body.password,
 		);
-		return res.send(response);
+		return res.status(200).send(response);
 	} catch (error) {
 		return res.status(400).send({ error: getErrorMessage(error) });
 	}

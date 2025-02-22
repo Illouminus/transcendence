@@ -6,6 +6,7 @@ import { getUserByEmail, createUser, getUserByGoogleId, getUserById, createGoole
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
 import { sendEmail } from "./mailer.services";
 import { GoogleUser, User, JwtPayload } from "../@types/auth.types";
+import { log } from "console";
 
 
 export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyReply, userId: number): Promise<string> {
@@ -83,8 +84,9 @@ export async function loginUser(
 	const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
 	await save2FACode(user.id, twoFactorCode, expiresAt);
-	sendEmail(email, "2FA Code", `Your 2FA code is: ${twoFactorCode}`);
-
+	if (!sendEmail(email, "2FA Code", `Your 2FA code is: ${twoFactorCode}`)) {
+		throw new Error("Failed to send 2FA code");
+	}
 	return { message: "2FA code sent to email" };
 }
 

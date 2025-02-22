@@ -1,5 +1,5 @@
 import { fetchAndRender, setupLoginButton } from "./outils";
-import { checkAuth, login, logout, renderGoogleButton } from "../services/auth.service";
+import { checkAuth, login, logout, renderGoogleButton, login2FA } from "../services/auth.service";
 import { setupUI } from "../services/ui.service";
 import { redirectTo } from "../router";
 
@@ -34,5 +34,16 @@ export async function loadDashboardPage() {
 	if (!(await checkAuth())) return redirectTo("/login");
 	document.getElementById("logout-button")?.addEventListener("click", async () => {
 		await logout();
+	});
+}
+
+export async function load2FAPage() {
+	console.log("2FA Page");
+	await fetchAndRender("2fa");
+	document.querySelector("form")?.addEventListener("submit", async (e) => {
+		e.preventDefault();
+		const code = (document.getElementById("code") as HTMLInputElement).value;
+		const email = (document.getElementById("email-2fa") as HTMLInputElement).value;
+		await login2FA(email, code);
 	});
 }

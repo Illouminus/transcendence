@@ -20,6 +20,25 @@ export async function checkAuth(): Promise<boolean> {
 	}
 }
 
+
+export async function login2FA(email: string, code: string) {
+	try {
+		const res = await fetch(`${API_URL}/verify-2fa`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ email, code }),
+			credentials: "include",
+		});
+		console.log("2FA response:", res);
+		if (!res.ok) throw new Error("Invalid 2FA code");
+		await setupUI();
+		redirectTo("/");
+	} catch (error) {
+		console.error("2FA failed:", error);
+	}
+}
+
+
 // Function to login the user
 export async function login(email: string, password: string) {
 	try {
@@ -30,6 +49,12 @@ export async function login(email: string, password: string) {
 			credentials: "include",
 		});
 		if (!res.ok) throw new Error("Invalid credentials");
+		if (res.status === 200) {
+			console.log("Login successful");
+			//await setupUI();
+			redirectTo("/2fa");
+			return;
+		}
 		await setupUI();
 		redirectTo("/");
 	} catch (error) {
