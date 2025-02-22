@@ -1,11 +1,11 @@
-import { FastifyInstance, FastifyReply } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import { getUserByEmail, createUser, getUserByGoogleId, getUserById, createGooleUser } from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
 import { sendEmail } from "./mailer.services";
-import { GoogleUser, User } from "../@types/auth.types";
+import { GoogleUser, User, JwtPayload } from "../@types/auth.types";
 
 
 export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyReply, userId: number): Promise<string> {
@@ -18,6 +18,45 @@ export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyRep
 		path: "/"
 	});
 	return token;
+}
+
+
+export async function verifyAuth(fastify: FastifyInstance, req: FastifyRequest): Promise<{ id: number; email: string; username: string } | null> {
+	try {
+		// 1️⃣ Получаем токен из куки
+		const token = req.cookies.token;
+		if (!token) {
+			return null; // Нет токена — не авторизован
+		}
+
+		// 2️⃣ Проверяем валидность токена
+		let decoded: JwtPayload;
+		try {
+			decoded = fastify.jwt.verify(token);
+		} catch (err) {
+			return null; // Токен невалидный
+		}
+
+		// 3️⃣ Проверяем, есть ли userId в токене
+		if (!decoded || typeof decoded !== "object" || !decoded.userId) {
+			return null;
+		}
+
+		// 4️⃣ Получаем пользователя из БД
+		const user = await getUserById(decoded.userId);
+		if (!user) {
+			return null;
+		}
+
+		// 5️⃣ Возвращаем данные пользователя
+		return {
+			id: user.id,
+			email: user.email,
+			username: user.username,
+		};
+	} catch (error) {
+		return null;
+	}
 }
 
 
@@ -44,7 +83,7 @@ export async function loginUser(
 	password: string,
 ) {
 	const user = await getUserByEmail(email);
-	if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+	if (!user || !user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
 		throw new Error("Invalid credentials");
 	}
 

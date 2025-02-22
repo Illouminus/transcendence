@@ -3,11 +3,12 @@ import {
 	registerUser,
 	loginUser,
 	verifyTwoFactorAuth,
-	googleAuthenticator
+	googleAuthenticator,
+	verifyAuth
 } from "../services/auth.service";
 import { RegisterBody, LoginBody } from "../@types/auth.types";
 import { getErrorMessage } from "../utils/errorHandler";
-import {issueAndSetToken} from "../services/auth.service"
+import { issueAndSetToken } from "../services/auth.service"
 
 export async function register(
 	req: FastifyRequest<{ Body: RegisterBody }>,
@@ -63,17 +64,25 @@ export async function verify2FA(
 export async function googleAuth(
 	req: FastifyRequest<{ Body: { idToken: string } }>,
 	res: FastifyReply,
-  ) {
+) {
 	try {
-	  const { idToken } = req.body;
-	  if (!idToken) {
-		return res.status(400).send({ error: "Token is required" });
-	  }
-	  const user = await googleAuthenticator(idToken);
-	  const token = await issueAndSetToken(res.server, res, user.id);
-	  return res.send({ message: "Login successful!", token });
+		const { idToken } = req.body;
+		if (!idToken) {
+			return res.status(400).send({ error: "Token is required" });
+		}
+		const user = await googleAuthenticator(idToken);
+		const token = await issueAndSetToken(res.server, res, user.id);
+		return res.send({ message: "Login successful!", token });
 	} catch (error) {
-	  return res.status(400).send({ error: getErrorMessage(error) });
+		return res.status(400).send({ error: getErrorMessage(error) });
 	}
-  }
-  
+}
+
+
+export async function authMe(req: FastifyRequest, res: FastifyReply) {
+	const user = await verifyAuth(res.server, req);
+	if (!user) {
+		return res.status(401).send({ error: "Unauthorized" });
+	}
+	return res.send(user);
+}
