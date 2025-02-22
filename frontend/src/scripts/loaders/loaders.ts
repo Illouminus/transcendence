@@ -18,6 +18,10 @@ export async function loadLoginPage() {
 		const password = (document.getElementById("password") as HTMLInputElement).value;
 		await login(email, password);
 	});
+
+	document.getElementById("signup-button")?.addEventListener("click", async () => {
+		await loadSignupPage();
+	});
 }
 
 export async function loadSignupPage() {
