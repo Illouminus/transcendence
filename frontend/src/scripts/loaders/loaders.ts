@@ -1,5 +1,5 @@
 import { fetchAndRender } from "./outils";
-import { checkAuth, login, logout, renderGoogleButton, login2FA } from "../services/auth.service";
+import { checkAuth, login, logout, renderGoogleButton, login2FA, handleSignupSubmit } from "../services/auth.service";
 import { setupUI } from "../services/ui.service";
 import { redirectTo } from "../router";
 
@@ -20,6 +20,7 @@ export async function loadLoginPage() {
 
 export async function loadSignupPage() {
 	await fetchAndRender("signup");
+	document.querySelector("form")?.addEventListener("submit", handleSignupSubmit);
 }
 
 export async function loadDashboardPage() {

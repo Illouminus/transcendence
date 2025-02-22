@@ -101,3 +101,42 @@ function handleCredentialResponse(response: any) {
 		})
 		.catch((err) => console.error(err));
 }
+
+
+
+
+export async function handleSignupSubmit(e: Event): Promise<void> {
+	e.preventDefault();
+
+	const username = (document.getElementById("username") as HTMLInputElement).value;
+	const email = (document.getElementById("email") as HTMLInputElement).value;
+	const password = (document.getElementById("password") as HTMLInputElement).value;
+	const avatarInput = document.getElementById("avatar") as HTMLInputElement;
+
+	console.log("Registering user", username, email, password, avatarInput.files);
+
+	const formData = new FormData();
+	formData.append("username", username);
+	formData.append("email", email);
+	formData.append("password", password);
+	if (avatarInput.files && avatarInput.files[0]) {
+		formData.append("avatar", avatarInput.files[0]);
+	}
+
+	try {
+		const res = await fetch(`${API_URL}/register`, {
+			method: "POST",
+			body: formData,
+			credentials: "include",
+		});
+		if (!res.ok) {
+			throw new Error(`Registration failed: ${res.statusText}`);
+		}
+		const data = await res.json();
+		console.log("Registration successful", data);
+		await setupUI();
+		redirectTo("/");
+	} catch (error) {
+		console.error("Registration error:", error);
+	}
+}

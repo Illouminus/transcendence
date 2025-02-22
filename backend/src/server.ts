@@ -3,6 +3,7 @@ import fastifyCookie from "@fastify/cookie";
 import fastifyFormbody from "@fastify/formbody";
 import cors from '@fastify/cors'
 import fastifyStatic from "@fastify/static";
+import fastifyMultipart from "@fastify/multipart";
 import fastifyJwt from "@fastify/jwt";
 import authPlugin from "./plugins/jwt.plugin";
 import authRoutes from "./routes/auth.routes";
@@ -22,6 +23,7 @@ server.register(fastifyCookie, {
 	parseOptions: {},
 });
 server.register(fastifyFormbody);
+server.register(fastifyMultipart);
 server.register(fastifyJwt, {
 	secret: process.env.JWT_SECRET || "supersecret",
 });

@@ -6,7 +6,8 @@ import { getUserByEmail, createUser, getUserByGoogleId, getUserById, createGoole
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
 import { sendEmail } from "./mailer.services";
 import { GoogleUser, User, JwtPayload } from "../@types/auth.types";
-import { log } from "console";
+import path from "path";
+import fs from "fs";
 
 
 export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyReply, userId: number): Promise<string> {
@@ -59,14 +60,35 @@ export async function registerUser(
 	username: string,
 	email: string,
 	password: string,
-) {
+	avatarFile?: any
+): Promise<{ message: string; userId: number }> {
 	if (!username || !email || !password) {
 		throw new Error("All fields are required");
 	}
-
 	const hashedPassword = await bcrypt.hash(password, 10);
-	const userId = await createUser(username, email, hashedPassword);
 
+	let avatar_url: string | null = null;
+	if (avatarFile) {
+		// Определяем директорию для загрузок
+		const uploadsDir = path.join(__dirname, "../uploads/avatars");
+		if (!fs.existsSync(uploadsDir)) {
+			fs.mkdirSync(uploadsDir, { recursive: true });
+		}
+
+		const filename = Date.now() + "-" + avatarFile.filename;
+		const filePath = path.join(uploadsDir, filename);
+
+		await new Promise<void>((resolve, reject) => {
+			const writeStream = fs.createWriteStream(filePath);
+			avatarFile.file.pipe(writeStream);
+			writeStream.on("finish", resolve);
+			writeStream.on("error", reject);
+		});
+
+		avatar_url = `/uploads/avatars/${filename}`;
+	}
+
+	const userId = await createUser(username, email, hashedPassword, avatar_url);
 	return { message: "User registered!", userId };
 }
 

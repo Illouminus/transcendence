@@ -1,7 +1,10 @@
+import { FastifyMultipartOptions } from 'fastify-multipart';
+
 export interface RegisterBody {
 	username: string;
 	email: string;
 	password: string;
+	avatarFile?: FastifyMultipartOptions;
 }
 
 export interface LoginBody {
