@@ -1,5 +1,6 @@
 import { loadDashboardPage, loadLoginPage } from "../loaders/loaders";
 import { redirectTo } from "../router";
+import { setupUI } from "./ui.service";
 
 declare var google: any;
 
@@ -29,8 +30,8 @@ export async function login(email: string, password: string) {
 			credentials: "include",
 		});
 		if (!res.ok) throw new Error("Invalid credentials");
-
-		redirectTo("/dashboard");
+		await setupUI();
+		redirectTo("/");
 	} catch (error) {
 		console.error("Login failed:", error);
 	}
@@ -39,7 +40,7 @@ export async function login(email: string, password: string) {
 
 export async function logout() {
 	await fetch(`${API_URL}/logout`, { method: "POST", credentials: "include" });
-	redirectTo("/login");
+	redirectTo("/");
 }
 
 
@@ -70,18 +71,9 @@ function handleCredentialResponse(response: any) {
 		credentials: "include",
 	})
 		.then((res) => res.json())
-		.then((data) => {
-			loadDashboardPage();
+		.then(async (data) => {
+			await setupUI();
+			redirectTo("/");
 		})
 		.catch((err) => console.error(err));
 }
-
-
-
-// window.onload = () => {
-// 	google.accounts.id.initialize({
-// 		client_id: clientId,
-// 		callback: handleCredentialResponse,
-// 	});
-
-// };

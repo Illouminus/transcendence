@@ -4,7 +4,7 @@ import { setupUI } from "../services/ui.service";
 import { redirectTo } from "../router";
 
 export async function loadHomePage() {
-	//await fetchAndRender("index");
+	await fetchAndRender("dog");
 	await setupUI()
 	setupLoginButton();
 }
