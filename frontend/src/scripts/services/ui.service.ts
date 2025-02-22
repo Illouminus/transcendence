@@ -6,6 +6,9 @@ export async function setupUI() {
 	console.log("User Authenticated:", isAuth);
 	toggleVisibility("login-button", !isAuth);
 	toggleVisibility("dashboard-button", isAuth);
+	toggleVisibility("inbox-button", isAuth);
+	toggleVisibility("friends-button", isAuth);
+	toggleVisibility("game-button", isAuth);
 	toggleVisibility("logout-button", isAuth);
 
 	document.getElementById("signup-button")?.addEventListener("click", (e) => {
