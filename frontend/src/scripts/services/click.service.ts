@@ -6,7 +6,6 @@ import { setupUI } from "./ui.service";
 
 
 export async function onSignupClick() {
-	// Здесь только redirect
 	redirectTo("/signup");
 }
 export async function onLoginClick() {
