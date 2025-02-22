@@ -77,7 +77,6 @@ export async function renderGoogleButton() {
 		callback: handleCredentialResponse,
 	});
 	const container = document.getElementById("google-signin-button");
-	console.log("Google button container:", container);
 	if (container) {
 		google.accounts.id.renderButton(container, {
 			theme: "outline",

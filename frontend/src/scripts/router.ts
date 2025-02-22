@@ -21,6 +21,9 @@ export function handleRouting() {
 }
 
 export function redirectTo(path: string) {
+	if (window.location.pathname === path) {
+		return;
+	}
 	window.history.pushState({}, "", path);
 	handleRouting();
 }

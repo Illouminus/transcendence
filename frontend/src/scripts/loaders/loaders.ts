@@ -1,12 +1,10 @@
-import { fetchAndRender, setupLoginButton } from "./outils";
+import { fetchAndRender } from "./outils";
 import { checkAuth, login, logout, renderGoogleButton, login2FA } from "../services/auth.service";
 import { setupUI } from "../services/ui.service";
 import { redirectTo } from "../router";
 
 export async function loadHomePage() {
 	await fetchAndRender("dog");
-	await setupUI()
-	setupLoginButton();
 }
 
 export async function loadLoginPage() {
@@ -17,10 +15,6 @@ export async function loadLoginPage() {
 		const email = (document.getElementById("email") as HTMLInputElement).value;
 		const password = (document.getElementById("password") as HTMLInputElement).value;
 		await login(email, password);
-	});
-
-	document.getElementById("signup-button")?.addEventListener("click", async () => {
-		await loadSignupPage();
 	});
 }
 

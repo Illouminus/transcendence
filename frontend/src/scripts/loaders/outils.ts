@@ -5,7 +5,3 @@ export async function fetchAndRender(page: string) {
 	if (!response.ok) throw new Error(`Error loading ${page}`);
 	document.getElementById("app")!.innerHTML = await response.text();
 }
-
-export function setupLoginButton() {
-	document.getElementById("login-button")?.addEventListener("click", () => redirectTo("/login"));
-}
