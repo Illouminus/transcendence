@@ -68,8 +68,8 @@ export async function registerUser(
 	const hashedPassword = await bcrypt.hash(password, 10);
 
 	let avatar_url: string | null = null;
+
 	if (avatarFile) {
-		// Определяем директорию для загрузок
 		const uploadsDir = path.join(__dirname, "../uploads/avatars");
 		if (!fs.existsSync(uploadsDir)) {
 			fs.mkdirSync(uploadsDir, { recursive: true });

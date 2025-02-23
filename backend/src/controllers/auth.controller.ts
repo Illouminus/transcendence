@@ -13,13 +13,7 @@ import { issueAndSetToken } from "../services/auth.service"
 
 export async function register(req: FastifyRequest, reply: FastifyReply) {
 	try {
-		// Считываем одну часть, ожидая, что это будет поле "avatar" (файл).
-		// Если файла нет, всё равно создастся объект, но `data.file` будет пустым стрим.
 		const data = await req.file();
-
-		// Остальные поля формы находятся в `data.fields`
-		// По умолчанию они будут иметь вид:
-		// data.fields.username.value, data.fields.email.value, data.fields.password.value, ...
 		if (!data) {
 			return reply.status(400).send({ error: "File data is missing" });
 		}
@@ -28,9 +22,6 @@ export async function register(req: FastifyRequest, reply: FastifyReply) {
 		const email = fields.email?.value || "";
 		const password = fields.password?.value || "";
 
-		// Вызываем сервис, передавая данные. 
-		// `data` (тип: MultipartFile) содержит и стрим файла, и метаданные (filename, mimetype),
-		// а также `data.fields` с текстовыми полями.
 		const response = await registerUser(reply.server, username, email, password, data);
 
 		return reply.status(201).send(response);

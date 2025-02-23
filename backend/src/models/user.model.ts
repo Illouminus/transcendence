@@ -51,7 +51,6 @@ export async function createUser(
 	avatar_url: string | null = null
 ): Promise<number> {
 	return new Promise((resolve, reject) => {
-		// Вставляем avatar_url в запрос; если null, БД примет значение по умолчанию
 		db.run(
 			"INSERT INTO users (username, email, password_hash, avatar_url) VALUES (?, ?, ?, ?)",
 			[username, email, password_hash, avatar_url],
