@@ -160,7 +160,8 @@ export async function handleSignupSubmit(e: Event): Promise<void> {
 			throw new Error(`Registration failed: ${res.statusText}`);
 		}
 		const data = await res.json();
-		if (data.ok)
+		console.log("Registration response:", data);
+		if (data.message === "User registered!")
 			showAlert("Registration successful", "success");
 		else
 			showAlert("Registration failed: " + data.error, "danger");

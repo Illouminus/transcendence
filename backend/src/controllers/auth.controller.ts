@@ -7,23 +7,39 @@ import {
 	verifyAuth,
 	logoutUser
 } from "../services/auth.service";
-import { RegisterBody, LoginBody } from "../@types/auth.types";
+import { LoginBody } from "../@types/auth.types";
 import { getErrorMessage } from "../utils/errorHandler";
 import { issueAndSetToken } from "../services/auth.service"
-
 export async function register(req: FastifyRequest, reply: FastifyReply) {
 	try {
-		const data = await req.file();
-		if (!data) {
-			return reply.status(400).send({ error: "File data is missing" });
+		let avatarFile: any | null = null;
+		let username = "";
+		let email = "";
+		let password = "";
+
+		for await (const part of req.parts()) {
+			if (part.type === "file") {
+				if (part.fieldname === "avatar") {
+					avatarFile = part;
+				}
+			} else {
+				const field = part;
+				if (field.fieldname === "username") {
+					username = String(field.value);
+				} else if (field.fieldname === "email") {
+					email = String(field.value);
+				} else if (field.fieldname === "password") {
+					password = String(field.value);
+				}
+			}
 		}
-		const fields = data.fields as { [key: string]: { value: string } };
-		const username = fields.username?.value || "";
-		const email = fields.email?.value || "";
-		const password = fields.password?.value || "";
 
-		const response = await registerUser(reply.server, username, email, password, data);
+		console.log("Registering user with username:", username, "email:", email, "password:", password);
+		if (!username || !email || !password) {
+			return reply.status(400).send({ error: "Username, email and password are required" });
+		}
 
+		const response = await registerUser(reply.server, username, email, password, avatarFile);
 		return reply.status(201).send(response);
 	} catch (error) {
 		return reply.status(400).send({ error: getErrorMessage(error) });
