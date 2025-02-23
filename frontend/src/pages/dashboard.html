@@ -7,77 +7,80 @@
 	<script type="module" src="./src/features/main.ts"></script>
 	<link rel="stylesheet" href="./src/styles/style.css" />
 </head>
+
 <body class="bg-stone-900 h-screen w-screen">
 	<!-- Conteneur pour la Navbar -->
 	<div id="navbar-container"></div>
-  
+
 	<div class="flex flex-col items-center h-full p-20">
-	  <!-- Content -->
-	  <div class="h-full w-full rounded-xl p-5" style="background: linear-gradient(145deg, #1e1b19, #191715);
+		<!-- Content -->
+		<div class="h-full w-full rounded-xl p-5" style="background: linear-gradient(145deg, #1e1b19, #191715);
 	  box-shadow:  11px 11px 20px #0d0c0b,
 				   -11px -11px 20px #2b2723;">
-		
-		<!-- User Container -->
-		<div class="w-full rounded-xl box-inset-shadow mb-10 p-5 flex flex-row items-center">
-			<img class="w-30 h-30 rounded-full mr-10" src="https://cataas.com/cat" alt="Avatar">
-			<div class="flex flex-col h-full justify-between">
-				<h1 class="text-white">User Name</h1>
-				<h1 class="text-white">15 victories</h1>
-				<h1 class="text-white">20 matches</h1>
-			</div>
-			
 
-		</div>
-		
-		<!-- Friends Container -->
-		<div class="flex flex-row bg-green-100 p-5 rounded-xl box-inset-shadow w-50pourcent">
-		  <div class="flex flex-col h-full w-full w-full">
-			<h1 class="mb-5 text-white">Friends</h1>
-			<ul role="list" class="w-full divide-y divide-gray-200 dark:divide-gray-700">
-			  <li class="py-3 sm:py-4">
-				<div class="flex items-center space-x-3 rtl:space-x-reverse">
-				  <div class="shrink-0">
-					<img class="w-8 h-8 rounded-full" src="https://cataas.com/cat" alt="Avatar">
-				  </div>
-				  <div class="flex-1 min-w-0">
-					<p class="text-sm font-semibold text-gray-900 truncate dark:text-white">
-					  Neil Sims
-					</p>
-					<p class="text-sm text-gray-500 truncate dark:text-gray-400">
-					  email@flowbite.com
-					</p>
-				  </div>
-				  <span class="inline-flex items-center bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
-					<span class="w-2 h-2 me-1 bg-green-500 rounded-full"></span>
-					Online
-				  </span>
+			<!-- User Container -->
+			<div class="w-full rounded-xl box-inset-shadow mb-10 p-5 flex flex-row items-center">
+				<img class="w-30 h-30 rounded-full mr-10" src="https://cataas.com/cat" alt="Avatar">
+				<div class="flex flex-col h-full justify-between">
+					<h1 class="text-white">User Name</h1>
+					<h1 class="text-white">15 victories</h1>
+					<h1 class="text-white">20 matches</h1>
 				</div>
-			  </li>
-			  <li class="py-3 sm:py-4">
-				<div class="flex items-center space-x-3 rtl:space-x-reverse">
-				  <div class="shrink-0">
-					<img class="w-8 h-8 rounded-full" src="https://cataas.com/cat" alt="Avatar">
-				  </div>
-				  <div class="flex-1 min-w-0">
-					<p class="text-sm font-semibold text-gray-900 truncate dark:text-white">
-					  Bonnie Green
-					</p>
-					<p class="text-sm text-gray-500 truncate dark:text-gray-400">
-					  email@flowbite.com
-					</p>
-				  </div>
-				  <span class="inline-flex items-center bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">
-					<span class="w-2 h-2 me-1 bg-red-500 rounded-full"></span>
-					Offline
-				  </span>
+
+
+			</div>
+
+			<!-- Friends Container -->
+			<div class="flex flex-row bg-green-100 p-5 rounded-xl box-inset-shadow w-50pourcent">
+				<div class="flex flex-col h-full w-full w-full">
+					<h1 class="mb-5 text-white">Friends</h1>
+					<ul role="list" class="w-full divide-y divide-gray-200 dark:divide-gray-700">
+						<li class="py-3 sm:py-4">
+							<div class="flex items-center space-x-3 rtl:space-x-reverse">
+								<div class="shrink-0">
+									<img class="w-8 h-8 rounded-full" src="https://cataas.com/cat" alt="Avatar">
+								</div>
+								<div class="flex-1 min-w-0">
+									<p class="text-sm font-semibold text-gray-900 truncate dark:text-white">
+										Neil Sims
+									</p>
+									<p class="text-sm text-gray-500 truncate dark:text-gray-400">
+										email@flowbite.com
+									</p>
+								</div>
+								<span
+									class="inline-flex items-center bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+									<span class="w-2 h-2 me-1 bg-green-500 rounded-full"></span>
+									Online
+								</span>
+							</div>
+						</li>
+						<li class="py-3 sm:py-4">
+							<div class="flex items-center space-x-3 rtl:space-x-reverse">
+								<div class="shrink-0">
+									<img class="w-8 h-8 rounded-full" src="https://cataas.com/cat" alt="Avatar">
+								</div>
+								<div class="flex-1 min-w-0">
+									<p class="text-sm font-semibold text-gray-900 truncate dark:text-white">
+										Bonnie Green
+									</p>
+									<p class="text-sm text-gray-500 truncate dark:text-gray-400">
+										email@flowbite.com
+									</p>
+								</div>
+								<span
+									class="inline-flex items-center bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">
+									<span class="w-2 h-2 me-1 bg-red-500 rounded-full"></span>
+									Offline
+								</span>
+							</div>
+						</li>
+					</ul>
 				</div>
-			  </li>
-			</ul>
-		  </div>
+			</div>
 		</div>
-	  </div>
-	</div>	
+	</div>
 </body>
-  
+
 
 </html>
