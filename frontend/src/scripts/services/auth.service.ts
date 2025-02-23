@@ -1,43 +1,42 @@
 import { redirectTo } from "../router";
 import { setupUI } from "./ui.service";
 import { User } from "../models/user.model";
+import { showAlert } from "./alert.service";
+import { UserState } from "../userState";
 
 declare var google: any;
 
-// Google OAuth 2.0 Client ID - Need to ENV variable
+// Google OAuth 2.0 Client ID
 const clientId = "747067169-6jotvfqmsp06iq9muu28jq2547q3v32s.apps.googleusercontent.com";
 
 const API_URL = "http://localhost:5555/auth";
 
-
-// Function to check if the user is authenticated
+// Проверка авторизации
 export async function checkAuth(): Promise<boolean> {
 	try {
 		const res = await fetch(`${API_URL}/me`, { credentials: "include" });
 		return res.ok;
-	} catch {
+	} catch (error) {
+		console.error("Error in checkAuth:", error);
 		return false;
 	}
 }
 
-
 export async function fetchUserProfile(): Promise<User | null> {
 	try {
-		const res = await fetch(`${API_URL}/me`, {
-			credentials: "include",
-		});
+		const res = await fetch(`${API_URL}/me`, { credentials: "include" });
 		if (res.ok) {
 			const user: User = await res.json();
 			console.log("User profile:", user);
 			return user;
 		}
 		return null;
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Error fetching user profile:", error);
+		//showAlert("Error fetching user profile: " + error.message, "danger");
 		return null;
 	}
 }
-
 
 export async function login2FA(email: string, code: string) {
 	try {
@@ -48,16 +47,18 @@ export async function login2FA(email: string, code: string) {
 			credentials: "include",
 		});
 		if (!res.ok) throw new Error("Invalid 2FA code");
-		await checkAuth();
+		showAlert("2FA successful", "success");
+		const user = await fetchUserProfile();
+		if (user)
+			UserState.setUser(user);
 		await setupUI();
 		redirectTo("/");
-	} catch (error) {
+	} catch (error: any) {
 		console.error("2FA failed:", error);
+		showAlert("2FA failed: " + error.message, "danger");
 	}
 }
 
-
-// Function to login the user
 export async function login(email: string, password: string) {
 	try {
 		const res = await fetch(`${API_URL}/login`, {
@@ -67,46 +68,48 @@ export async function login(email: string, password: string) {
 			credentials: "include",
 		});
 		if (!res.ok) throw new Error("Invalid credentials");
-		if (res.status === 200) {
-			console.log("Login successful");
-			//await setupUI();
-			redirectTo("/2fa");
-			return;
-		}
+		showAlert("Login successful - you need to enter you 2FA code", "success");
+		redirectTo("/2fa");
+	} catch (error: any) {
+		console.error("Login failed:", error);
+		showAlert("Login failed: " + error.message, "danger");
+	}
+}
+export async function logout() {
+	try {
+		await fetch(`${API_URL}/logout`, { method: "POST", credentials: "include" });
+		UserState.logout();
+		showAlert("Logout successful", "success");
 		await setupUI();
 		redirectTo("/");
-	} catch (error) {
-		console.error("Login failed:", error);
+	} catch (error: any) {
+		console.error("Logout failed:", error);
+		showAlert("Logout failed: " + error.message, "danger");
 	}
 }
 
 
-export async function logout() {
-	await fetch(`${API_URL}/logout`, { method: "POST", credentials: "include" });
-	redirectTo("/");
-}
-
-
-
-// Function to render the Google Sign-In button
 export async function renderGoogleButton() {
-	google.accounts.id.initialize({
-		client_id: clientId,
-		callback: handleCredentialResponse,
-	});
-	const container = document.getElementById("google-signin-button");
-	if (container) {
-		google.accounts.id.renderButton(container, {
-			theme: "outline",
-			size: "large",
+	try {
+		google.accounts.id.initialize({
+			client_id: clientId,
+			callback: handleCredentialResponse,
 		});
+		const container = document.getElementById("google-signin-button");
+		if (container) {
+			google.accounts.id.renderButton(container, {
+				theme: "outline",
+				size: "large",
+			});
+		}
+	} catch (error: any) {
+		console.error("Error initializing Google Sign-In:", error);
+		showAlert("Error initializing Google Sign-In: " + error.message, "danger");
 	}
 }
 
-// Function to handle the Google Sign-In response
 function handleCredentialResponse(response: any) {
-	console.log("Encoded JWT ID token: ", response.credential);
-	fetch("http://localhost:5555/auth/google-authenticator", {
+	fetch(`${API_URL}/google-authenticator`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ idToken: response.credential }),
@@ -114,14 +117,21 @@ function handleCredentialResponse(response: any) {
 	})
 		.then((res) => res.json())
 		.then(async (data) => {
+			if (data.error) {
+				showAlert("Google Sign-In Error - Possibly duplicate email", "danger");
+				return;
+			}
+			showAlert("Google Sign-In successful", "success");
+			const user = await fetchUserProfile();
+			if (user)
+				UserState.setUser(user);
 			await setupUI();
 			redirectTo("/");
 		})
-		.catch((err) => console.error(err));
+		.catch((err) => {
+			showAlert("Google Sign-In failed: " + err.message, "danger");
+		});
 }
-
-
-
 
 export async function handleSignupSubmit(e: Event): Promise<void> {
 	e.preventDefault();
@@ -131,7 +141,6 @@ export async function handleSignupSubmit(e: Event): Promise<void> {
 	const password = (document.getElementById("password") as HTMLInputElement).value;
 	const avatarInput = document.getElementById("avatar") as HTMLInputElement;
 
-	console.log("Registering user", username, email, password, avatarInput.files);
 
 	const formData = new FormData();
 	formData.append("username", username);
@@ -151,10 +160,14 @@ export async function handleSignupSubmit(e: Event): Promise<void> {
 			throw new Error(`Registration failed: ${res.statusText}`);
 		}
 		const data = await res.json();
-		console.log("Registration successful", data);
+		if (data.ok)
+			showAlert("Registration successful", "success");
+		else
+			showAlert("Registration failed: " + data.error, "danger");
 		await setupUI();
 		redirectTo("/");
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Registration error:", error);
+		showAlert("Registration error: " + error.message, "danger");
 	}
 }
