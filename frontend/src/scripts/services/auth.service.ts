@@ -10,6 +10,7 @@ declare var google: any;
 const clientId = "747067169-6jotvfqmsp06iq9muu28jq2547q3v32s.apps.googleusercontent.com";
 
 const API_URL = "http://localhost:5555/auth";
+const API_URL_USER = "http://localhost:5555/user";
 
 // Проверка авторизации
 export async function checkAuth(): Promise<boolean> {
@@ -151,7 +152,7 @@ export async function handleSignupSubmit(e: Event): Promise<void> {
 	}
 
 	try {
-		const res = await fetch(`${API_URL}/register`, {
+		const res = await fetch(`${API_URL_USER}/register`, {
 			method: "POST",
 			body: formData,
 			credentials: "include",
@@ -170,5 +171,47 @@ export async function handleSignupSubmit(e: Event): Promise<void> {
 	} catch (error: any) {
 		console.error("Registration error:", error);
 		showAlert("Registration error: " + error.message, "danger");
+	}
+}
+
+
+
+export async function handleUpdateProfile(e: Event): Promise<void> {
+	e.preventDefault();
+
+	const username = (document.getElementById("username") as HTMLInputElement).value;
+	const email = (document.getElementById("profile-email") as HTMLInputElement).value;
+	const password = (document.getElementById("password") as HTMLInputElement).value;
+	const avatarInput = document.getElementById("avatar") as HTMLInputElement;
+
+
+	const formData = new FormData();
+	formData.append("username", username);
+	formData.append("email", email);
+	formData.append("password", password);
+	if (avatarInput.files && avatarInput.files[0]) {
+		formData.append("avatar", avatarInput.files[0]);
+	}
+
+	try {
+		const res = await fetch(`${API_URL_USER}/update`, {
+			method: "PUT",
+			body: formData,
+			credentials: "include",
+		});
+		if (!res.ok) {
+			throw new Error(`Registration failed: ${res.statusText}`);
+		}
+		const data = await res.json();
+		console.log("Update response:", data);
+		if (data.message === "User updated!")
+			showAlert("Update was successful", "success");
+		else
+			showAlert("Update failed: " + data.error, "danger");
+		await setupUI();
+		redirectTo("/");
+	} catch (error: any) {
+		console.error("Update error:", error);
+		showAlert("Update error: " + error.message, "danger");
 	}
 }

@@ -1,7 +1,5 @@
 import { fetchAndRender } from "./outils";
-import { checkAuth, login, logout, renderGoogleButton, login2FA, handleSignupSubmit } from "../services/auth.service";
-import { setupUI } from "../services/ui.service";
-import { redirectTo } from "../router";
+import { login, renderGoogleButton, login2FA, handleSignupSubmit, fetchUserProfile, handleUpdateProfile } from "../services/auth.service";
 
 export async function loadHomePage() {
 	await fetchAndRender("dog");
@@ -23,13 +21,45 @@ export async function loadSignupPage() {
 	document.querySelector("form")?.addEventListener("submit", handleSignupSubmit);
 }
 
-export async function loadDashboardPage() {
-	await fetchAndRender("dashboard");
+export async function loadProfilePage() {
+	await fetchAndRender("profile");
+	document.querySelector("form")?.addEventListener("submit", handleUpdateProfile);
+	const avatar = document.getElementById("profile-avatar") as HTMLImageElement;
+	const username = document.getElementById("profile-username") as HTMLInputElement;
+	const usernameChange = document.getElementById("username") as HTMLInputElement;
+	const email = document.getElementById("profile-email") as HTMLInputElement;
+	const wins = document.getElementById("profile-wins") as HTMLInputElement;
+	const losses = document.getElementById("profile-losses") as HTMLInputElement;
+	const totalGames = document.getElementById("profile-total-games") as HTMLInputElement;
+	const totalTournaments = document.getElementById("profile-total-tournaments") as HTMLInputElement;
 
-	if (!(await checkAuth())) return redirectTo("/login");
-	document.getElementById("logout-button")?.addEventListener("click", async () => {
-		await logout();
-	});
+	const user = await fetchUserProfile();
+	if (avatar) {
+		avatar.onerror = () => {
+			avatar.onerror = null;
+			avatar.src = "http://localhost:5555/images/default_avatar.png";
+		};
+		if (user?.avatarUrl) {
+			avatar.src = `http://localhost:5555${user.avatarUrl}`;
+		} else {
+			avatar.src = "http://localhost:5555/images/default_avatar.png";
+		}
+	}
+	if (username)
+		username.innerHTML = user?.username ?? "";
+	if (usernameChange)
+		usernameChange.value = user?.username ?? "";
+	if (email)
+		email.value = user?.email ?? "";
+	if (wins)
+		wins.innerHTML = user?.wins.toString() ?? "";
+	if (losses)
+		losses.innerHTML = user?.losses.toString() ?? "";
+	if (totalGames)
+		totalGames.innerHTML = user?.totalGames?.toString() ?? "";
+	if (totalTournaments)
+		totalTournaments.innerHTML = user?.totalTournaments?.toString() ?? "";
+
 }
 
 export async function load2FAPage() {

@@ -5,7 +5,7 @@ export async function setupUI() {
 	const isAuth = await checkAuth();
 	toggleVisibility("login-button", !isAuth);
 	toggleVisibility("signup-button", !isAuth);
-	toggleVisibility("dashboard-button", isAuth);
+	toggleVisibility("profile-button", isAuth);
 	toggleVisibility("inbox-button", isAuth);
 	toggleVisibility("settings-button", isAuth);
 	toggleVisibility("friends-button", isAuth);

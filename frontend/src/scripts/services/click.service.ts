@@ -19,6 +19,6 @@ export async function onLogoutClick() {
 export async function onLogoClick() {
 	redirectTo("/");
 }
-export async function onDashboardClick() {
-	redirectTo("/dashboard");
+export async function onProfileClick() {
+	redirectTo("/profile");
 }
