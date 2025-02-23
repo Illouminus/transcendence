@@ -1,34 +1,24 @@
-export interface Achievement {
-	id: number;
-	userId: number;
-	achievement: string;
-	dateEarned: string;
-}
+import { User } from "./models/user.model";
 
-export interface User {
-	id: number;
-	username: string;
-	email: string;
-	avatarUrl?: string;
-	googleId?: string;
-	isVerified: boolean;
-	twoFactorSecret?: string;
-	createdAt: string;
-	updatedAt: string;
-	wins: number;
-	losses: number;
-	totalGames?: number;
-	totalTournaments?: number;
-	tournamentWins?: number;
-	achievements?: Achievement[];
-}
 
+const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
 
 export const UserState = {
-
 	user: null as User | null,
 	setUser: (user: User) => {
 		UserState.user = user;
+
+		if (avatarImg) {
+			avatarImg.onerror = () => {
+				avatarImg.onerror = null;
+				avatarImg.src = "http://localhost:5555/images/default_avatar.png";
+			};
+			if (user.avatarUrl) {
+				avatarImg.src = `http://localhost:5555${user.avatarUrl}`;
+			} else {
+				avatarImg.src = "http://localhost:5555/images/default_avatar.png";
+			}
+		}
 	},
 	getUser: () => {
 		return UserState.user;

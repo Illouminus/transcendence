@@ -1,6 +1,6 @@
-import { loadDashboardPage, loadLoginPage } from "../loaders/loaders";
 import { redirectTo } from "../router";
 import { setupUI } from "./ui.service";
+import { User } from "../models/user.model";
 
 declare var google: any;
 
@@ -21,6 +21,24 @@ export async function checkAuth(): Promise<boolean> {
 }
 
 
+export async function fetchUserProfile(): Promise<User | null> {
+	try {
+		const res = await fetch(`${API_URL}/me`, {
+			credentials: "include",
+		});
+		if (res.ok) {
+			const user: User = await res.json();
+			console.log("User profile:", user);
+			return user;
+		}
+		return null;
+	} catch (error) {
+		console.error("Error fetching user profile:", error);
+		return null;
+	}
+}
+
+
 export async function login2FA(email: string, code: string) {
 	try {
 		const res = await fetch(`${API_URL}/verify-2fa`, {
@@ -29,8 +47,8 @@ export async function login2FA(email: string, code: string) {
 			body: JSON.stringify({ email, code }),
 			credentials: "include",
 		});
-		console.log("2FA response:", res);
 		if (!res.ok) throw new Error("Invalid 2FA code");
+		await checkAuth();
 		await setupUI();
 		redirectTo("/");
 	} catch (error) {

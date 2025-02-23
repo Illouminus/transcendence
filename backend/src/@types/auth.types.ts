@@ -13,10 +13,10 @@ export interface LoginBody {
 }
 
 export interface GoogleUser {
-	name?: string,
-	email?: string,
-	picture?: string,
-	sub: string
+	name?: string;
+	email?: string;
+	picture?: string;
+	sub: string;
 }
 
 export interface JwtPayload {
@@ -34,8 +34,42 @@ export interface User {
 	google_id: string | null;
 	is_verified: boolean;
 	two_factor_secret: string | null;
-	created_at: string; // `DATETIME` в SQL обычно представляется как `string`
-	updated_at: string; // `DATETIME`
+	created_at: string;
+	updated_at: string;
 	wins: number;
 	losses: number;
+}
+
+export interface Achievement {
+	id: number;
+	userId: number;
+	achievement: string;
+	dateEarned: string;
+}
+
+export interface CountRow {
+	totalGames?: number;
+	totalTournaments?: number;
+	tournamentWins?: number;
+}
+
+export interface UserProfile extends User {
+	totalGames: number;
+	totalTournaments: number;
+	tournamentWins: number;
+	achievements: Achievement[];
+}
+
+export interface PublicUserProfile {
+	id: number;
+	username: string;
+	email: string;
+	avatarUrl: string | null;
+	isVerified: boolean;
+	wins: number;
+	losses: number;
+	totalGames: number;
+	totalTournaments: number;
+	tournamentWins: number;
+	achievements: Achievement[];
 }

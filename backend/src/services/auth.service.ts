@@ -2,10 +2,15 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
-import { getUserByEmail, createUser, getUserByGoogleId, getUserById, createGooleUser, deleteSession } from "../models/user.model";
+import {
+	getUserByEmail, createUser, getUserByGoogleId,
+	getUserById, createGooleUser, deleteSession,
+	getTotalGamesPlayed, getTotalTournaments,
+	getTournamentWins, getUserAchievements
+} from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
 import { sendEmail } from "./mailer.services";
-import { GoogleUser, User, JwtPayload } from "../@types/auth.types";
+import { GoogleUser, User, JwtPayload, UserProfile, PublicUserProfile } from "../@types/auth.types";
 import path from "path";
 import fs from "fs";
 
@@ -20,6 +25,46 @@ export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyRep
 		path: "/"
 	});
 	return token;
+}
+
+
+
+
+export async function getUserProfile(userId: number): Promise<PublicUserProfile> {
+
+	const user = await getUserById(userId);
+	if (!user) {
+		throw new Error("User not found");
+	}
+
+	const totalGames = await getTotalGamesPlayed(userId);
+	const totalTournaments = await getTotalTournaments(userId);
+	const tournamentWins = await getTournamentWins(userId);
+	const achievements = await getUserAchievements(userId);
+
+	const fullProfile: UserProfile = {
+		...user,
+		totalGames,
+		totalTournaments,
+		tournamentWins,
+		achievements,
+	};
+
+	const publicProfile: PublicUserProfile = {
+		id: fullProfile.id,
+		username: fullProfile.username,
+		email: fullProfile.email,
+		avatarUrl: fullProfile.avatar_url,
+		isVerified: fullProfile.is_verified,
+		wins: fullProfile.wins,
+		losses: fullProfile.losses,
+		totalGames: fullProfile.totalGames,
+		totalTournaments: fullProfile.totalTournaments,
+		tournamentWins: fullProfile.tournamentWins,
+		achievements: fullProfile.achievements,
+	};
+
+	return publicProfile;
 }
 
 
@@ -39,15 +84,11 @@ export async function verifyAuth(fastify: FastifyInstance, req: FastifyRequest):
 		if (!decoded || typeof decoded !== "object" || !decoded.userId) {
 			return null;
 		}
-		const user = await getUserById(decoded.userId);
-		if (!user) {
+		const userProfile = await getUserProfile(decoded.userId);
+		if (!userProfile) {
 			return null;
 		}
-		return {
-			id: user.id,
-			email: user.email,
-			username: user.username,
-		};
+		return userProfile;
 	} catch (error) {
 		return null;
 	}
@@ -70,7 +111,7 @@ export async function registerUser(
 	let avatar_url: string | null = null;
 
 	if (avatarFile) {
-		const uploadsDir = path.join(__dirname, "../uploads/avatars");
+		const uploadsDir = path.join(__dirname, "../../public/images");
 		if (!fs.existsSync(uploadsDir)) {
 			fs.mkdirSync(uploadsDir, { recursive: true });
 		}
@@ -85,7 +126,7 @@ export async function registerUser(
 			writeStream.on("error", reject);
 		});
 
-		avatar_url = `/uploads/avatars/${filename}`;
+		avatar_url = `/images/${filename}`;
 	}
 
 	const userId = await createUser(username, email, hashedPassword, avatar_url);

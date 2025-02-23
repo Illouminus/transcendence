@@ -29,7 +29,9 @@ server.register(fastifyJwt, {
 });
 
 server.register(fastifyStatic, {
-	root: path.join(__dirname, "../frontend/build"),
+	root: path.join(__dirname, '../public/images'),
+	prefix: '/images/',
+	//root: path.join(__dirname, "../frontend/build"),
 
 });
 
