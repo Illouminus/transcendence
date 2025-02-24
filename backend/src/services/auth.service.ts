@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import {
-	getUserByEmail, createUser, getUserByGoogleId,
+getUserByEmail, createUser, getUserByGoogleId,
 	getUserById, createGooleUser, deleteSession,
 	getTotalGamesPlayed, getTotalTournaments,
 	getTournamentWins, getUserAchievements
@@ -28,45 +28,6 @@ export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyRep
 	return token;
 }
 
-
-
-
-// export async function getUserProfile(userId: number): Promise<PublicUserProfile> {
-
-// 	const user = await getUserById(userId);
-// 	if (!user) {
-// 		throw new Error("User not found");
-// 	}
-
-// 	const totalGames = await getTotalGamesPlayed(userId);
-// 	const totalTournaments = await getTotalTournaments(userId);
-// 	const tournamentWins = await getTournamentWins(userId);
-// 	const achievements = await getUserAchievements(userId);
-
-// 	const fullProfile: UserProfile = {
-// 		...user,
-// 		totalGames,
-// 		totalTournaments,
-// 		tournamentWins,
-// 		achievements,
-// 	};
-
-// 	const publicProfile: PublicUserProfile = {
-// 		id: fullProfile.id,
-// 		username: fullProfile.username,
-// 		email: fullProfile.email,
-// 		avatarUrl: fullProfile.avatar_url,
-// 		isVerified: fullProfile.is_verified,
-// 		wins: fullProfile.wins,
-// 		losses: fullProfile.losses,
-// 		totalGames: fullProfile.totalGames,
-// 		totalTournaments: fullProfile.totalTournaments,
-// 		tournamentWins: fullProfile.tournamentWins,
-// 		achievements: fullProfile.achievements,
-// 	};
-
-// 	return publicProfile;
-// }
 
 
 export async function verifyAuth(fastify: FastifyInstance, req: FastifyRequest): Promise<{ id: number; email: string; username: string } | null> {
@@ -95,44 +56,6 @@ export async function verifyAuth(fastify: FastifyInstance, req: FastifyRequest):
 	}
 }
 
-
-
-// export async function registerUser(
-// 	fastify: FastifyInstance,
-// 	username: string,
-// 	email: string,
-// 	password: string,
-// 	avatarFile?: any
-// ): Promise<{ message: string; userId: number }> {
-// 	if (!username || !email || !password) {
-// 		throw new Error("All fields are required");
-// 	}
-// 	const hashedPassword = await bcrypt.hash(password, 10);
-
-// 	let avatar_url: string | null = null;
-
-// 	if (avatarFile) {
-// 		const uploadsDir = path.join(__dirname, "../../public/images");
-// 		if (!fs.existsSync(uploadsDir)) {
-// 			fs.mkdirSync(uploadsDir, { recursive: true });
-// 		}
-
-// 		const filename = Date.now() + "-" + avatarFile.filename;
-// 		const filePath = path.join(uploadsDir, filename);
-
-// 		await new Promise<void>((resolve, reject) => {
-// 			const writeStream = fs.createWriteStream(filePath);
-// 			avatarFile.file.pipe(writeStream);
-// 			writeStream.on("finish", resolve);
-// 			writeStream.on("error", reject);
-// 		});
-
-// 		avatar_url = `/images/${filename}`;
-// 	}
-
-// 	const userId = await createUser(username, email, hashedPassword, avatar_url);
-// 	return { message: "User registered!", userId };
-// }
 
 export async function loginUser(
 	fastify: FastifyInstance,

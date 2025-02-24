@@ -1,6 +1,8 @@
-import { FastifyRequest, FastifyReply } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { registerUserService, updateUser } from "../services/users.service";
 import { getErrorMessage } from "../utils/errorHandler";
+import { verifyAuth } from "../services/auth.service";
+import { LoginBody } from "../@types/auth.types";
 
 
 export async function registerUser(req: FastifyRequest, reply: FastifyReply) {
@@ -65,11 +67,11 @@ export async function updateProfile(req: FastifyRequest, reply: FastifyReply) {
 			}
 		}
 
-		const userIdStr = req.headers["x-user-id"] as string;
-		if (!userIdStr) {
-			return reply.status(400).send({ error: "User ID is required" });
+		const user = await verifyAuth(req.server, req);
+		if (!user) {
+			return reply.status(401).send({ error: "Unauthorized" });
 		}
-		const userId = parseInt(userIdStr, 10);
+		const userId = user.id;
 
 		console.log("Updating user with id:", userId, "username:", username, "email:", email, "password:", password);
 

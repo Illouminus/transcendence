@@ -9,13 +9,15 @@ import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/users.routes";
 import path from "path";
 import "./database";
+import { authMe } from "./controllers/auth.controller";
 
-// Расширяем тип FastifyInstance, чтобы добавить authenticate
+
 declare module "fastify" {
 	interface FastifyInstance {
 		authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
 	}
-}
+} 
+
 
 const server = fastify();
 
@@ -41,14 +43,13 @@ server.register(fastifyStatic, {
 
 server.decorate("authenticate", async (req: FastifyRequest, reply: FastifyReply) => {
 	try {
-		await req.jwtVerify();
+		await authMe(req, reply);
 	} catch (err) {
 		reply.status(401).send({ error: "Unauthorized" });
 		console.error(err);
 	}
 });
 
-// Регистрируем маршруты
 server.register(authRoutes, { prefix: "/auth" });
 server.register(userRoutes, { prefix: "/user" });
 

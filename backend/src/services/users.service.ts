@@ -101,6 +101,8 @@ export async function updateUser(
 		throw new Error("Username and email are required");
 	}
 
+	console.log("HELLO");
+
 	let hashedPassword: string | null = null;
 	if (password) {
 		hashedPassword = await bcrypt.hash(password, 10);
