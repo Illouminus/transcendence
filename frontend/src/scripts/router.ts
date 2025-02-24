@@ -1,4 +1,4 @@
-import { loadHomePage, loadLoginPage, loadSignupPage, loadProfilePage, load2FAPage } from "./loaders/loaders";
+import { loadHomePage, loadLoginPage, loadSignupPage, loadProfilePage, load2FAPage, loadPongPage } from "./loaders/loaders";
 import { checkAuth } from "./services/auth.service";
 
 type RouteHandler = () => void | Promise<void>;
@@ -6,6 +6,7 @@ type RouteHandler = () => void | Promise<void>;
 const routes: Record<string, RouteHandler> = {
 	"/": loadHomePage,
 	"/2fa": load2FAPage,
+	"/pong": loadPongPage, 
 	"/login": async () => {
 		(await checkAuth()) ? redirectTo("/profile") : await loadLoginPage();
 	},

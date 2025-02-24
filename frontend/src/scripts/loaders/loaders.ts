@@ -72,3 +72,9 @@ export async function load2FAPage() {
 		await login2FA(email, code);
 	});
 }
+
+export async function loadPongPage()
+{
+	console.log("Pong Page");
+	await fetchAndRender("pong");
+}

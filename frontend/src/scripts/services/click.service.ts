@@ -3,8 +3,6 @@ import { logout } from "./auth.service";
 import { setupUI } from "./ui.service";
 
 
-
-
 export async function onSignupClick() {
 	redirectTo("/signup");
 }
@@ -21,4 +19,8 @@ export async function onLogoClick() {
 }
 export async function onProfileClick() {
 	redirectTo("/profile");
+}
+
+export async function onPongClick() {
+	redirectTo("/pong");
 }
