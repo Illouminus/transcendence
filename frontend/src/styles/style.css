@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../pages/dog.css";
 
 .w-50pourcent
 {
@@ -10,3 +11,4 @@
     background: #1c1917;
     box-shadow: inset 11px 11px 20px #0d0c0b, inset -11px -11px 20px #2b2723;
 }
+

@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
+    password_hash TEXT DEFAULT NULL,
     avatar_url TEXT DEFAULT NULL,
     google_id TEXT UNIQUE DEFAULT NULL,
     is_verified BOOLEAN DEFAULT 0,
