@@ -16,6 +16,46 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 }
 
 
+export async function updateUserData(
+	userId: number,
+	data: {
+	  username?: string;
+	  email?: string;
+	  password_hash?: string | null;
+	  avatar_url?: string | null;
+	  is_verified?: boolean;
+	  wins?: number;
+	  losses?: number;
+	}
+  ): Promise<void> {
+	const updateFields: string[] = [];
+	const params: any[] = [];
+  
+	Object.entries(data).forEach(([key, value]) => {
+	  if (value !== undefined) {
+		updateFields.push(`${key} = ?`);
+		params.push(value);
+	  }
+	});
+  
+	updateFields.push("updated_at = datetime('now')");
+	
+	params.push(userId);
+  
+	const query = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
+  
+	return new Promise((resolve, reject) => {
+	  db.run(query, params, function (err: Error | null) {
+		if (err) {
+		  reject(err);
+		} else {
+		  resolve();
+		}
+	  });
+	});
+  }
+  
+
 export async function getUserByGoogleId(token: string): Promise<User | null> {
 	return new Promise((resolve, reject) => {
 		db.get(

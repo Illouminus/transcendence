@@ -11,42 +11,6 @@ import { getErrorMessage } from "../utils/errorHandler";
 import { issueAndSetToken } from "../services/auth.service"
 
 
-// export async function register(req: FastifyRequest, reply: FastifyReply) {
-// 	try {
-// 		let avatarFile: any | null = null;
-// 		let username = "";
-// 		let email = "";
-// 		let password = "";
-
-// 		for await (const part of req.parts()) {
-// 			if (part.type === "file") {
-// 				if (part.fieldname === "avatar") {
-// 					avatarFile = part;
-// 				}
-// 			} else {
-// 				const field = part;
-// 				if (field.fieldname === "username") {
-// 					username = String(field.value);
-// 				} else if (field.fieldname === "email") {
-// 					email = String(field.value);
-// 				} else if (field.fieldname === "password") {
-// 					password = String(field.value);
-// 				}
-// 			}
-// 		}
-
-// 		console.log("Registering user with username:", username, "email:", email, "password:", password);
-// 		if (!username || !email || !password) {
-// 			return reply.status(400).send({ error: "Username, email and password are required" });
-// 		}
-
-// 		const response = await registerUser(reply.server, username, email, password, avatarFile);
-// 		return reply.status(201).send(response);
-// 	} catch (error) {
-// 		return reply.status(400).send({ error: getErrorMessage(error) });
-// 	}
-// }
-
 export async function login(
 	req: FastifyRequest<{ Body: LoginBody }>,
 	res: FastifyReply,
@@ -63,6 +27,7 @@ export async function login(
 	}
 }
 
+
 export async function verify2FA(
 	req: FastifyRequest<{ Body: { email: string; code: string } }>,
 	res: FastifyReply,
@@ -73,6 +38,7 @@ export async function verify2FA(
 			req.body.email,
 			req.body.code,
 		);
+		
 		const token = await issueAndSetToken(res.server, res, response);
 		return res.send({ message: "Login successful!", token });
 	} catch (error) {
