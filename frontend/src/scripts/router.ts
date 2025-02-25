@@ -6,13 +6,15 @@ type RouteHandler = () => void | Promise<void>;
 const routes: Record<string, RouteHandler> = {
 	"/": loadHomePage,
 	"/2fa": load2FAPage,
-	"/pong": loadPongPage, 
 	"/login": async () => {
 		(await checkAuth()) ? redirectTo("/profile") : await loadLoginPage();
 	},
 	"/signup": loadSignupPage,
 	"/profile": async () => {
 		(await checkAuth()) ? await loadProfilePage() : redirectTo("/login");
+	},
+	"/pong": async () => {
+		(await checkAuth()) ? await loadPongPage() : redirectTo("/login");
 	},
 };
 
