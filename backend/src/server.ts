@@ -31,7 +31,11 @@ server.register(fastifyCookie, {
 	parseOptions: {},
 });
 server.register(fastifyFormbody);
-server.register(fastifyMultipart);
+server.register(fastifyMultipart, {
+	limits: {
+		fileSize: 5 * 1024 * 1024,
+	},
+});
 server.register(fastifyJwt, {
 	secret: process.env.JWT_SECRET || "supersecret",
 });

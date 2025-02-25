@@ -178,40 +178,92 @@ export async function handleSignupSubmit(e: Event): Promise<void> {
 
 export async function handleUpdateProfile(e: Event): Promise<void> {
 	e.preventDefault();
-
+  
 	const username = (document.getElementById("username") as HTMLInputElement).value;
 	const email = (document.getElementById("profile-email") as HTMLInputElement).value;
 	const password = (document.getElementById("password") as HTMLInputElement).value;
 	const avatarInput = document.getElementById("avatar") as HTMLInputElement;
-
-
+  
+	// Валидация полей формы
+	if (!username.trim()) {
+	  showAlert("Username is required", "danger");
+	  return;
+	}
+  
+	if (!email.trim()) {
+	  showAlert("Email is required", "danger");
+	  return;
+	}
+  
+	// Валидация файла аватара, если он выбран
+	if (avatarInput.files && avatarInput.files[0]) {
+	  const file = avatarInput.files[0];
+	  
+	  // Проверка типа файла
+	  const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+	  if (!validTypes.includes(file.type)) {
+		showAlert("Invalid file type. Only JPEG, PNG, GIF and WebP images are allowed.", "danger");
+		return;
+	  }
+	  
+	  // Проверка размера файла
+	  const maxSize = 5 * 1024 * 1024; // 5MB
+	  if (file.size > maxSize) {
+		showAlert(`File too large. Maximum size is ${maxSize / (1024 * 1024)}MB.`, "danger");
+		return;
+	  }
+	}
+  
 	const formData = new FormData();
 	formData.append("username", username);
 	formData.append("email", email);
-	formData.append("password", password);
+	
+	// Добавляем пароль только если он не пустой
+	if (password.trim()) {
+	  formData.append("password", password);
+	}
+	
 	if (avatarInput.files && avatarInput.files[0]) {
-		formData.append("avatar", avatarInput.files[0]);
+	  formData.append("avatar", avatarInput.files[0]);
 	}
-
+  
+	// Добавляем индикатор загрузки
+	const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+	if (submitButton) {
+	  submitButton.disabled = true;
+	  submitButton.textContent = "Updating...";
+	}
+  
 	try {
-		const res = await fetch(`${API_URL_USER}/update`, {
-			method: "PUT",
-			body: formData,
-			credentials: "include",
-		});
-		if (!res.ok) {
-			throw new Error(`Registration failed: ${res.statusText}`);
-		}
-		const data = await res.json();
-		console.log("Update response:", data);
-		if (data.message === "User updated!")
-			showAlert("Update was successful", "success");
-		else
-			showAlert("Update failed: " + data.error, "danger");
-		await setupUI();
-		redirectTo("/");
+	  const res = await fetch(`${API_URL_USER}/update`, {
+		method: "PUT",
+		body: formData,
+		credentials: "include",
+	  });
+	  
+	  if (!res.ok) {
+		const errorData = await res.json();
+		throw new Error(errorData.error || `Update failed: ${res.statusText}`);
+	  }
+	  
+	  const data = await res.json();
+	  console.log("Update response:", data);
+	  
+	  if (data.message === "User updated!") {
+		showAlert("Update was successful", "success");
+	  } else {
+		showAlert("Update failed: " + (data.error || "Unknown error"), "danger");
+	  }
+	  
+	  await setupUI();
+	  redirectTo("/");
 	} catch (error: any) {
-		console.error("Update error:", error);
-		showAlert("Update error: " + error.message, "danger");
+	  console.error("Update error:", error);
+	  showAlert("Update error: " + error.message, "danger");
+	} finally {
+	  if (submitButton) {
+		submitButton.disabled = false;
+		submitButton.textContent = "Save Changes";
+	  }
 	}
-}
+  }
