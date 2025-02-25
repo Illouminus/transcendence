@@ -94,7 +94,7 @@ export async function updateUser(
 	userId: number,
 	username: string,
 	email: string,
-	password: string,
+	password?: string,
 	avatarFile?: any
 ): Promise<{ message: string; userId: number }> {
 	if (!username || !email) {

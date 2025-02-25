@@ -1,7 +1,13 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { registerUserService, updateUser } from "../services/users.service";
-import { getErrorMessage } from "../utils/errorHandler";
 import { verifyAuth } from "../services/auth.service";
+import { 
+	getErrorMessage, 
+	getErrorStatusCode, 
+	logError, 
+	createValidationError, 
+	createAuthenticationError
+  } from "../utils/errorHandler";
 import * as fileService from "../services/file.service";
 
 
@@ -15,7 +21,7 @@ import * as fileService from "../services/file.service";
 // The part.mimetype property is used to get the MIME type of the file
 // The part.file property is used to get the file stream
 export async function registerUser(req: FastifyRequest, reply: FastifyReply) {
-	// Install a timeout for processing multipart requests to prevent abuse
+	// Установка таймаута для обработки multipart-запроса
 	const partsTimeout = setTimeout(() => {
 	  reply.status(408).send({ error: "Request timeout while processing file upload" });
 	}, 30000);
@@ -26,79 +32,12 @@ export async function registerUser(req: FastifyRequest, reply: FastifyReply) {
 	  let email = "";
 	  let password = "";
   
-	  // Iterate over the parts of the multipart form data
-	  for await (const part of req.parts()) {
-		if (part.type === "file") {
-		  if (part.fieldname === "avatar") {
-			try {
-			  fileService.validateFile(part);
-			  avatarFile = part;
-			} catch (error) {
-			  clearTimeout(partsTimeout);
-			  return reply.status(400).send({ 
-				error: error instanceof Error ? error.message : "Invalid file" 
-			  });
-			}
-		  }
-		} else {
-		  const field = part;
-		  if (field.fieldname === "username") {
-			username = String(field.value);
-		  } else if (field.fieldname === "email") {
-			email = String(field.value);
-		  } else if (field.fieldname === "password") {
-			password = String(field.value);
-		  }
-		}
-	  }
-  
-	  clearTimeout(partsTimeout);
-  
-	  // Валидация обязательных полей
-	  if (!username || !email || !password) {
-		return reply.status(400).send({ 
-		  error: "Username, email, and password are required" 
-		});
-	  }
-  
-	  // Регистрация пользователя
-	  const response = await registerUserService(
-		reply.server, 
-		username, 
-		email, 
-		password, 
-		avatarFile
-	  );
-	  
-	  return reply.status(201).send(response);
-	} catch (error) {
-	  clearTimeout(partsTimeout);
-	  const errorMessage = getErrorMessage(error);
-	  console.error("Registration error:", errorMessage);
-	  return reply.status(400).send({ error: errorMessage });
-	}
-  }
-
-
-export async function updateProfile(req: FastifyRequest, reply: FastifyReply) {
-	try {
-	  let avatarFile: any | null = null;
-	  let username = "";
-	  let email = "";
-	  let password = "";
-  
-	  // Устанавливаем таймаут для обработки multipart-запроса
-	  const partsTimeout = setTimeout(() => {
-		reply.status(408).send({ error: "Request timeout while processing file upload" });
-	  }, 30000); // 30 секунд таймаут
-	  
+	  // Parsing multipart data
 	  try {
 		for await (const part of req.parts()) {
 		  if (part.type === "file") {
-			if (!isValidImageType(part.mimetype)) {
-				throw new Error("Invalid file type. Only JPEG, PNG, GIF and WebP images are allowed.");
-			  }
 			if (part.fieldname === "avatar") {
+			  fileService.validateFile(part);
 			  avatarFile = part;
 			}
 		  } else {
@@ -112,25 +51,112 @@ export async function updateProfile(req: FastifyRequest, reply: FastifyReply) {
 			}
 		  }
 		}
-		
+	  } catch (error) {
 		clearTimeout(partsTimeout);
-	  } catch (err) {
-		clearTimeout(partsTimeout);
-		console.error("Error processing multipart data:", err);
-		return reply.status(400).send({ error: "Failed to process form data" });
+		throw error;
 	  }
   
-	  const user = await verifyAuth(req.server, req);
-	  if (!user) {
-		return reply.status(401).send({ error: "Unauthorized" });
-	  }
-	  const userId = user.id;
+	  clearTimeout(partsTimeout);
   
-	  console.log("Updating user with id:", userId, "username:", username, "email:", email, "password length:", password ? password.length : 0);
-  
-	  const response = await updateUser(req.server, userId, username, email, password, avatarFile);
-	  return reply.status(200).send(response);
+	  // Validation of the fields is done in the service
+	  const response = await registerUserService(
+		reply.server, 
+		username, 
+		email, 
+		password, 
+		avatarFile
+	  );
+	  
+	  return reply.status(201).send(response);
 	} catch (error) {
-	  return reply.status(400).send({ error: getErrorMessage(error) });
+	  clearTimeout(partsTimeout);
+	  
+	  // Log the error
+	  logError(error, 'registerUser');
+	  
+	  // Determine the status code and error message
+	  const statusCode = getErrorStatusCode(error);
+	  const errorMessage = getErrorMessage(error);
+	  
+	  return reply.status(statusCode).send({ error: errorMessage });
 	}
   }
+
+
+// Function for updating a user profile
+// The same logic as in the registerUser function is used to process the multipart form data
+// The verifyAuth function is used to check if the user is authenticated
+// The updateUser function is used to update the user profile
+// The updateUser function also validates the fields and uploads the avatar file
+// The updateUser function returns the updated user profile
+// The updateUser function is called with the user ID, username, email, password, and avatar file
+// The updateUser function returns the updated user profile
+  export async function updateProfile(req: FastifyRequest, reply: FastifyReply) {
+	// Установка таймаута для обработки multipart-запроса
+	const partsTimeout = setTimeout(() => {
+	  reply.status(408).send({ error: "Request timeout while processing file upload" });
+	}, 30000);
+  
+	try {
+	  let avatarFile: any | null = null;
+	  let username = "";
+	  let email = "";
+	  let password = "";
+  
+	  // Parsing multipart data
+	  try {
+		for await (const part of req.parts()) {
+		  if (part.type === "file") {
+			if (part.fieldname === "avatar") {
+			  fileService.validateFile(part);
+			  avatarFile = part;
+			}
+		  } else {
+			const field = part;
+			if (field.fieldname === "username") {
+			  username = String(field.value);
+			} else if (field.fieldname === "email") {
+			  email = String(field.value);
+			} else if (field.fieldname === "password") {
+			  password = String(field.value);
+			}
+		  }
+		}
+	  } catch (error) {
+		clearTimeout(partsTimeout);
+		throw error;
+	  }
+  
+	  clearTimeout(partsTimeout);
+  
+	  // Verify the user is authenticated
+	  const user = await verifyAuth(req.server, req);
+	  if (!user) {
+		throw createAuthenticationError("Unauthorized");
+	  }
+  
+	  // Update the user profile in the service
+	  const response = await updateUser(
+		req.server,
+		user.id,
+		username,
+		email,
+		password || undefined,
+		avatarFile
+	  );
+  
+	  return reply.status(200).send(response);
+	} catch (error) {
+	  clearTimeout(partsTimeout);
+	  
+	  // Log the error
+	  logError(error, 'updateProfile');
+	  
+	  // Determine the status code and error message
+	  const statusCode = getErrorStatusCode(error);
+	  const errorMessage = getErrorMessage(error);
+	  
+	  return reply.status(statusCode).send({ error: errorMessage });
+	}
+  }
+
