@@ -1,4 +1,4 @@
-import { fetchAndRender } from "./outils";
+import { fetchAndRender, fetchBabylon } from "./outils";
 import { login, renderGoogleButton, login2FA, handleSignupSubmit, fetchUserProfile, handleUpdateProfile } from "../services/auth.service";
 
 export async function loadHomePage() {
@@ -76,5 +76,5 @@ export async function load2FAPage() {
 export async function loadPongPage()
 {
 	console.log("Pong Page");
-	await fetchAndRender("pong");
+	await fetchBabylon("pong");
 }

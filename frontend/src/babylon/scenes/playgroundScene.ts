@@ -1,0 +1,86 @@
+var createScene = function () {
+    // Scene
+    var scene = new BABYLON.Scene(engine);
+
+    // Cameras
+    var camera = new BABYLON.ArcRotateCamera("camera", BABYLON.Tools.ToRadians(270), BABYLON.Tools.ToRadians(75), 50, BABYLON.Vector3.Zero(), scene);
+    camera.attachControl(canvas, true);
+    camera.setTarget(BABYLON.Vector3.Zero());
+
+    // Lights
+    const hemisphericLight = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
+    hemisphericLight.intensity = 0.8;
+
+    // Ground (Tennis court)
+    var ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 10.97, height: 23.77}, scene); // Standard tennis court dimensions
+
+    // Material for ground (clay texture)
+    var clayMaterial = new BABYLON.StandardMaterial("clayMaterial", scene);
+    clayMaterial.diffuseTexture = new BABYLON.Texture("https://media.istockphoto.com/id/520420178/fr/photo/abstrait-rouge-texture-de-mur-de-ciment.jpg?s=612x612&w=0&k=20&c=wq5Y1JHKIQTPywXnLnJTcK3DLjYP_Wa6uQWbNNvz39Y=", scene); // Replace with a realistic texture
+    clayMaterial.specularColor = BABYLON.Color3.Black();
+    ground.material = clayMaterial;
+
+    // Tennis net
+    var netWidth = 10.97; // Full width of the court
+    var netHeight = 1.07; // Standard net height
+
+    // Bande blanche
+    var whiteBand = BABYLON.MeshBuilder.CreateBox("whiteBand", {width: netWidth, height: 0.1, depth: 0.01}, scene);
+    whiteBand.position = new BABYLON.Vector3(0, netHeight - 0.05, 0);
+    var whiteBandMaterial = new BABYLON.StandardMaterial("whiteBandMaterial", scene);
+    whiteBandMaterial.emissiveColor = BABYLON.Color3.White();
+    whiteBand.material = whiteBandMaterial;
+
+    // Filet noir
+    var netMesh = BABYLON.MeshBuilder.CreateBox("netMesh", {width: netWidth, height: netHeight, depth: 0.01}, scene);
+    netMesh.position = new BABYLON.Vector3(0, netHeight / 2 - 0.05, 0);
+    var netMaterial = new BABYLON.StandardMaterial("netMaterial", scene);
+
+    // Tennis lines
+    var lineMaterial = new BABYLON.StandardMaterial("lineMaterial", scene);
+    lineMaterial.diffuseColor = BABYLON.Color3.White();
+    lineMaterial.emissiveColor = BABYLON.Color3.White();
+
+    function createLine(start, end, name) {
+        var line = BABYLON.MeshBuilder.CreateLines(name, {points: [start, end]}, scene);
+        line.color = BABYLON.Color3.White();
+        return line;
+    }
+
+    // Court lines
+    const halfCourtWidth = 4.115; // Half of singles court width
+    const fullCourtLength = 23.77; // Full length of court
+    const serviceLineDistance = 6.40; // Distance from net to service line
+    const doublesWidth = 5.485; // Half of doubles court width
+
+    // Outer boundary lines (doubles)
+    createLine(new BABYLON.Vector3(-doublesWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(-doublesWidth, 0.01, fullCourtLength / 2), "outerLeft");
+    createLine(new BABYLON.Vector3(doublesWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(doublesWidth, 0.01, fullCourtLength / 2), "outerRight");
+    createLine(new BABYLON.Vector3(-doublesWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(doublesWidth, 0.01, -fullCourtLength / 2), "outerTop");
+    createLine(new BABYLON.Vector3(-doublesWidth, 0.01, fullCourtLength / 2), new BABYLON.Vector3(doublesWidth, 0.01, fullCourtLength / 2), "outerBottom");
+
+    // Singles court lines
+    createLine(new BABYLON.Vector3(-halfCourtWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(-halfCourtWidth, 0.01, fullCourtLength / 2), "singlesLeft");
+    createLine(new BABYLON.Vector3(halfCourtWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(halfCourtWidth, 0.01, fullCourtLength / 2), "singlesRight");
+
+    // Service lines
+    createLine(new BABYLON.Vector3(-halfCourtWidth, 0.01, -serviceLineDistance), new BABYLON.Vector3(halfCourtWidth, 0.01, -serviceLineDistance), "serviceLineTop");
+    createLine(new BABYLON.Vector3(-halfCourtWidth, 0.01, serviceLineDistance), new BABYLON.Vector3(halfCourtWidth, 0.01, serviceLineDistance), "serviceLineBottom");
+
+    // Center service line and baseline centers
+    createLine(new BABYLON.Vector3(0, 0.01, -serviceLineDistance), new BABYLON.Vector3(0, 0.01, serviceLineDistance), "centerServiceLine");
+    createLine(new BABYLON.Vector3(0, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(0, 0.01, -fullCourtLength / 2 + 0.1), "baselineCenterTop");
+    createLine(new BABYLON.Vector3(0, 0.01, fullCourtLength / 2), new BABYLON.Vector3(0, 0.01, fullCourtLength / 2 - 0.1), "baselineCenterBottom");
+
+
+    // Environment (Background)
+    var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size: 100}, scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBoxMaterial", scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.disableLighting = true;
+    skyboxMaterial.diffuseColor = BABYLON.Color3.Blue();
+    skyboxMaterial.emissiveColor = BABYLON.Color3.White();
+    skybox.material = skyboxMaterial;
+
+    return scene;
+};
