@@ -21,44 +21,88 @@ import * as fileService from "../services/file.service";
 // The part.mimetype property is used to get the MIME type of the file
 // The part.file property is used to get the file stream
 export async function registerUser(req: FastifyRequest, reply: FastifyReply) {
-	// Установка таймаута для обработки multipart-запроса
-	const partsTimeout = setTimeout(() => {
-	  reply.status(408).send({ error: "Request timeout while processing file upload" });
-	}, 30000);
-  
+	console.log("[DEBUG] Starting registerUser");
+	let partsTimeout: NodeJS.Timeout | null = null;
+	
 	try {
+	  // Установка таймаута для обработки multipart-запроса
+	  partsTimeout = setTimeout(() => {
+		console.log("[DEBUG] Timeout triggered after 30 seconds");
+		reply.status(408).send({ error: "Request timeout while processing file upload" });
+	  }, 30000);
+  
 	  let avatarFile: any | null = null;
 	  let username = "";
 	  let email = "";
 	  let password = "";
   
-	  // Parsing multipart data
+	  console.log("[DEBUG] Starting multipart parsing");
+	  
+	  // Подготовим запрос к парсингу
+	  const parts = req.parts();
+	  
+	  // Ручная обработка multipart-данных
 	  try {
-		for await (const part of req.parts()) {
+		console.log("[DEBUG] Iterating through parts");
+		
+		for await (const part of parts) {
+		  console.log(`[DEBUG] Processing part: ${part.type}, fieldname: ${part.fieldname}`);
+		  
 		  if (part.type === "file") {
 			if (part.fieldname === "avatar") {
-			  fileService.validateFile(part);
-			  avatarFile = part;
+			  console.log("[DEBUG] Found avatar file");
+			  
+			  try {
+				console.log("[DEBUG] Validating file");
+				fileService.validateFile(part);
+				avatarFile = part;
+				console.log("[DEBUG] File validation successful");
+			  } catch (error) {
+				console.error("[DEBUG] File validation failed:", error);
+				throw error;
+			  }
+			} else {
+			  // Обязательно обработать файл, даже если он не нужен
+			  console.log(`[DEBUG] Skipping file with fieldname: ${part.fieldname}`);
+			  await part.file.resume(); // Пропускаем ненужный файл
 			}
 		  } else {
 			const field = part;
+			console.log(`[DEBUG] Processing field: ${field.fieldname}, value: ${String(field.value).substring(0, 10)}...`);
+			
 			if (field.fieldname === "username") {
 			  username = String(field.value);
 			} else if (field.fieldname === "email") {
 			  email = String(field.value);
 			} else if (field.fieldname === "password") {
 			  password = String(field.value);
+			  // Не логируем пароль полностью
+			  console.log(`[DEBUG] Password received, length: ${password.length}`);
 			}
 		  }
 		}
+		
+		console.log("[DEBUG] Finished parsing multipart data");
 	  } catch (error) {
+		console.error("[DEBUG] Error in multipart parsing:", error);
 		clearTimeout(partsTimeout);
 		throw error;
 	  }
   
+	  console.log("[DEBUG] Clearing timeout");
 	  clearTimeout(partsTimeout);
   
-	  // Validation of the fields is done in the service
+	  console.log("[DEBUG] Validating required fields");
+	  if (!username || !email || !password) {
+		console.log("[DEBUG] Validation failed: missing required fields");
+		throw createValidationError("All fields are required", {
+		  username: Boolean(username),
+		  email: Boolean(email),
+		  password: Boolean(password)
+		});
+	  }
+	  
+	  console.log("[DEBUG] Calling registerUserService");
 	  const response = await registerUserService(
 		reply.server, 
 		username, 
@@ -67,17 +111,23 @@ export async function registerUser(req: FastifyRequest, reply: FastifyReply) {
 		avatarFile
 	  );
 	  
+	  console.log("[DEBUG] Registration successful");
 	  return reply.status(201).send(response);
 	} catch (error) {
-	  clearTimeout(partsTimeout);
+	  console.error("[DEBUG] Error in registerUser:", error);
 	  
-	  // Log the error
+	  if (partsTimeout) {
+		clearTimeout(partsTimeout);
+	  }
+	  
+	  // Логируем ошибку
 	  logError(error, 'registerUser');
 	  
-	  // Determine the status code and error message
+	  // Определяем статус-код и сообщение об ошибке
 	  const statusCode = getErrorStatusCode(error);
 	  const errorMessage = getErrorMessage(error);
 	  
+	  console.log(`[DEBUG] Sending error response: ${statusCode} - ${errorMessage}`);
 	  return reply.status(statusCode).send({ error: errorMessage });
 	}
   }
@@ -141,7 +191,7 @@ export async function registerUser(req: FastifyRequest, reply: FastifyReply) {
 		user.id,
 		username,
 		email,
-		password || undefined,
+		password || null,
 		avatarFile
 	  );
   
