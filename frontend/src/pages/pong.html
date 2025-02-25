@@ -1,5 +1,6 @@
-<script src="https://cdn.babylonjs.com/babylon.js"></script>
+
 <canvas id="renderCanvas" style="width: 100%; height: 100%; z-index: 100;"></canvas>
+
 <script>
     // Insert the script
     const canvas = document.getElementById("renderCanvas");
@@ -11,18 +12,39 @@
     const createScene = () => {
         const scene = new BABYLON.Scene(engine);
 
-        // Cameras
-        var camera = new BABYLON.ArcRotateCamera("camera", BABYLON.Tools.ToRadians(30), BABYLON.Tools.ToRadians(40), 30, BABYLON.Vector3.Zero(), scene);
-        camera.attachControl(canvas, true);
+        // CAMERAS
+        var camera = new BABYLON.ArcRotateCamera("camera", BABYLON.Tools.ToRadians(60), BABYLON.Tools.ToRadians(55), 20, BABYLON.Vector3.Zero(), scene);
+        // camera.attachControl(canvas, true); Allow To move camera
         camera.setTarget(BABYLON.Vector3.Zero());
+
+        // Animation for the camera (alpha - rotation around the Y axis)
+        var cameraAlphaAnim = new BABYLON.Animation("cameraAlphaAnim", "alpha", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
         
-        // Lights
+        var alphaKeys = []; 
+        alphaKeys.push({ frame: 0, value: BABYLON.Tools.ToRadians(60) });
+        alphaKeys.push({ frame: 100, value: BABYLON.Tools.ToRadians(0) });  // Rotate the camera around the Y axis
+
+        cameraAlphaAnim.setKeys(alphaKeys);
+        camera.animations.push(cameraAlphaAnim);
+
+        // Animation for the camera (beta - rotation around the X axis)
+        var cameraBetaAnim = new BABYLON.Animation("cameraBetaAnim", "beta", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        
+        var betaKeys = []; 
+        betaKeys.push({ frame: 0, value: BABYLON.Tools.ToRadians(55) });
+        betaKeys.push({ frame: 100, value: BABYLON.Tools.ToRadians(0) });  // Move the camera towards a top view
+
+        cameraBetaAnim.setKeys(betaKeys);
+        camera.animations.push(cameraBetaAnim);
+
+        scene.beginAnimation(camera, 0, 100, false);
+
+        // LIGHTS
         const hemisphericLight = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
         hemisphericLight.intensity = 0.8;
 
-        // Ground (Tennis court)
+        // OBJECTS
         var ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 10.97, height: 23.77}, scene); // Standard tennis court dimensions
-
 
         // Material for ground (clay texture)
         var clayMaterial = new BABYLON.StandardMaterial("clayMaterial", scene);
@@ -46,9 +68,7 @@
         netMesh.position = new BABYLON.Vector3(0, netHeight / 2 - 0.05, 0);
         var netMaterial = new BABYLON.StandardMaterial("netMaterial", scene);
 
-
-
-         // Tennis lines
+        // Tennis lines
         var lineMaterial = new BABYLON.StandardMaterial("lineMaterial", scene);
         lineMaterial.diffuseColor = BABYLON.Color3.White();
         lineMaterial.emissiveColor = BABYLON.Color3.White();
@@ -82,7 +102,32 @@
         // Center service line and baseline centers
         createLine(new BABYLON.Vector3(0, 0.01, -serviceLineDistance), new BABYLON.Vector3(0, 0.01, serviceLineDistance), "centerServiceLine");
         createLine(new BABYLON.Vector3(0, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(0, 0.01, -fullCourtLength / 2 + 0.1), "baselineCenterTop");
-        createLine(new BABYLON.Vector3(0, 0.01, fullCourtLength / 2), new BABYLON.Vector3(0, 0.01, fullCourtLength / 2 - 0.1), "baselineCenterBottom");
+        createLine(new BABYLON.Vector3(0, 0.01, fullCourtLength / 2), new BABYLON.Vector3(0, 0.01, fullCourtLength / 2 - 0.1), "baselineCenterBottom");     
+
+        // Players
+        const PADDLE_WIDTH = 1;
+        const PADDLE_HEIGHT = 1.5;
+        const PADDLE_DEPTH = 0.2;
+        
+        
+        function createPlayerPaddle(scene,  positionZ) {
+            var playerPaddle = BABYLON.MeshBuilder.CreateBox('playerPaddle', { width: PADDLE_WIDTH, height: PADDLE_HEIGHT, depth: PADDLE_DEPTH }, scene);
+            playerPaddle.position.x = 0; 
+            playerPaddle.position.y = 0; 
+            playerPaddle.position.z = positionZ;
+
+            var playerPaddleMaterial = new BABYLON.StandardMaterial("playerPaddleMaterial", scene);
+            playerPaddleMaterial.emissiveColor = BABYLON.Color3.White();
+            playerPaddle.material = playerPaddleMaterial;
+
+            return playerPaddle;
+        }
+
+        // Créer le premier joueur (paddle placé à l'arrière)
+        let player1Paddle = createPlayerPaddle(scene, -fullCourtLength / 2);
+
+        // Créer le second joueur (paddle placé à l'avant)
+        let player2Paddle = createPlayerPaddle(scene, fullCourtLength / 2);
 
 
         return scene;
