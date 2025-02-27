@@ -1,4 +1,3 @@
-
 <canvas id="renderCanvas" style="width: 100%; height: 100%; z-index: 100;"></canvas>
 
 <script>
@@ -124,11 +123,60 @@
         }
 
         // Créer le premier joueur (paddle placé à l'arrière)
-        let player1Paddle = createPlayerPaddle(scene, -fullCourtLength / 2);
+        let player1Paddle = createPlayerPaddle(scene, -fullCourtLength / 2 + 4);
 
         // Créer le second joueur (paddle placé à l'avant)
         let player2Paddle = createPlayerPaddle(scene, fullCourtLength / 2);
 
+        // Control for Player 1
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'z') {
+                // Player 1 moves up (increasing X position)
+                player1Paddle.position.x = Math.min(player1Paddle.position.x + 0.5, halfCourtWidth - PADDLE_HEIGHT / 2);
+            } else if (event.key === 's') {
+                // Player 1 moves down (decreasing X position)
+                player1Paddle.position.x = Math.max(player1Paddle.position.x - 0.5, -(halfCourtWidth - PADDLE_HEIGHT / 2));
+            }
+        });
+
+        // Ball properties
+        const ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: 0.3 }, scene);
+        ball.position = new BABYLON.Vector3(0, 0.25, 0);
+        let ballDirection = new BABYLON.Vector3(0, 0, 0.05);
+
+        scene.onBeforeRenderObservable.add(() => {
+            ball.position.addInPlace(ballDirection);
+
+            // Collision with left and right boundaries
+            if (ball.position.x <= -halfCourtWidth || ball.position.x >= halfCourtWidth) {
+                ballDirection.x *= -1;
+            }
+
+            // Collision with top and bottom boundaries
+            if (ball.position.z <= -fullCourtLength / 2 || ball.position.z >= fullCourtLength / 2) {
+                ballDirection.z *= -1;
+            }
+
+            // Collision with player1 paddle
+            if (
+                ball.position.z <= player1Paddle.position.z + PADDLE_DEPTH / 2 &&
+                ball.position.z >= player1Paddle.position.z - PADDLE_DEPTH / 2 &&
+                ball.position.x >= player1Paddle.position.x - PADDLE_WIDTH / 2 &&
+                ball.position.x <= player1Paddle.position.x + PADDLE_WIDTH / 2
+            ) {
+                ballDirection.z *= -1;
+            }
+
+            // Collision with player2 paddle
+            if (
+                ball.position.z <= player2Paddle.position.z + PADDLE_DEPTH / 2 &&
+                ball.position.z >= player2Paddle.position.z - PADDLE_DEPTH / 2 &&
+                ball.position.x >= player2Paddle.position.x - PADDLE_WIDTH / 2 &&
+                ball.position.x <= player2Paddle.position.x + PADDLE_WIDTH / 2
+            ) {
+                ballDirection.z *= -1;
+            }
+        });
 
         return scene;
     };
