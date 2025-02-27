@@ -7,7 +7,7 @@ const config = {
 
     // Server settings
   server: {
-    port: parseInt(process.env.PORT || '5000', 10),
+    port: parseInt(process.env.PORT || '8081', 10),
     host: process.env.HOST || '0.0.0.0',
     env: process.env.NODE_ENV || 'development',
     corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',

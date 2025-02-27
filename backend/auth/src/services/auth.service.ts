@@ -23,7 +23,6 @@ export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyRep
 }
 
 
-
 export async function loginUser( email: string, password: string) {
 	
 	const user = await getUserByEmail(email);
