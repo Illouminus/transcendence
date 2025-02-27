@@ -1,4 +1,4 @@
-import fastify, { FastifyRequest, FastifyReply } from "fastify";
+import fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";

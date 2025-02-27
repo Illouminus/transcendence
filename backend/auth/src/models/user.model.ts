@@ -21,15 +21,11 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 export async function updateUserData(
 	userId: number,
 	data: {
-	  username?: string;
-	  email?: string;
+	  username: string;
+	  email: string;
 	  password_hash?: string | null;
-	  avatar_url?: string | null;
-	  is_verified?: boolean;
-	  wins?: number;
-	  losses?: number;
 	}
-  ): Promise<void> {
+  ): Promise<User | null> {
 	const updateFields: string[] = [];
 	const params: any[] = [];
   
@@ -51,7 +47,8 @@ export async function updateUserData(
 		if (err) {
 		  reject(err);
 		} else {
-		  resolve();
+		  const user = getUserById(userId);
+		  resolve(user);
 		}
 	  });
 	});

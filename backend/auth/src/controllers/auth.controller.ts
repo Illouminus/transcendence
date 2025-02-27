@@ -1,12 +1,12 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { loginUser, verifyTwoFactorAuth, googleAuthenticator, logoutUser, registerUserService } from "../services/auth.service";
+import { loginUser, verifyTwoFactorAuth, googleAuthenticator, logoutUser, registerUserService, updateUserService } from "../services/auth.service";
 import { LoginBody, TwoFABody, RegisterUser } from "../@types/auth.types";
 import { getErrorMessage, getErrorStatusCode, logError } from "../utils/errorHandler";
 import { issueAndSetToken } from "../services/auth.service"
 import { publishToQueue } from "../rabbit/rabbit"
 
 
-export async function login( req: FastifyRequest<{ Body: LoginBody }>, res: FastifyReply) {
+export async function loginController( req: FastifyRequest<{ Body: LoginBody }>, res: FastifyReply) {
 	try {
 		const response = await loginUser(req.body.email, req.body.password);
 		return res.status(200).send(response);
@@ -17,7 +17,7 @@ export async function login( req: FastifyRequest<{ Body: LoginBody }>, res: Fast
 
 
 
-export async function verify2FA( req: FastifyRequest<{Body: TwoFABody}>, res: FastifyReply,) {
+export async function verify2FAController( req: FastifyRequest<{Body: TwoFABody}>, res: FastifyReply,) {
 	try {
 		const response = await verifyTwoFactorAuth( res.server, req.body.email, req.body.code);
 		await issueAndSetToken(res.server, res, response);
@@ -28,7 +28,7 @@ export async function verify2FA( req: FastifyRequest<{Body: TwoFABody}>, res: Fa
 }
 
 
-export async function googleAuth( req: FastifyRequest<{ Body: { idToken: string } }>, res: FastifyReply) {
+export async function googleAuthLogin( req: FastifyRequest<{ Body: { idToken: string } }>, res: FastifyReply) {
 	try {
 		const { idToken } = req.body;
 		if (!idToken) {
@@ -37,7 +37,7 @@ export async function googleAuth( req: FastifyRequest<{ Body: { idToken: string 
 
 		const user = await googleAuthenticator(idToken);
 		const token = await issueAndSetToken(res.server, res, user.id);
-
+		
 		return res.status(200).send({ message: "Login successful!", token });
 	} catch (error) {
 		return res.status(400).send({ error: getErrorMessage(error) });
@@ -63,10 +63,31 @@ export async function registerUser(req: FastifyRequest<{Body: RegisterUser}>, re
   }
 
 
-export async function logout(req: FastifyRequest, res: FastifyReply) {
+export async function logoutController(req: FastifyRequest, res: FastifyReply) {
 	try {
 		await logoutUser(req, res);
 		res.status(200).send({ message: "Logged out successfully" });
+	} catch (error: any) {
+		res.status(401).send({ error: error.message });
+	}
+}
+
+export async function updateController(req: FastifyRequest<{Body: RegisterUser}>, res: FastifyReply) {
+	try {
+		const {email, username, password} = req.body;
+		if (!email || !username || !password) {
+			res.status(400).send({ error: "All fields are required" });
+		}
+		const user = await updateUserService(email, username, password);
+		if (!user) 
+		{
+			res.status(404).send({ error: "Update failed" });
+		} 
+		else 
+		{
+			publishToQueue("user.updated", { username: user.username });
+			res.status(200).send({ message: "User updated successfully" });
+		}
 	} catch (error: any) {
 		res.status(401).send({ error: error.message });
 	}

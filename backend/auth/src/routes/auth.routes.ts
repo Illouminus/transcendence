@@ -1,9 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { login, verify2FA, googleAuth, logout } from "../controllers/auth.controller";
+import { loginController, verify2FAController, googleAuthLogin, 
+	logoutController, updateController } from "../controllers/auth.controller";
 
 export default async function authRoutes(fastify: FastifyInstance) {
-	fastify.post("/login", login);
-	fastify.post("/verify-2fa", verify2FA);
-	fastify.post("/google-authenticator", googleAuth);
-	fastify.post("/logout", logout);
+	fastify.post("/login", loginController);
+	fastify.post("/verify-2fa", verify2FAController);
+	fastify.post("/google-authenticator", googleAuthLogin);
+	fastify.post("/logout", logoutController);
+	fastify.post("/update", updateController);
 }

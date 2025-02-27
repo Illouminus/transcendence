@@ -2,11 +2,12 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
-import { getUserByEmail, getUserByGoogleId,getUserById, createGooleUser, deleteSession, dbCreateUser} from "../models/user.model";
+import { getUserByEmail, getUserByGoogleId,getUserById, createGooleUser, deleteSession, dbCreateUser, updateUserData} from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/auth.model";
 import { sendEmail } from "./mailer.services";
 import { GoogleUser, User} from "../@types/auth.types";
 import { getUserIdFromJWT } from "../utils/jwtUtils";
+import { createDatabaseError, createNotFoundError, logError } from "../utils/errorHandler";
 
 
 export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyReply, userId: number): Promise<string> {
@@ -118,3 +119,33 @@ export async function registerUserService( username: string, email: string, pass
 	}
 	return newUser;
 }
+
+
+export async function updateUserService( username: string, email: string, password?: string | null): Promise<User | null> {
+	try {
+	  const currentUser = await getUserByEmail(email!);
+
+	  if (!currentUser) {
+		throw createNotFoundError("User not found");
+	  }
+	  let hashedPassword: string | null = null;
+	  if (password && password.trim() !== "") {
+		hashedPassword = await bcrypt.hash(password, 10);
+	  }
+
+	  const updatedUser = await updateUserData(currentUser.id, {
+		username,
+		email,
+		password_hash: hashedPassword,
+	  });
+
+	  return updatedUser;
+	} catch (error) {
+	  logError(error, "updateUserService");
+	  throw createDatabaseError("Failed to update user", {
+		username,
+		email,
+		error: error instanceof Error ? error.message : "Unknown error",
+	  });
+	}
+  }
