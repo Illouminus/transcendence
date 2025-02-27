@@ -3,6 +3,7 @@ import { loginUser, verifyTwoFactorAuth, googleAuthenticator, logoutUser, regist
 import { LoginBody, TwoFABody, RegisterUser } from "../@types/auth.types";
 import { getErrorMessage, getErrorStatusCode, logError } from "../utils/errorHandler";
 import { issueAndSetToken } from "../services/auth.service"
+import { publishToQueue } from "../rabbit/rabbit"
 
 
 export async function login( req: FastifyRequest<{ Body: LoginBody }>, res: FastifyReply) {
@@ -51,9 +52,10 @@ export async function registerUser(req: FastifyRequest<{Body: RegisterUser}>, re
 		return reply.status(400).send({ error: "All fields are required" });
 	  }
 
-	  await registerUserService( username, email, password);
+	  const user = await registerUserService( username, email, password);
+	  publishToQueue("user.registered", { email: user.email, username: user.username });
+	  
 	  return reply.status(201).send({message : "Registration successful"});
-
 	} catch (error) {
 	  logError(error, "registerUser");
 	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
