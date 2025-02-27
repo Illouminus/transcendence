@@ -51,8 +51,8 @@ export async function registerUser(req: FastifyRequest<{Body: RegisterUser}>, re
 		return reply.status(400).send({ error: "All fields are required" });
 	  }
 
-	  const response = await registerUserService( username, email, password);
-	  return reply.status(201).send(response);
+	  await registerUserService( username, email, password);
+	  return reply.status(201).send({message : "Registration successful"});
 
 	} catch (error) {
 	  logError(error, "registerUser");

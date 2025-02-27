@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import { getUserByEmail, getUserByGoogleId,getUserById, createGooleUser, deleteSession, dbCreateUser} from "../models/user.model";
-import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
+import { save2FACode, verify2FACode, updateJWT } from "../models/auth.model";
 import { sendEmail } from "./mailer.services";
 import { GoogleUser, User} from "../@types/auth.types";
 import { getUserIdFromJWT } from "../utils/jwtUtils";

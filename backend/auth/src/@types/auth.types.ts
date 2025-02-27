@@ -16,14 +16,11 @@ export interface User {
 	username: string;
 	email: string;
 	password_hash: string | null;
-	avatar_url: string | null;
 	google_id: string | null;
 	is_verified: boolean;
 	two_factor_secret: string | null;
 	created_at: string;
 	updated_at: string;
-	wins: number;
-	losses: number;
 }
 
 export interface LoginBody {
