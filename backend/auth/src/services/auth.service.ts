@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
-import { getUserByEmail, getUserByGoogleId,getUserById, createGooleUser, deleteSession} from "../models/user.model";
+import { getUserByEmail, getUserByGoogleId,getUserById, createGooleUser, deleteSession, dbCreateUser} from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
 import { sendEmail } from "./mailer.services";
 import { GoogleUser, User} from "../@types/auth.types";
@@ -74,7 +74,7 @@ export async function googleAuthenticator(idToken: string): Promise<User> {
 	const { name, email, picture, sub } = payload as GoogleUser;
 
 	let user = await getUserByGoogleId(sub);
-	
+
 	if (!user) {
 		const userId = await createGooleUser({ name, email, picture, sub });
 		user = await getUserById(userId);
@@ -100,4 +100,21 @@ export async function logoutUser( req: FastifyRequest, res: FastifyReply ): Prom
 		secure: true,
 		sameSite: "none",
 	});
+}
+
+
+export async function registerUserService( username: string, email: string, password: string): Promise<User> {
+
+	const existingUser = await getUserByEmail(email);
+	if (existingUser) {
+		throw new Error("User already exists");
+	}
+	const passwordHash = await bcrypt.hash(password, 10);
+
+	const newUser = await dbCreateUser(username, email, passwordHash );
+	
+	if (!newUser) {
+		throw new Error("User creation failed");
+	}
+	return newUser;
 }

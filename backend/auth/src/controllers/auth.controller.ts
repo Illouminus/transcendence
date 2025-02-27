@@ -1,18 +1,9 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { loginUser, verifyTwoFactorAuth, googleAuthenticator, verifyAuth, logoutUser } from "../services/auth.service";
-import { getErrorMessage } from "../utils/errorHandler";
+import { loginUser, verifyTwoFactorAuth, googleAuthenticator, logoutUser, registerUserService } from "../services/auth.service";
+import { LoginBody, TwoFABody, RegisterUser } from "../@types/auth.types";
+import { getErrorMessage, getErrorStatusCode, logError } from "../utils/errorHandler";
 import { issueAndSetToken } from "../services/auth.service"
 
-
- interface LoginBody {
-	email: string;
-	password: string;
-}
-
-interface TwoFABody {
-	email: string;
-	code: string;
-}
 
 export async function login( req: FastifyRequest<{ Body: LoginBody }>, res: FastifyReply) {
 	try {
@@ -52,13 +43,23 @@ export async function googleAuth( req: FastifyRequest<{ Body: { idToken: string 
 	}
 }
 
-// export async function authMe(req: FastifyRequest, res: FastifyReply) {
-// 	const user = await verifyAuth(res.server, req);
-// 	if (!user) {
-// 		return res.status(401).send({ error: "Unauthorized" });
-// 	}
-// 	return res.send(user);
-// }
+export async function registerUser(req: FastifyRequest<{Body: RegisterUser}>, reply: FastifyReply) {
+	try {
+	  const { username, email, password } = req.body;
+
+	  if(!username || !email || !password) {
+		return reply.status(400).send({ error: "All fields are required" });
+	  }
+
+	  const response = await registerUserService( username, email, password);
+	  return reply.status(201).send(response);
+
+	} catch (error) {
+	  logError(error, "registerUser");
+	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
+	}
+  }
+
 
 export async function logout(req: FastifyRequest, res: FastifyReply) {
 	try {

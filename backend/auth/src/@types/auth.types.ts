@@ -1,13 +1,3 @@
-import { FastifyMultipartOptions } from 'fastify-multipart';
-
-export interface RegisterBody {
-	username: string;
-	email: string;
-	password: string;
-	avatarFile?: FastifyMultipartOptions;
-}
-
-
 export interface GoogleUser {
 	name?: string;
 	email?: string;
@@ -36,36 +26,18 @@ export interface User {
 	losses: number;
 }
 
-export interface Achievement {
-	id: number;
-	userId: number;
-	achievement: string;
-	dateEarned: string;
+export interface LoginBody {
+	email: string;
+	password: string;
 }
 
-export interface CountRow {
-	totalGames?: number;
-	totalTournaments?: number;
-	tournamentWins?: number;
-}
-
-export interface UserProfile extends User {
-	totalGames: number;
-	totalTournaments: number;
-	tournamentWins: number;
-	achievements: Achievement[];
-}
-
-export interface PublicUserProfile {
-	id: number;
+export interface RegisterUser {
 	username: string;
 	email: string;
-	avatarUrl: string | null;
-	isVerified: boolean;
-	wins: number;
-	losses: number;
-	totalGames: number;
-	totalTournaments: number;
-	tournamentWins: number;
-	achievements: Achievement[];
+	password: string;
+}
+
+export interface TwoFABody {
+	email: string;
+	code: string;
 }
