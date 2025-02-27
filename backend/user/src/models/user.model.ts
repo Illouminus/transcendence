@@ -1,5 +1,5 @@
 import db from "../database";
-import { GoogleUser, User, Achievement, CountRow } from "../@types/auth.types";
+import { GoogleUser, User, Achievement, CountRow } from "../@types/user.types";
 
 
 export async function getUserByEmail(email: string): Promise<User | null> {

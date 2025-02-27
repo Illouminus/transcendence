@@ -21,6 +21,8 @@ services:
       - GAME_SERVICE_URL=${GAME_SERVICE_URL}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
+    networks:
+      - transcendance-network
 
   backend:
     build:
@@ -41,6 +43,7 @@ services:
       - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - DATABASE_PATH=${DATABASE_PATH}
+    
   frontend:
     build:
       context: ./frontend
@@ -55,6 +58,21 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    networks:
+      - transcendance-network
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    container_name: transcendence_rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - transcendance-network
 
 volumes:
   db-data:

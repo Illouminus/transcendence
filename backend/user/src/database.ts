@@ -3,9 +3,8 @@ import fs from "fs";
 import path from "path";
 
 
-const dbPath = path.resolve(__dirname, "../db/data.sqlite"); // Ecole Docker
+const dbPath = path.resolve(__dirname, "../db/data.sqlite"); 
 
-//const dbPath = path.resolve(__dirname, "../../db/data.sqlite"); - Mac
 const schemaPath = path.resolve(__dirname, "schema.sql");
 
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -14,7 +13,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 	} else {
 		console.log("✅ Connected to SQLite database");
 		initializeDatabase();
-		seedDatabase();
+		//seedDatabase();
 	}
 });
 

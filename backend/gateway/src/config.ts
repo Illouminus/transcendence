@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
 
@@ -18,7 +19,11 @@ const config = {
     user_service: process.env.USER_SERVICE_URL || 'http://localhost:8082',
     game_service: process.env.GAME_SERVICE_URL || 'http://localhost:8083',
     chat_service: process.env.CHAT_SERVICE_URL || 'http://localhost:8084',
-}  
+},
+
+files: {
+  uploadsDir: path.resolve(__dirname, '../public/images'),
+},
 };
 
 

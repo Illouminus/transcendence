@@ -9,7 +9,7 @@ import {
   getUserAchievements,
   updateUserData
 } from "../models/user.model";
-import { UserProfile, PublicUserProfile } from "../@types/auth.types";
+import { UserProfile, PublicUserProfile } from "../@types/user.types";
 import * as fileService from "./file.service";
 import {
   createNotFoundError,
@@ -113,21 +113,8 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 
 
   // Function to update user
-  export async function updateUserService(
-	fastify: FastifyInstance,
-	userId: number,
-	username?: string,
-	email?: string,
-	password?: string | null,
-	avatarFile?: any
-  ): Promise<{ message: string; userId: number }> {
+  export async function updateUserService( userId: number, username?: string, email?: string, password?: string | null, avatarFile?: any): Promise<{ message: string; userId: number }> {
 	try {
-	  if (!username || !email) {
-		throw createValidationError("Username and email are required", {
-		  username: Boolean(username),
-		  email: Boolean(email),
-		});
-	  }
 	  const currentUser = await getUserById(userId);
 	  if (!currentUser) {
 		throw createNotFoundError("User");
@@ -138,9 +125,7 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 	  }
 	  let avatar_url: string | null = currentUser.avatar_url;
 	  if (avatarFile) {
-		//fileService.validateFile(avatarFile);
 		const fileResult = await fileService.saveFileBuffer(avatarFile, "avatar.jpg");
-		// Если старый аватар существует, удаляем его
 		if (currentUser.avatar_url) {
 		  try {
 			await fileService.deleteFile(currentUser.avatar_url);
