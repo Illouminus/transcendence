@@ -7,10 +7,6 @@ export interface RegisterBody {
 	avatarFile?: FastifyMultipartOptions;
 }
 
-export interface LoginBody {
-	email: string;
-	password: string;
-}
 
 export interface GoogleUser {
 	name?: string;

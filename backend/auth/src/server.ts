@@ -1,12 +1,8 @@
 import fastify, { FastifyRequest, FastifyReply } from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
-import fastifyStatic from "@fastify/static";
-import fastifyMultipart from "@fastify/multipart";
 import fastifyJwt from "@fastify/jwt";
 import authRoutes from "./routes/auth.routes";
-import userRoutes from "./routes/users.routes";
-import { authMe } from "./controllers/auth.controller";
 import { logError } from "./utils/errorHandler";
 import config from "./config";
 
@@ -45,14 +41,6 @@ server.register(fastifyCookie, {
   });
 
 
-// Register the Multipart plugin with our configuration for file uploads
-server.register(fastifyMultipart, {
-	limits: {
-		fileSize: config.files.maxFileSize,
-	},
-	attachFieldsToBody: 'keyValues',
-});
-
 // Register the JWT plugin with our configuration
 server.register(fastifyJwt, {
 	secret: config.security.jwtSecret,
@@ -61,28 +49,20 @@ server.register(fastifyJwt, {
 	}
 });
 
-// Register the static plugin with our configuration - to serve images from the public folder
-// For example, if you have an image in the public/images folder called my-image.jpg, you can access it at http://localhost:5000/images/my-image.jpg
-// As usual HTTP requests, you can access the image by using the URL http://localhost:5000/images/my-image.jpg
-server.register(fastifyStatic, {
-	root: config.files.uploadsDir,
-	prefix: "/images/",
-	decorateReply: false,
-});
 
 
 // Create an authentication hook to check if the user is authenticated
 // This hook will be called before every route that uses it
 // For example, if you want to protect a route, you can use the authenticate hook like this:
 // server.get("/protected-route", { preHandler: server.authenticate }, yourRouteHandler);
-server.decorate("authenticate", async (req: FastifyRequest, reply: FastifyReply) => {
-	try {
-		await authMe(req, reply);
-	} catch (err) {
-		reply.status(401).send({ error: "Unauthorized" });
-		console.error(err);
-	}
-});
+// server.decorate("authenticate", async (req: FastifyRequest, reply: FastifyReply) => {
+// 	try {
+// 		await authMe(req, reply);
+// 	} catch (err) {
+// 		reply.status(401).send({ error: "Unauthorized" });
+// 		console.error(err);
+// 	}
+// });
 
 
 // Set error handler for the server to log errors
@@ -102,8 +82,7 @@ server.setErrorHandler((error, request, reply) => {
 
 // Register the routes - prefix means that all routes in the authRoutes will start with /auth
 // For example, if you have a route in the authRoutes file with the path /login, you can access it at http://localhost:5000/auth/login
-server.register(authRoutes, { prefix: "/auth" });
-server.register(userRoutes, { prefix: "/user" });
+server.register(authRoutes);
 
 
 // Start the server
@@ -126,12 +105,6 @@ const start = async () => {
 	  process.exit(1);
 	}
   };
-
-// SIGINT and SIGTERM are signals that are sent to the process when you press Ctrl+C or when you use the kill command to stop the process
-// We want to close the server when we receive these signals
-// This is useful for stopping the server gracefully when you stop the process
-process.on('SIGINT', () => server.close());
-process.on('SIGTERM', () => server.close());
 
 
 // Start the server

@@ -2,18 +2,11 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
-import {
-getUserByEmail, createUser, getUserByGoogleId,
-	getUserById, createGooleUser, deleteSession,
-	getTotalGamesPlayed, getTotalTournaments,
-	getTournamentWins, getUserAchievements
-} from "../models/user.model";
+import { getUserByEmail, getUserByGoogleId,getUserById, createGooleUser, deleteSession} from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/session.model";
 import { sendEmail } from "./mailer.services";
-import { GoogleUser, User, JwtPayload, UserProfile, PublicUserProfile } from "../@types/auth.types";
-import path from "path";
-import fs from "fs";
-import { getUserProfile } from "./users.service";
+import { GoogleUser, User} from "../@types/auth.types";
+import { getUserIdFromJWT } from "../utils/jwtUtils";
 
 
 export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyReply, userId: number): Promise<string> {
@@ -30,58 +23,26 @@ export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyRep
 
 
 
-export async function verifyAuth(fastify: FastifyInstance, req: FastifyRequest): Promise<{ id: number; email: string; username: string } | null> {
-	try {
-		const token = req.cookies.token;
-		if (!token) {
-			return null;
-		}
-
-		let decoded: JwtPayload;
-		try {
-			decoded = fastify.jwt.verify(token);
-		} catch (err) {
-			return null;
-		}
-		if (!decoded || typeof decoded !== "object" || !decoded.userId) {
-			return null;
-		}
-		const userProfile = await getUserProfile(decoded.userId);
-		if (!userProfile) {
-			return null;
-		}
-		return userProfile;
-	} catch (error) {
-		return null;
-	}
-}
-
-
-export async function loginUser(
-	fastify: FastifyInstance,
-	email: string,
-	password: string,
-) {
+export async function loginUser( email: string, password: string) {
+	
 	const user = await getUserByEmail(email);
 	if (!user || !user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
 		throw new Error("Invalid credentials");
 	}
 
 	const twoFactorCode = crypto.randomInt(100000, 999999).toString();
+
 	const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
 	await save2FACode(user.id, twoFactorCode, expiresAt);
+
 	if (!sendEmail(email, "2FA Code", `Your 2FA code is: ${twoFactorCode}`)) {
 		throw new Error("Failed to send 2FA code");
 	}
 	return { message: "2FA code sent to email" };
 }
 
-export async function verifyTwoFactorAuth(
-	fastify: FastifyInstance,
-	email: string,
-	code: string,
-): Promise<number> {
+export async function verifyTwoFactorAuth( fastify: FastifyInstance, email: string, code: string, ): Promise<number> {
 	const user = await getUserByEmail(email);
 	if (!user) {
 		throw new Error("Invalid credentials");
@@ -91,7 +52,6 @@ export async function verifyTwoFactorAuth(
 	if (!session) {
 		throw new Error("Invalid 2FA code");
 	}
-
 	return user.id
 }
 
@@ -104,13 +64,17 @@ export async function googleAuthenticator(idToken: string): Promise<User> {
 		idToken,
 		audience: googleClientId,
 	});
+
 	const payload = ticket.getPayload();
+
 	if (!payload) {
 		throw new Error("Invalid google token");
 	}
 
 	const { name, email, picture, sub } = payload as GoogleUser;
+
 	let user = await getUserByGoogleId(sub);
+	
 	if (!user) {
 		const userId = await createGooleUser({ name, email, picture, sub });
 		user = await getUserById(userId);
@@ -122,17 +86,13 @@ export async function googleAuthenticator(idToken: string): Promise<User> {
 }
 
 
-export async function logoutUser(
-	fastify: FastifyInstance,
-	req: FastifyRequest,
-	res: FastifyReply
-): Promise<void> {
-	const user = await verifyAuth(fastify, req);
-	if (!user) {
+export async function logoutUser( req: FastifyRequest, res: FastifyReply ): Promise<void> {
+	const userId = await getUserIdFromJWT(res.server, req);
+	if (!userId) {
 		throw new Error("Unauthorized");
 	}
 
-	await deleteSession(user.id);
+	await deleteSession(userId);
 
 	res.clearCookie("token", {
 		path: "/",
