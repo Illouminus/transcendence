@@ -1,6 +1,27 @@
 version: "3.8"
 
 services:
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: transcendence_gateway
+    restart: always
+    working_dir: /app
+    volumes:
+      - /app/node_modules
+      - ./gateway:/app
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - GAME_SERVICE_URL=${GAME_SERVICE_URL}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
+
   backend:
     build:
       context: ./backend

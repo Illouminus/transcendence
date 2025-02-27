@@ -1,6 +1,5 @@
 import fastify, { FastifyRequest, FastifyReply } from "fastify";
 import fastifyCookie from "@fastify/cookie";
-//import fastifyFormbody from "@fastify/formbody";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import fastifyMultipart from "@fastify/multipart";
@@ -45,13 +44,13 @@ server.register(fastifyCookie, {
 	},
   });
 
-//server.register(fastifyFormbody);
 
 // Register the Multipart plugin with our configuration for file uploads
 server.register(fastifyMultipart, {
 	limits: {
 		fileSize: config.files.maxFileSize,
 	},
+	attachFieldsToBody: 'keyValues',
 });
 
 // Register the JWT plugin with our configuration
