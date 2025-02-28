@@ -4,10 +4,11 @@ import fastifyMultipart from "@fastify/multipart";
 import userRoutes from "./routes/users.routes";
 import { logError } from "./utils/errorHandler";
 import config from "./config";
+import { connectRabbit } from "./rabbit/rabbit";
 
 // Import the database connection - auto launches the connection
 import "./database";
-
+connectRabbit();
 // Create an instance of Fastify server
 const server = fastify({
 	logger : config.server.env === "development",
@@ -41,6 +42,7 @@ server.register(fastifyStatic, {
 //   "error": "Something went wrong",
 //   "statusCode": 500
 // }
+
 server.setErrorHandler((error, request, reply) => {
 	logError(error, 'Server');
 	reply.status(error.statusCode || 500).send({

@@ -7,7 +7,8 @@ import {
   getTotalTournaments,
   getTournamentWins,
   getUserAchievements,
-  updateUserData
+  updateUserData,
+  updateAvatar
 } from "../models/user.model";
 import { UserProfile, PublicUserProfile } from "../@types/user.types";
 import * as fileService from "./file.service";
@@ -77,35 +78,20 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 	}
   }
 
-  export async function registerUserService(
-	fastify: FastifyInstance,
-	username: string,
-	email: string,
-	password: string,
-	avatarFile?: any
-  ): Promise<{ message: string; userId: number }> {
+  export async function registerUserService( userId: number, username: string): Promise<{ message: string }> {
 	try {
-	  if (!username || !email || !password) {
+	  if (!username ) {
 		throw createValidationError("All fields are required", {
 		  username: Boolean(username),
-		  email: Boolean(email),
-		  password: Boolean(password),
 		});
 	  }
-	  const hashedPassword = await bcrypt.hash(password, 10);
-	  let avatar_url: string | null = null;
-	  if (avatarFile) {
-		fileService.validateFile(avatarFile);
-		const fileResult = await fileService.saveFile(avatarFile);
-		avatar_url = fileResult.url;
-	  }
-	  const userId = await createUser(username, email, hashedPassword, avatar_url);
-	  return { message: "User registered!", userId };
+	  const avatar_url = "./uplodas/default.jpg";
+	  await createUser(userId,username, avatar_url);
+	  return { message: "User registered!" };
 	} catch (error) {
 	  logError(error, "registerUserService");
 	  throw createDatabaseError("Failed to register user", {
 		username,
-		email,
 		error: error instanceof Error ? error.message : "Unknown error",
 	  });
 	}
@@ -113,16 +99,13 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 
 
   // Function to update user
-  export async function updateUserService( userId: number, username?: string, email?: string, password?: string | null, avatarFile?: any): Promise<{ message: string; userId: number }> {
+  export async function updateAvatarService( userId: number, avatarFile?: any): Promise<{ message: string }> {
 	try {
 	  const currentUser = await getUserById(userId);
 	  if (!currentUser) {
 		throw createNotFoundError("User");
 	  }
-	  let hashedPassword: string | null = null;
-	  if (password && password.trim() !== "") {
-		hashedPassword = await bcrypt.hash(password, 10);
-	  }
+
 	  let avatar_url: string | null = currentUser.avatar_url;
 	  if (avatarFile) {
 		const fileResult = await fileService.saveFileBuffer(avatarFile, "avatar.jpg");
@@ -135,19 +118,12 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 		}
 		avatar_url = fileResult.url;
 	  }
-	  await updateUserData(userId, {
-		username,
-		email,
-		password_hash: hashedPassword,
-		avatar_url,
-	  });
-	  return { message: "User updated!", userId };
+	  await updateAvatar(userId, avatar_url);
+	  return { message: "User updated!" };
 	} catch (error) {
 	  logError(error, "updateUserService");
 	  throw createDatabaseError("Failed to update user", {
 		userId,
-		username,
-		email,
 		error: error instanceof Error ? error.message : "Unknown error",
 	  });
 	}

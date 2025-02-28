@@ -2,17 +2,20 @@ import db from "../database";
 import { GoogleUser, User, Achievement, CountRow } from "../@types/user.types";
 
 
-export async function getUserByEmail(email: string): Promise<User | null> {
-	return new Promise((resolve, reject) => {
-		db.get(
-			"SELECT * FROM users WHERE email = ?",
-			[email],
-			(err: Error | null, user: User | undefined) => {
-				if (err) reject(err);
-				else resolve(user || null);
-			}
-		);
-	});
+
+export async function updateAvatar(userId: number, avatar_url: string | null): Promise<void> {
+	if (avatar_url) {
+		return new Promise((resolve, reject) => {
+			db.run(
+				"UPDATE users SET avatar_url = ? WHERE auth_user_id = ?",
+				[avatar_url, userId],
+				function (err: Error | null) {
+					if (err) reject(err);
+					else resolve();
+				}
+			);
+		});
+	}	
 }
 
 
@@ -73,7 +76,7 @@ export async function getUserByGoogleId(token: string): Promise<User | null> {
 export async function getUserById(id: number): Promise<User | null> {
 	return new Promise((resolve, reject) => {
 		db.get(
-			"SELECT * FROM users WHERE id = ?",
+			"SELECT * FROM users WHERE auth_user_id = ?",
 			[id],
 			(err: Error | null, user: User | undefined) => {
 				if (err) reject(err);
@@ -83,19 +86,14 @@ export async function getUserById(id: number): Promise<User | null> {
 	});
 }
 
-export async function createUser(
-	username: string,
-	email: string,
-	password_hash: string,
-	avatar_url: string | null = null
-): Promise<number> {
+export async function createUser( userId: number, username: string, avatar_url: string ): Promise<void> {
 	return new Promise((resolve, reject) => {
 		db.run(
-			"INSERT INTO users (username, email, password_hash, avatar_url) VALUES (?, ?, ?, ?)",
-			[username, email, password_hash, avatar_url],
-			function (this: { lastID: number }, err: Error | null) {
+			"INSERT INTO users (auth_user_id, username, avatar_url) VALUES (?, ?, ?)",
+			[userId, username, avatar_url],
+			function (err: Error | null) {
 				if (err) reject(err);
-				else resolve(this.lastID);
+				else resolve();
 			}
 		);
 	});

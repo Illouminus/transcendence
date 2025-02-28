@@ -4,11 +4,14 @@ import cors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
 import authRoutes from "./routes/auth.routes";
 import { logError } from "./utils/errorHandler";
+import { connectRabbit } from "./rabbit/rabbit";
 import config from "./config";
 
 // Import the database connection - auto launches the connection
 import "./database";
 
+
+connectRabbit();
 
 // Expand the Fastify instance with a new method to authenticate the user
 declare module "fastify" {
