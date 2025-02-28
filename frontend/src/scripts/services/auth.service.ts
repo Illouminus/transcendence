@@ -9,8 +9,8 @@ declare var google: any;
 // Google OAuth 2.0 Client ID
 const clientId = "747067169-6jotvfqmsp06iq9muu28jq2547q3v32s.apps.googleusercontent.com";
 
-const API_URL = "http://localhost:5555/auth";
-const API_URL_USER = "http://localhost:5555/user";
+const API_URL = "http://localhost:8080/auth";
+const API_URL_USER = "http://localhost:8080/user";
 
 // Проверка авторизации
 export async function checkAuth(): Promise<boolean> {

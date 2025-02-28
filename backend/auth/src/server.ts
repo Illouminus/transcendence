@@ -24,10 +24,10 @@ const server = fastify({
 });
 
 // Register the CORS plugin with our configuration
-server.register(cors, {
-	origin: config.server.corsOrigin,
-	credentials: true,
-  });
+// server.register(cors, {
+// 	origin: config.server.corsOrigin,
+// 	credentials: true,
+//   });
 
 
 // Register the cookie plugin with our configuration  

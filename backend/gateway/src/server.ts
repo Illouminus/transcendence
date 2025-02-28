@@ -1,6 +1,7 @@
 import fastify from 'fastify';
 import fastifyHttpProxy from '@fastify/http-proxy';
 import fastifyStatic from '@fastify/static';
+import cors from "@fastify/cors";
 import config from './config';
 
 // Create an instance of Fastify server
@@ -12,7 +13,7 @@ const server = fastify({
 server.register(fastifyHttpProxy, {
     upstream: config.services.auth_service,
     prefix: '/auth',
-    rewritePrefix: "",
+    //rewritePrefix: "",
     http2: false,
     websocket: false,
 });
@@ -26,6 +27,12 @@ server.register(fastifyHttpProxy, {
 // 	prefix: "/images/",
 // 	decorateReply: false,
 // });
+
+
+server.register(cors, {
+	origin: config.server.corsOrigin,
+	credentials: true,
+  });
 
 
 // Register the HTTP Proxy plugin with our configuration for the user service

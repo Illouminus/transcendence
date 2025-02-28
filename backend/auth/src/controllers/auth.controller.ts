@@ -8,6 +8,7 @@ import { publishToQueue } from "../rabbit/rabbit"
 
 export async function loginController( req: FastifyRequest<{ Body: LoginBody }>, res: FastifyReply) {
 	try {
+		console.log(req.body);
 		const response = await loginUser(req.body.email, req.body.password);
 		return res.status(200).send(response);
 	} catch (error) {
@@ -44,7 +45,7 @@ export async function googleAuthLogin( req: FastifyRequest<{ Body: { idToken: st
 	}
 }
 
-export async function registerUser(req: FastifyRequest<{Body: RegisterUser}>, reply: FastifyReply) {
+export async function registerController(req: FastifyRequest<{Body: RegisterUser}>, reply: FastifyReply) {
 	try {
 	  const { username, email, password } = req.body;
 

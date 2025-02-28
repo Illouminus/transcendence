@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS friends (
     user_profile_id INTEGER NOT NULL,  -- holder
     friend_profile_id INTEGER NOT NULL, -- friend
     status TEXT CHECK(status IN ('pending', 'accepted', 'blocked')) NOT NULL DEFAULT 'pending',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_profile_id) REFERENCES user_profile(id) ON DELETE CASCADE,
     FOREIGN KEY (friend_profile_id) REFERENCES user_profile(id) ON DELETE CASCADE
 );

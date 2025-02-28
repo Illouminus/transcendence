@@ -3,17 +3,18 @@ version: "3.8"
 services:
   gateway:
     build:
-      context: ./gateway
+      context: ./backend/gateway
       dockerfile: Dockerfile
     container_name: transcendence_gateway
     restart: always
     working_dir: /app
     volumes:
       - /app/node_modules
-      - ./gateway:/app
+      - ./backend/gateway:/app
     ports:
-      - "5000:5000"
+      - "8080:8080"
     environment:
+      - GATEWAY_PORT=${GATEWAY_PORT}
       - NODE_ENV=${NODE_ENV}
       - JWT_SECRET=${JWT_SECRET}
       - DATABASE_PATH=${DATABASE_PATH}
@@ -24,25 +25,49 @@ services:
     networks:
       - transcendance-network
 
-  backend:
+  auth:
     build:
-      context: ./backend
+      context: ./backend/auth
       dockerfile: Dockerfile
-    container_name: transcendence_backend
+    container_name: transcendence_auth
     restart: always
     working_dir: /app
     volumes:
       - /app/node_modules
-      - ./backend:/app
+      - ./backend/auth:/app
       - db-data:/db
     ports:
-      - "5555:5000"
+      - "8081:8081"
     environment:
       - NODE_ENV=${NODE_ENV}
       - GMAIL_USER=${GMAIL_USER}
       - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - DATABASE_PATH=${DATABASE_PATH}
+    networks:
+      - transcendance-network
+
+  user:
+    build:
+      context: ./backend/user
+      dockerfile: Dockerfile
+    container_name: transcendence_user
+    restart: always
+    working_dir: /app
+    volumes:
+      - /app/node_modules
+      - ./backend/user:/app
+      - db-data:/db
+    ports:
+      - "8082:8082"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
+    networks:
+      - transcendance-network
     
   frontend:
     build:
@@ -57,7 +82,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - backend
+      - gateway
     networks:
       - transcendance-network
 
@@ -77,3 +102,7 @@ services:
 volumes:
   db-data:
     driver: local
+
+networks:
+  transcendance-network:
+    driver: bridge

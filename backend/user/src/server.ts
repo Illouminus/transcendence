@@ -1,5 +1,4 @@
 import fastify from "fastify";
-import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import fastifyMultipart from "@fastify/multipart";
 import userRoutes from "./routes/users.routes";
@@ -14,12 +13,6 @@ const server = fastify({
 	logger : config.server.env === "development",
 	disableRequestLogging: config.server.env === "production",
 });
-
-// Register the CORS plugin with our configuration
-server.register(cors, {
-	origin: config.server.corsOrigin,
-	credentials: true,
-  });
 
 
 // Register the Multipart plugin with our configuration for file uploads
@@ -58,7 +51,7 @@ server.setErrorHandler((error, request, reply) => {
 
 // Register the routes - prefix means that all routes in the authRoutes will start with /auth
 // For example, if you have a route in the authRoutes file with the path /login, you can access it at http://localhost:5000/user/update
-server.register(userRoutes, { prefix: "/user" });
+server.register(userRoutes);
 
 
 // Start the server

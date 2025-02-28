@@ -5,18 +5,16 @@ import { getUserByEmail } from "../models/user.model";
 
 
 interface UpdateProfileFileds {
-	username: string;
 	email: string;
-	password?: string;
 	avatar?: Buffer;
 }
 
 
 export async function updateAvatarController(req: FastifyRequest<{Body: UpdateProfileFileds}>, reply: FastifyReply) {
 	try {
-	 const { username, email, password, avatar } = req.body;
-	 if(!username || !email) {
-	   throw createValidationError("Username and email are required");
+	 const { email, avatar } = req.body;
+	 if( !email) {
+	   throw createValidationError("Email are required");
 	 }
 	  const user = await getUserByEmail(req.body.email);
 	  if (!user) {

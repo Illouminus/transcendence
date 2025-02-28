@@ -30,7 +30,6 @@ function initializeDatabase() {
 
 
 
-
 function seedDatabase() {
 	db.serialize(() => {
 		// Засидим несколько пользователей

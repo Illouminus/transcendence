@@ -22,7 +22,6 @@ import fs from "fs";
 import { pipeline } from "stream";
 
 
-  
 
 // Function to get user profile
 export async function getUserProfile(userId: number): Promise<PublicUserProfile> {
@@ -49,6 +48,7 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 		achievements,
 	  };
   
+	  
 	  // Transform to public profile
 	  const publicProfile: PublicUserProfile = {
 		id: fullProfile.id,
