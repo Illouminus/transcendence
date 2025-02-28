@@ -54,7 +54,7 @@ export async function registerController(req: FastifyRequest<{Body: RegisterUser
 	  }
 
 	  const user = await registerUserService( username, email, password);
-	  publishToQueue("user.registered", { email: user.email, username: user.username });
+	  publishToQueue("user.registered", { userId: user.id, email: user.email, username: user.username });
 	  
 	  return reply.status(201).send({message : "Registration successful"});
 	} catch (error) {
@@ -86,7 +86,7 @@ export async function updateController(req: FastifyRequest<{Body: RegisterUser}>
 		} 
 		else 
 		{
-			publishToQueue("user.updated", { username: user.username });
+			publishToQueue("user.updated", { userId: user.id, username: user.username });
 			res.status(200).send({ message: "User updated successfully" });
 		}
 	} catch (error: any) {

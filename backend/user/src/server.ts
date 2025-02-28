@@ -43,6 +43,7 @@ server.register(fastifyStatic, {
 //   "statusCode": 500
 // }
 
+
 server.setErrorHandler((error, request, reply) => {
 	logError(error, 'Server');
 	reply.status(error.statusCode || 500).send({

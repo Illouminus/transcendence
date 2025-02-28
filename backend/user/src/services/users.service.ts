@@ -78,6 +78,8 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 	}
   }
 
+  
+
   export async function registerUserService( userId: number, username: string): Promise<{ message: string }> {
 	try {
 	  if (!username ) {

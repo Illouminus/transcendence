@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS user_profile (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    auth_user_id INTEGER NOT NULL,  -- auth_user_id is the id of the user in the auth_user table
+    auth_user_id INTEGER NOT NULL, 
     avatar_url TEXT DEFAULT NULL,
+    username TEXT NOT NULL,
     wins INTEGER DEFAULT 0,
     losses INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

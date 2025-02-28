@@ -1,5 +1,6 @@
 // user/src/rabbit.ts
 import amqp from "amqplib";
+import { registerUserController } from "../controllers/users.controller";
 
 let channel: amqp.Channel | null = null;
 
@@ -40,6 +41,8 @@ export async function connectRabbit(): Promise<void> {
 // Обработчик события регистрации
 function handleUserRegistered(data: any) {
   console.log("Handling user.registered event with data:", data);
+
+  registerUserController(data.userId, data.username);
   // Здесь можно, например, создать профиль пользователя в User-сервисе
   // Пример:
   // createUserProfile(data.userId, data.username, data.avatarUrl);

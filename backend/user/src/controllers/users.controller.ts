@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { updateAvatarService } from "../services/users.service";
+import { registerUserService, updateAvatarService } from "../services/users.service";
 import { getErrorMessage, getErrorStatusCode, logError, createValidationError, createAuthenticationError } from "../utils/errorHandler";
 import { getUserById } from "../models/user.model";
 
@@ -28,6 +28,17 @@ export async function updateAvatarController(req: FastifyRequest<{Body: UpdatePr
 	}
   }
 
+
+  export async function registerUserController(userId: number, username: string) {
+	try {
+		const response = await registerUserService(userId, username);
+		console.log("User registered", response);
+		return response;
+	} catch (error) {
+		logError(error, "registerUser");
+		throw createAuthenticationError("Error registering user");
+	}
+  }
 
 // export async function updateProfile(req: FastifyRequest<{Body: UpdateProfileFileds}>, reply: FastifyReply) {
 // 	try {

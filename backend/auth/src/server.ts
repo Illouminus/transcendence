@@ -13,12 +13,15 @@ import "./database";
 
 connectRabbit();
 
+
 // Expand the Fastify instance with a new method to authenticate the user
 declare module "fastify" {
 	interface FastifyInstance {
 		authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
 	}
 } 
+
+
 
 // Create an instance of Fastify server
 const server = fastify({

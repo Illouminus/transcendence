@@ -48,6 +48,8 @@ services:
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     networks:
       - transcendance-network
+    depends_on:
+      - rabbitmq
 
   user:
     build:
@@ -72,6 +74,8 @@ services:
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     networks:
       - transcendance-network
+    depends_on:
+      - rabbitmq
     
   frontend:
     build:

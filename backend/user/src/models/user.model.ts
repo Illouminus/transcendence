@@ -7,7 +7,7 @@ export async function updateAvatar(userId: number, avatar_url: string | null): P
 	if (avatar_url) {
 		return new Promise((resolve, reject) => {
 			db.run(
-				"UPDATE users SET avatar_url = ? WHERE auth_user_id = ?",
+				"UPDATE user_profile SET avatar_url = ? WHERE auth_user_id = ?",
 				[avatar_url, userId],
 				function (err: Error | null) {
 					if (err) reject(err);
@@ -89,7 +89,7 @@ export async function getUserById(id: number): Promise<User | null> {
 export async function createUser( userId: number, username: string, avatar_url: string ): Promise<void> {
 	return new Promise((resolve, reject) => {
 		db.run(
-			"INSERT INTO users (auth_user_id, username, avatar_url) VALUES (?, ?, ?)",
+			"INSERT INTO user_profile (auth_user_id, username, avatar_url) VALUES (?, ?, ?)",
 			[userId, username, avatar_url],
 			function (err: Error | null) {
 				if (err) reject(err);
