@@ -18,6 +18,19 @@ export async function updateAvatar(userId: number, avatar_url: string | null): P
 	}	
 }
 
+export async function updateUsername(userId: number, username: string): Promise<void> {
+	return new Promise((resolve, reject) => {
+		db.run(
+			"UPDATE user_profile SET username = ? WHERE auth_user_id = ?",
+			[username, userId],
+			function (err: Error | null) {
+				if (err) reject(err);
+				else resolve();
+			}
+		);
+	});
+}
+
 
 export async function updateUserData(
 	userId: number,

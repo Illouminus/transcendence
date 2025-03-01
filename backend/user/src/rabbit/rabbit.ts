@@ -1,6 +1,7 @@
 // user/src/rabbit.ts
 import amqp from "amqplib";
 import { registerUserController } from "../controllers/users.controller";
+import { updateUsernameService } from "../services/users.service";
 
 let channel: amqp.Channel | null = null;
 
@@ -39,18 +40,20 @@ export async function connectRabbit(): Promise<void> {
 }
 
 // Обработчик события регистрации
-function handleUserRegistered(data: any) {
+async function handleUserRegistered(data: any) {
   console.log("Handling user.registered event with data:", data);
 
-  registerUserController(data.userId, data.username);
+  await registerUserController(data.userId, data.username);
   // Здесь можно, например, создать профиль пользователя в User-сервисе
   // Пример:
   // createUserProfile(data.userId, data.username, data.avatarUrl);
 }
 
 // Обработчик события обновления
-function handleUserUpdated(data: any) {
+async function handleUserUpdated(data: any) {
   console.log("Handling user.updated event with data:", data);
+
+  await updateUsernameService(data.userId, data.username);
   // Здесь можно обновить профиль пользователя, например, изменить username или другие поля
   // Пример:
   // updateUserProfile(data.userId, { username: data.username });

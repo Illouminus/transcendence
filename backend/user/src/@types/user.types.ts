@@ -63,9 +63,7 @@ export interface UserProfile extends User {
 export interface PublicUserProfile {
 	id: number;
 	username: string;
-	email: string;
 	avatarUrl: string | null;
-	isVerified: boolean;
 	wins: number;
 	losses: number;
 	totalGames: number;

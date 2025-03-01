@@ -8,7 +8,8 @@ import {
   getTournamentWins,
   getUserAchievements,
   updateUserData,
-  updateAvatar
+  updateAvatar,
+  updateUsername
 } from "../models/user.model";
 import { UserProfile, PublicUserProfile } from "../@types/user.types";
 import * as fileService from "./file.service";
@@ -25,7 +26,7 @@ import { pipeline } from "stream";
 
 
 // Function to get user profile
-export async function getUserProfile(userId: number): Promise<PublicUserProfile> {
+export async function getUserProfileService(userId: number): Promise<PublicUserProfile> {
 	try {
 	  const user = await getUserById(userId);
 	  if (!user) {
@@ -54,9 +55,7 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 	  const publicProfile: PublicUserProfile = {
 		id: fullProfile.id,
 		username: fullProfile.username,
-		email: fullProfile.email,
 		avatarUrl: fullProfile.avatar_url,
-		isVerified: fullProfile.is_verified,
 		wins: fullProfile.wins,
 		losses: fullProfile.losses,
 		totalGames: fullProfile.totalGames,
@@ -71,8 +70,6 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 	  if (error && typeof error === 'object' && 'type' in error) {
 		throw error;
 	  }
-	  
-	  // Else log and throw generic error
 	  logError(error, 'getUserProfile');
 	  throw createDatabaseError('Failed to get user profile', { userId });
 	}
@@ -130,3 +127,14 @@ export async function getUserProfile(userId: number): Promise<PublicUserProfile>
 	  });
 	}
   }
+
+
+  export async function updateUsernameService( userId: number, username: string): Promise<void> {
+	try {
+		const response = await updateUsername(userId, username);
+		console.log("Username updated", response);
+	} catch (error) {
+		logError(error, "updateProfile");
+	}
+	}
+
