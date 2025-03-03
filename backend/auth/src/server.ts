@@ -14,6 +14,7 @@ import "./database";
 connectRabbit();
 
 
+
 // Expand the Fastify instance with a new method to authenticate the user
 declare module "fastify" {
 	interface FastifyInstance {

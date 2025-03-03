@@ -89,7 +89,7 @@ export async function getUserByGoogleId(token: string): Promise<User | null> {
 export async function getUserById(id: number): Promise<User | null> {
 	return new Promise((resolve, reject) => {
 		db.get(
-			"SELECT * FROM users WHERE auth_user_id = ?",
+			"SELECT * FROM user_profile WHERE auth_user_id = ?",
 			[id],
 			(err: Error | null, user: User | undefined) => {
 				if (err) reject(err);
@@ -192,7 +192,7 @@ export async function getTournamentWins(userId: number): Promise<number> {
 export async function getUserAchievements(userId: number): Promise<Achievement[]> {
 	return new Promise((resolve, reject) => {
 		db.all(
-			"SELECT * FROM user_achievements WHERE user_id = ?",
+			"SELECT * FROM user_achievements WHERE user_profile_id = ?",
 			[userId],
 			(err: Error | null, rows: unknown) => {
 				if (err) {

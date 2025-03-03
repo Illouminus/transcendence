@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 	document.getElementById("logo-button")?.addEventListener("click", onLogoClick);
 	document.getElementById("profile-button")?.addEventListener("click", onProfileClick);
 
-	// Fetch user profile and set user state accordingly
+	//Fetch user profile and set user state accordingly
 	const user = await fetchUserProfile();
 	console.log(user);
 

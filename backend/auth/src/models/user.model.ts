@@ -111,8 +111,8 @@ export async function dbCreateUser(
 export async function createGooleUser(user: GoogleUser): Promise<number> {
 	return new Promise((resolve, reject) => {
 		db.run(
-			"INSERT INTO users (username, email, avatar_url, google_id) VALUES (?, ?, ?, ?)",
-			[user.name, user.email, user.picture, user.sub],
+			"INSERT INTO users (username, email, google_id) VALUES (?, ?, ?)",
+			[user.name, user.email, user.sub],
 			function (this: { lastID: number }, err: Error | null) {
 				if (err) reject(err);
 				else resolve(this.lastID);

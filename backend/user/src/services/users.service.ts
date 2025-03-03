@@ -28,25 +28,27 @@ import { pipeline } from "stream";
 // Function to get user profile
 export async function getUserProfileService(userId: number): Promise<PublicUserProfile> {
 	try {
+	  // Get user from DB
+	  console.log("userId", userId);
 	  const user = await getUserById(userId);
 	  if (!user) {
 		throw createNotFoundError("User");
 	  }
   
 	  // Get all user stats in parallel from different tables
-	  const [totalGames, totalTournaments, tournamentWins, achievements] = await Promise.all([
-		getTotalGamesPlayed(userId),
-		getTotalTournaments(userId),
-		getTournamentWins(userId),
+	  const [ achievements] = await Promise.all([
+		//getTotalGamesPlayed(userId),
+		//getTotalTournaments(userId),
+		//getTournamentWins(userId),
 		getUserAchievements(userId)
 	  ]);
   
 	  // Form full profile
 	  const fullProfile: UserProfile = {
 		...user,
-		totalGames,
-		totalTournaments,
-		tournamentWins,
+		//totalGames,
+		//totalTournaments,
+		//tournamentWins,
 		achievements,
 	  };
   
@@ -56,11 +58,6 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 		id: fullProfile.id,
 		username: fullProfile.username,
 		avatarUrl: fullProfile.avatar_url,
-		wins: fullProfile.wins,
-		losses: fullProfile.losses,
-		totalGames: fullProfile.totalGames,
-		totalTournaments: fullProfile.totalTournaments,
-		tournamentWins: fullProfile.tournamentWins,
 		achievements: fullProfile.achievements,
 	  };
   
@@ -137,4 +134,5 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 		logError(error, "updateProfile");
 	}
 	}
+
 

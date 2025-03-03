@@ -1,8 +1,7 @@
-import { checkAuth, logout } from "./auth.service";
-import { redirectTo } from "../router";
+import { UserState } from "../userState";
 
 export async function setupUI() {
-	const isAuth = await checkAuth();
+	const isAuth = UserState.isLoggedIn();
 	toggleVisibility("login-button", !isAuth);
 	toggleVisibility("signup-button", !isAuth);
 	toggleVisibility("profile-button", isAuth);

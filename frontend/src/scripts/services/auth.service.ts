@@ -15,7 +15,7 @@ const API_URL_USER = "http://localhost:8080/user";
 // Проверка авторизации
 export async function checkAuth(): Promise<boolean> {
 	try {
-		const res = await fetch(`${API_URL}/me`, { credentials: "include" });
+		const res = await fetch(`${API_URL}/getUserInfo`, { credentials: "include" });
 		return res.ok;
 	} catch (error) {
 		console.error("Error in checkAuth:", error);
@@ -25,7 +25,7 @@ export async function checkAuth(): Promise<boolean> {
 
 export async function fetchUserProfile(): Promise<User | null> {
 	try {
-		const res = await fetch(`${API_URL}/me`, { credentials: "include" });
+		const res = await fetch(`${API_URL_USER}/getUserInfo`, { credentials: "include" });
 		if (res.ok) {
 			const user: User = await res.json();
 			console.log("User profile:", user);
@@ -120,7 +120,8 @@ function handleCredentialResponse(response: any) {
 		.then(async (data) => {
 			if (data.error) {
 				showAlert("Google Sign-In Error - Possibly duplicate email", "danger");
-				return;
+				return;;
+			
 			}
 			showAlert("Google Sign-In successful", "success");
 			const user = await fetchUserProfile();

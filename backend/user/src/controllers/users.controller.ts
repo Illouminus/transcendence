@@ -49,13 +49,18 @@ export async function updateUsernameController(userId: number, username: string)
 	}
   }
 
-  export async function getUserInfoController(req: FastifyRequest<{Body: {userId: number}}>, reply: FastifyReply) {
+  export async function getUserInfoController(req: FastifyRequest, reply: FastifyReply) {
 	try {
-	  const user = await getUserProfileService(req.body.userId);
-	  if (!user) {
-		return reply.status(401).send({ error: "User not found" });
-	  }
-	  return user;
+		const userIdHeader = req.headers['x-user-id'];
+		if (!userIdHeader) {
+		  return reply.status(401).send({ error: "User ID not provided" });
+		}
+		const userId = parseInt(userIdHeader as string, 10);
+		const user = await getUserProfileService(userId);
+		if (!user) {
+			return reply.status(401).send({ error: "User not found" });
+		}
+		return user;
 	} catch (error) {
 	  logError(error, "getUserInfo");
 	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
@@ -63,20 +68,20 @@ export async function updateUsernameController(userId: number, username: string)
   }
 
 
-  export async function updateUserInformationController(req: FastifyRequest<{Body: UpdateProfileFileds}>, reply: FastifyReply) {
-	try {
-	  const { userId, avatar } = req.body;
-	  if( !userId) {
-		throw createValidationError("UserId are required");
-	  }
-	  const user = await getUserById(userId);
-	  if (!user) {
-		return reply.status(401).send({ error: "User not found" });
-	  }
-	  const response = await updateAvatarService(user.id, avatar);
-	  return reply.status(200).send(response);
-	} catch (error) {			
-	  logError(error, "updateProfile");
-	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
-	}
-  }
+//   export async function updateUserInformationController(req: FastifyRequest<{Body: UpdateProfileFileds}>, reply: FastifyReply) {
+// 	try {
+// 	  const { userId, avatar } = req.body;
+// 	  if( !userId) {
+// 		throw createValidationError("UserId are required");
+// 	  }
+// 	  const user = await getUserById(userId);
+// 	  if (!user) {
+// 		return reply.status(401).send({ error: "User not found" });
+// 	  }
+// 	  const response = await updateUserInformationService(user.id, avatar);
+// 	  return reply.status(200).send(response);
+// 	} catch (error) {			
+// 	  logError(error, "updateProfile");
+// 	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
+// 	}
+//   }

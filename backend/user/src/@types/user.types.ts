@@ -54,9 +54,7 @@ export interface CountRow {
 }
 
 export interface UserProfile extends User {
-	totalGames: number;
-	totalTournaments: number;
-	tournamentWins: number;
+
 	achievements: Achievement[];
 }
 
@@ -64,10 +62,6 @@ export interface PublicUserProfile {
 	id: number;
 	username: string;
 	avatarUrl: string | null;
-	wins: number;
-	losses: number;
-	totalGames: number;
-	totalTournaments: number;
-	tournamentWins: number;
+
 	achievements: Achievement[];
 }

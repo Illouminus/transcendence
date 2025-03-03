@@ -8,6 +8,7 @@ import { sendEmail } from "./mailer.services";
 import { GoogleUser, User} from "../@types/auth.types";
 import { getUserIdFromJWT } from "../utils/jwtUtils";
 import { createDatabaseError, createNotFoundError, logError } from "../utils/errorHandler";
+import { publishToQueue } from "../rabbit/rabbit";
 
 
 export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyReply, userId: number): Promise<string> {
@@ -71,16 +72,17 @@ export async function googleAuthenticator(idToken: string): Promise<User> {
 		throw new Error("Invalid google token");
 	}
 
-	const { name, email, picture, sub } = payload as GoogleUser;
+	const { name, email, sub } = payload as GoogleUser;
 
 	let user = await getUserByGoogleId(sub);
 
 	if (!user) {
-		const userId = await createGooleUser({ name, email, picture, sub });
+		const userId = await createGooleUser({ name, email, sub });
 		user = await getUserById(userId);
 		if (!user) {
 			throw new Error("User creation failed");
 		}
+		publishToQueue("user.registered", { userId: user.id, email: user.email, username: user.username });
 	}
 	return user;
 }

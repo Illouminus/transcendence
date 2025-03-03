@@ -28,5 +28,11 @@ export const UserState = {
 	},
 	logout: () => {
 		UserState.user = null;
-	}
+	},
+	setUserId: (userId: number) => {
+		UserState.user!.id = userId;
+	},
+	getUserId: () => {
+		return UserState.user!.id;
+	},
 };

@@ -1,6 +1,8 @@
-import fastify from 'fastify';
+import fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import fastifyHttpProxy from '@fastify/http-proxy';
 import fastifyStatic from '@fastify/static';
+import fastifyJwt, { FastifyJWT, JWT } from '@fastify/jwt';
+import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import config from './config';
 
@@ -9,11 +11,31 @@ const server = fastify({
     logger: true,
 });
 
+
+server.register(cors, {
+	origin: config.server.corsOrigin,
+	credentials: true,
+  });
+
+
+server.register(fastifyJwt, {
+    secret: config.security.jwtSecret,
+  });
+
+
+  server.register(fastifyCookie, {
+	secret: config.security.cookieSecret,
+	parseOptions: {
+	  httpOnly: true,
+	  secure: config.server.env === 'production',
+	  sameSite: 'none',
+	},
+  });
 // Register the HTTP Proxy plugin with our configuration for the auth service
 server.register(fastifyHttpProxy, {
     upstream: config.services.auth_service,
     prefix: '/auth',
-    //rewritePrefix: "",
+    rewritePrefix: "",
     http2: false,
     websocket: false,
 });
@@ -29,20 +51,45 @@ server.register(fastifyHttpProxy, {
 // });
 
 
-server.register(cors, {
-	origin: config.server.corsOrigin,
-	credentials: true,
-  });
+interface JwtPayload {
+  userId: number;
+}
+
+server.register(fastifyHttpProxy, {
+  upstream: config.services.user_service,
+  prefix: '/user',
+  rewritePrefix: "",
+  http2: false,
+  websocket: false,
+  // Здесь мы используем rewriteHeaders для модификации заголовков перед отправкой запроса
+  preHandler: async (req: FastifyRequest, reply: FastifyReply) => {
+    const token =
+      req.cookies.token || req.headers.authorization?.split(' ')[1];
+    if (token) {
+      try {
+        const decoded = server.jwt.verify<JwtPayload>(token);
+        if (typeof decoded !== 'string' && decoded.userId) {
+          req.headers['x-user-id'] = decoded.userId.toString();
+          console.log('[Gateway] preHandler attached x-user-id:', req.headers['x-user-id']);
+        }
+      } catch (err) {
+        console.error('[Gateway] Token verification error in preHandler:', err);
+      }
+    }
+  },
+});
 
 
 // Register the HTTP Proxy plugin with our configuration for the user service
-server.register(fastifyHttpProxy, {
-    upstream: config.services.user_service,
-    prefix: '/user',
-    rewritePrefix: "",
-    http2: false,
-    websocket: false,
-});
+// server.register(fastifyHttpProxy, {
+//     upstream: config.services.user_service,
+//     prefix: '/user',
+//     rewritePrefix: "",
+//     http2: false,
+//     websocket: false,
+//     preHandler: verifyJWT,
+//   }
+// );
 
 // Register the HTTP Proxy plugin with our configuration for the game service
 server.register(fastifyHttpProxy, {
