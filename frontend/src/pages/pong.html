@@ -123,7 +123,7 @@
         }
 
         // Créer le premier joueur (paddle placé à l'arrière)
-        let player1Paddle = createPlayerPaddle(scene, -fullCourtLength / 2 + 4);
+        let player1Paddle = createPlayerPaddle(scene, -fullCourtLength / 2);
 
         // Créer le second joueur (paddle placé à l'avant)
         let player2Paddle = createPlayerPaddle(scene, fullCourtLength / 2);
@@ -132,51 +132,49 @@
         window.addEventListener('keydown', function(event) {
             if (event.key === 'z') {
                 // Player 1 moves up (increasing X position)
-                player1Paddle.position.x = Math.min(player1Paddle.position.x + 0.5, halfCourtWidth - PADDLE_HEIGHT / 2);
+                player1Paddle.position.x = Math.min(player1Paddle.position.x + 1, halfCourtWidth - PADDLE_HEIGHT / 2);
             } else if (event.key === 's') {
                 // Player 1 moves down (decreasing X position)
-                player1Paddle.position.x = Math.max(player1Paddle.position.x - 0.5, -(halfCourtWidth - PADDLE_HEIGHT / 2));
+                player1Paddle.position.x = Math.max(player1Paddle.position.x - 1, -(halfCourtWidth - PADDLE_HEIGHT / 2));
             }
         });
 
-        // Ball properties
+        // BALL
+        const BALL_RADIUS = 0.2;
+        const BALL_SPEED = 0.1;
+
         const ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: 0.3 }, scene);
         ball.position = new BABYLON.Vector3(0, 0.25, 0);
-        let ballDirection = new BABYLON.Vector3(0, 0, 0.05);
+        let ballDirection = new BABYLON.Vector3(0.1, 0, -0.05).normalize();
 
-        scene.onBeforeRenderObservable.add(() => {
-            ball.position.addInPlace(ballDirection);
+        scene.registerBeforeRender(() => {
+            // Update ball position
+            ball.position.addInPlace(ballDirection.scale(BALL_SPEED));
 
-            // Collision with left and right boundaries
-            if (ball.position.x <= -halfCourtWidth || ball.position.x >= halfCourtWidth) {
+            // Collisions with side lines
+            if (Math.abs(ball.position.x) + BALL_RADIUS >= halfCourtWidth) {
                 ballDirection.x *= -1;
             }
 
-            // Collision with top and bottom boundaries
-            if (ball.position.z <= -fullCourtLength / 2 || ball.position.z >= fullCourtLength / 2) {
+            // Collisions with paddles
+            if (ball.intersectsMesh(player1Paddle, false)) {
                 ballDirection.z *= -1;
+                ball.position.z = player1Paddle.position.z + BALL_RADIUS + PADDLE_DEPTH / 2;
             }
 
-            // Collision with player1 paddle
-            if (
-                ball.position.z <= player1Paddle.position.z + PADDLE_DEPTH / 2 &&
-                ball.position.z >= player1Paddle.position.z - PADDLE_DEPTH / 2 &&
-                ball.position.x >= player1Paddle.position.x - PADDLE_WIDTH / 2 &&
-                ball.position.x <= player1Paddle.position.x + PADDLE_WIDTH / 2
-            ) {
+            if (ball.intersectsMesh(player2Paddle, false)) {
                 ballDirection.z *= -1;
+                ball.position.z = player2Paddle.position.z - BALL_RADIUS - PADDLE_DEPTH / 2;
             }
 
-            // Collision with player2 paddle
-            if (
-                ball.position.z <= player2Paddle.position.z + PADDLE_DEPTH / 2 &&
-                ball.position.z >= player2Paddle.position.z - PADDLE_DEPTH / 2 &&
-                ball.position.x >= player2Paddle.position.x - PADDLE_WIDTH / 2 &&
-                ball.position.x <= player2Paddle.position.x + PADDLE_WIDTH / 2
-            ) {
-                ballDirection.z *= -1;
+            // Ball out of bounds (past the paddles)
+            if (Math.abs(ball.position.z) > fullCourtLength / 2) {
+                // Reset ball position and direction
+                ball.position = new BABYLON.Vector3(0, BALL_RADIUS, 0);
+                ballDirection = new BABYLON.Vector3((Math.random() - 0.5) * 0.4, 0, Math.random() > 0.5 ? -1 : 1).normalize();
             }
         });
+
 
         return scene;
     };
