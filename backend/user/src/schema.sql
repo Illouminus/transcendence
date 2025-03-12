@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS user_profile (
     auth_user_id INTEGER NOT NULL, 
     avatar_url TEXT DEFAULT NULL,
     username TEXT NOT NULL,
+    email TEXT NOT NULL,
     wins INTEGER DEFAULT 0,
     losses INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

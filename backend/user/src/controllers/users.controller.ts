@@ -29,9 +29,9 @@ export async function updateAvatarController(req: FastifyRequest<{Body: UpdatePr
   }
 
 
-  export async function registerUserController(userId: number, username: string) {
+  export async function registerUserController(userId: number, username: string, email: string) {
 	try {
-		const response = await registerUserService(userId, username);
+		const response = await registerUserService(userId, username, email);
 		console.log("User registered", response);
 	} catch (error) {
 		logError(error, "registerUser");

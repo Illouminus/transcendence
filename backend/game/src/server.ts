@@ -7,7 +7,7 @@ import config from "./config";
 // Import the database connection - auto launches the connection
 import "./database";
 
-connectRabbit();
+//connectRabbit();
 
 // Create an instance of Fastify server
 const server = fastify({

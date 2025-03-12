@@ -5,6 +5,19 @@ import { updateUsernameService } from "../services/users.service";
 
 let channel: amqp.Channel | null = null;
 
+
+interface UserRegisteredEvent {
+  userId: number;
+  username: string;
+  email: string;
+}
+
+interface UserUpdatedEvent {
+  userId: number;
+  username: string;
+  email: string;
+}
+
 export async function connectRabbit(): Promise<void> {
   // Подключаемся к RabbitMQ
   const connection = await amqp.connect(
@@ -40,10 +53,10 @@ export async function connectRabbit(): Promise<void> {
 }
 
 // Обработчик события регистрации
-async function handleUserRegistered(data: any) {
+async function handleUserRegistered(data: UserRegisteredEvent) {
   console.log("Handling user.registered event with data:", data);
 
-  await registerUserController(data.userId, data.username);
+  await registerUserController(data.userId, data.username, data.email);
   // Здесь можно, например, создать профиль пользователя в User-сервисе
   // Пример:
   // createUserProfile(data.userId, data.username, data.avatarUrl);

@@ -22,6 +22,7 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 		wins: fullProfile.wins,
 		losses: fullProfile.losses,
 		achievements: fullProfile.achievements,
+		email: fullProfile.email,
 	  };
   
 	  return publicProfile;
@@ -36,15 +37,15 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 
   
 
-  export async function registerUserService( userId: number, username: string): Promise<{ message: string }> {
+  export async function registerUserService( userId: number, username: string, email: string): Promise<{ message: string }> {
 	try {
-	  if (!username ) {
+	  if (!username || !email) {
 		throw createValidationError("All fields are required", {
 		  username: Boolean(username),
 		});
 	  }
 	  const avatar_url = "./uplodas/default.jpg";
-	  await createUser(userId,username, avatar_url);
+	  await createUser(userId,username, avatar_url, email);
 	  return { message: "User registered!" };
 	} catch (error) {
 	  logError(error, "registerUserService");

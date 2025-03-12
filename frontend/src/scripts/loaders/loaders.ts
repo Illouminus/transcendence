@@ -1,5 +1,6 @@
 import { fetchAndRender } from "./outils";
 import { login, renderGoogleButton, login2FA, handleSignupSubmit, fetchUserProfile, handleUpdateProfile } from "../services/auth.service";
+import {UserState} from "../userState";
 
 export async function loadHomePage() {
 	await fetchAndRender("dog");
@@ -33,11 +34,12 @@ export async function loadProfilePage() {
 	const totalGames = document.getElementById("profile-total-games") as HTMLInputElement;
 	const totalTournaments = document.getElementById("profile-total-tournaments") as HTMLInputElement;
 
-	const user = await fetchUserProfile();
+	const user = UserState.getUser();
+	console.log(user);
 	if (avatar) {
 		avatar.onerror = () => {
 			avatar.onerror = null;
-			avatar.src = "http://localhost:8080/user//images/default_avatar.png";
+			avatar.src = "http://localhost:8080/user/images/default_avatar.png";
 		};
 		if (user?.avatarUrl) {
 			avatar.src = `http://localhost:8080/user/${user.avatarUrl}`;

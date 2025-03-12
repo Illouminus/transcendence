@@ -99,11 +99,11 @@ export async function getUserById(id: number): Promise<User | null> {
 	});
 }
 
-export async function createUser( userId: number, username: string, avatar_url: string ): Promise<void> {
+export async function createUser( userId: number, username: string, avatar_url: string, email: string ): Promise<void> {
 	return new Promise((resolve, reject) => {
 		db.run(
-			"INSERT INTO user_profile (auth_user_id, username, avatar_url) VALUES (?, ?, ?)",
-			[userId, username, avatar_url],
+			"INSERT INTO user_profile (auth_user_id, username, avatar_url, email) VALUES (?, ?, ?, ?)",
+			[userId, username, avatar_url, email],
 			function (err: Error | null) {
 				if (err) reject(err);
 				else resolve();

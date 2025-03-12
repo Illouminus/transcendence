@@ -33,6 +33,7 @@ export interface User {
 	updated_at: string;
 	wins: number;
 	losses: number;
+	email: string;
 }
 
 export interface Achievement {
@@ -60,4 +61,5 @@ export interface PublicUserProfile {
 	wins: number;
 	losses: number;
 	achievements: Achievement[];
+	email: string;
 }
