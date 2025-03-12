@@ -4,6 +4,7 @@ import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick
 import { UserState } from "./userState";
 import { fetchUserProfile } from "./services/auth.service";
 
+
 document.addEventListener("DOMContentLoaded", async () => {
 
 	// Global event listeners

@@ -44,7 +44,7 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 		  username: Boolean(username),
 		});
 	  }
-	  const avatar_url = "./uplodas/default.jpg";
+	  const avatar_url = "../../public/images/default_avatar.jpg";
 	  await createUser(userId,username, avatar_url, email);
 	  return { message: "User registered!" };
 	} catch (error) {

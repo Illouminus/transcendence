@@ -12,6 +12,7 @@ interface UpdateProfileFileds {
 
 export async function updateAvatarController(req: FastifyRequest<{Body: UpdateProfileFileds}>, reply: FastifyReply) {
 	try {
+	console.log("updateAvatarController");
 	 const { userId, avatar } = req.body;
 	 if( !userId) {
 	   throw createValidationError("UserId are required");
