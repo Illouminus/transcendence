@@ -1,6 +1,23 @@
 version: "3.8"
 
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: transcendence_frontend
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - gateway
+    networks:
+      - transcendance-network
+
   gateway:
     build:
       context: ./backend/gateway
@@ -78,23 +95,30 @@ services:
     depends_on:
      rabbitmq:
         condition: service_healthy
-    
-  frontend:
+
+  game:
     build:
-      context: ./frontend
+      context: ./backend/game
       dockerfile: Dockerfile
-    container_name: transcendence_frontend
+    container_name: transcendence_game
     restart: always
     working_dir: /app
     volumes:
-      - ./frontend:/app
       - /app/node_modules
+      - ./backend/game:/app
+      - db-data:/db
     ports:
-      - "3000:3000"
-    depends_on:
-      - gateway
+      - "8083:8083"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     networks:
       - transcendance-network
+    depends_on:
+     rabbitmq:
+        condition: service_healthy
 
   rabbitmq:
     image: "rabbitmq:3-management"

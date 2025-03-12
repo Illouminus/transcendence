@@ -37,12 +37,12 @@ export async function loadProfilePage() {
 	if (avatar) {
 		avatar.onerror = () => {
 			avatar.onerror = null;
-			avatar.src = "http://localhost:5555/images/default_avatar.png";
+			avatar.src = "http://localhost:8080/user//images/default_avatar.png";
 		};
 		if (user?.avatarUrl) {
-			avatar.src = `http://localhost:5555${user.avatarUrl}`;
+			avatar.src = `http://localhost:8080/user/${user.avatarUrl}`;
 		} else {
-			avatar.src = "http://localhost:5555/images/default_avatar.png";
+			avatar.src = "http://localhost:8080/user/images/default_avatar.png";
 		}
 	}
 	if (username)

@@ -11,12 +11,12 @@ export const UserState = {
 		if (avatarImg) {
 			avatarImg.onerror = () => {
 				avatarImg.onerror = null;
-				avatarImg.src = "http://localhost:5555/images/default_avatar.png";
+				avatarImg.src = "http://localhost:8080/user/images/default_avatar.png";
 			};
 			if (user.avatarUrl) {
-				avatarImg.src = `http://localhost:5555${user.avatarUrl}`;
+				avatarImg.src = `http://localhost:8080/user/${user.avatarUrl}`;
 			} else {
-				avatarImg.src = "http://localhost:5555/images/default_avatar.png";
+				avatarImg.src = "http://localhost:8080/user//images/default_avatar.png";
 			}
 		}
 	},

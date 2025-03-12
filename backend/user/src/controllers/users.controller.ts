@@ -67,21 +67,3 @@ export async function updateUsernameController(userId: number, username: string)
 	}
   }
 
-
-//   export async function updateUserInformationController(req: FastifyRequest<{Body: UpdateProfileFileds}>, reply: FastifyReply) {
-// 	try {
-// 	  const { userId, avatar } = req.body;
-// 	  if( !userId) {
-// 		throw createValidationError("UserId are required");
-// 	  }
-// 	  const user = await getUserById(userId);
-// 	  if (!user) {
-// 		return reply.status(401).send({ error: "User not found" });
-// 	  }
-// 	  const response = await updateUserInformationService(user.id, avatar);
-// 	  return reply.status(200).send(response);
-// 	} catch (error) {			
-// 	  logError(error, "updateProfile");
-// 	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
-// 	}
-//   }

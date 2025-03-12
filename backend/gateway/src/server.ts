@@ -41,6 +41,24 @@ server.register(fastifyHttpProxy, {
 });
 
 
+async function verifyJWT(req: FastifyRequest, reply: FastifyReply) {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+  try {
+    if(token)
+    {
+      const decoded = server.jwt.verify<JwtPayload>(token);
+      if (typeof decoded !== 'string' && decoded.userId) {
+        req.headers['x-user-id'] = decoded.userId.toString();
+      }
+    }
+    // else
+    //   reply.status(404).send("Acces refused");
+  } catch (error) {
+      reply.status(404).send("Acces refused");
+  }
+}
+
+
 // Register the static plugin with our configuration - to serve images from the public folder
 // For example, if you have an image in the public/images folder called my-image.jpg, you can access it at http://localhost:5000/images/my-image.jpg
 // As usual HTTP requests, you can access the image by using the URL http://localhost:5000/images/my-image.jpg
@@ -61,22 +79,7 @@ server.register(fastifyHttpProxy, {
   rewritePrefix: "",
   http2: false,
   websocket: false,
-  // Здесь мы используем rewriteHeaders для модификации заголовков перед отправкой запроса
-  preHandler: async (req: FastifyRequest, reply: FastifyReply) => {
-    const token =
-      req.cookies.token || req.headers.authorization?.split(' ')[1];
-    if (token) {
-      try {
-        const decoded = server.jwt.verify<JwtPayload>(token);
-        if (typeof decoded !== 'string' && decoded.userId) {
-          req.headers['x-user-id'] = decoded.userId.toString();
-          console.log('[Gateway] preHandler attached x-user-id:', req.headers['x-user-id']);
-        }
-      } catch (err) {
-        console.error('[Gateway] Token verification error in preHandler:', err);
-      }
-    }
-  },
+  preHandler: verifyJWT,
 });
 
 
@@ -98,6 +101,7 @@ server.register(fastifyHttpProxy, {
     rewritePrefix: "",
     http2: false,
     websocket: true,
+    preHandler: verifyJWT,
 });
 
 // Register the HTTP Proxy plugin with our configuration for the chat service

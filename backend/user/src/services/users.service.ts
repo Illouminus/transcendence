@@ -1,69 +1,31 @@
-import { FastifyInstance } from "fastify";
-import bcrypt from "bcrypt";
-import {
-  createUser,
-  getUserById,
-  getTotalGamesPlayed,
-  getTotalTournaments,
-  getTournamentWins,
-  getUserAchievements,
-  updateUserData,
-  updateAvatar,
-  updateUsername
-} from "../models/user.model";
+import { createUser, getUserById, getUserAchievements,updateAvatar, updateUsername } from "../models/user.model";
 import { UserProfile, PublicUserProfile } from "../@types/user.types";
 import * as fileService from "./file.service";
-import {
-  createNotFoundError,
-  createValidationError,
-  createDatabaseError,
-  logError
-} from "../utils/errorHandler";
-import path from "path";
-import fs from "fs";
-import { pipeline } from "stream";
+import { createNotFoundError,createValidationError,createDatabaseError,logError } from "../utils/errorHandler";
 
 
-
-// Function to get user profile
 export async function getUserProfileService(userId: number): Promise<PublicUserProfile> {
 	try {
-	  // Get user from DB
-	  console.log("userId", userId);
 	  const user = await getUserById(userId);
 	  if (!user) {
 		throw createNotFoundError("User");
 	  }
   
-	  // Get all user stats in parallel from different tables
-	  const [ achievements] = await Promise.all([
-		//getTotalGamesPlayed(userId),
-		//getTotalTournaments(userId),
-		//getTournamentWins(userId),
-		getUserAchievements(userId)
-	  ]);
+	  const  achievements = await getUserAchievements(userId);
   
-	  // Form full profile
-	  const fullProfile: UserProfile = {
-		...user,
-		//totalGames,
-		//totalTournaments,
-		//tournamentWins,
-		achievements,
-	  };
+	  const fullProfile: UserProfile = { ...user, achievements };
   
-	  
-	  // Transform to public profile
 	  const publicProfile: PublicUserProfile = {
 		id: fullProfile.id,
 		username: fullProfile.username,
 		avatarUrl: fullProfile.avatar_url,
+		wins: fullProfile.wins,
+		losses: fullProfile.losses,
 		achievements: fullProfile.achievements,
 	  };
   
 	  return publicProfile;
 	} catch (error) {
-	  // If error is already a custom error, throw it
 	  if (error && typeof error === 'object' && 'type' in error) {
 		throw error;
 	  }
