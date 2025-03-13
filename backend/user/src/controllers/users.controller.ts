@@ -12,11 +12,13 @@ interface UpdateProfileFileds {
 
 export async function updateAvatarController(req: FastifyRequest<{Body: UpdateProfileFileds}>, reply: FastifyReply) {
 	try {
-	console.log("updateAvatarController");
-	 const { userId, avatar } = req.body;
-	 if( !userId) {
-	   throw createValidationError("UserId are required");
-	 }
+	 const userIdHeader = req.headers['x-user-id'];
+	 if (!userIdHeader) {
+		return reply.status(401).send({ error: "User ID not provided" });
+	}
+	 const userId = parseInt(userIdHeader as string, 10);
+	 const { avatar } = req.body;
+	 
 	  const user = await getUserById(userId);
 	  if (!user) {
 		return reply.status(401).send({ error: "User not found" });

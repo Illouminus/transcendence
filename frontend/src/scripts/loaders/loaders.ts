@@ -1,6 +1,8 @@
-import { fetchAndRender } from "./outils";
-import { login, renderGoogleButton, login2FA, handleSignupSubmit, fetchUserProfile, handleUpdateProfile } from "../services/auth.service";
+import { fetchAndRender, setUpdateAvatar } from "./outils";
+import { login, renderGoogleButton, login2FA, handleSignupSubmit, handleUpdateAvatar, handleUpdateProfile } from "../services/auth.service";
 import {UserState} from "../userState";
+import { FlowGraphSaturateBlock } from "babylonjs";
+import {succesSVG, errorSVG} from "./outils"
 
 
 export async function loadHomePage() {
@@ -23,51 +25,65 @@ export async function loadSignupPage() {
 	document.querySelector("form")?.addEventListener("submit", handleSignupSubmit);
 }
 
+export async function loadSettingsPage() {
+	console.log("Settings Page");
+	await fetchAndRender("settings");
 
-  
-
-
-
-export async function loadProfilePage() {
-	await fetchAndRender("profile");
+	document.querySelector("#update-avatar-form")?.addEventListener("submit", handleUpdateAvatar);
 	document.querySelector("form")?.addEventListener("submit", handleUpdateProfile);
-	const ctx = document.getElementById('myChart');
-	const avatar = document.getElementById("profile-avatar") as HTMLImageElement;
+
 	const username = document.getElementById("profile-username") as HTMLInputElement;
 	const usernameChange = document.getElementById("username") as HTMLInputElement;
 	const email = document.getElementById("profile-email") as HTMLInputElement;
-	const wins = document.getElementById("profile-wins") as HTMLInputElement;
-	const losses = document.getElementById("profile-losses") as HTMLInputElement;
-	const totalGames = document.getElementById("profile-total-games") as HTMLInputElement;
-	const totalTournaments = document.getElementById("profile-total-tournaments") as HTMLInputElement;
 
 	const user = UserState.getUser();
-	console.log(user);
-	if (avatar) {
-		avatar.onerror = () => {
-			avatar.onerror = null;
-			avatar.src = "http://localhost:8080/user/images/default_avatar.png";
-		};
-		if (user?.avatarUrl) {
-			avatar.src = `http://localhost:8080/user/${user.avatarUrl}`;
-		} else {
-			avatar.src = "http://localhost:8080/user/images/default_avatar.png";
-		}
-	}
+	await setUpdateAvatar();
 	if (username)
 		username.innerHTML = user?.username ?? "";
 	if (usernameChange)
 		usernameChange.value = user?.username ?? "";
 	if (email)
 		email.value = user?.email ?? "";
-	if (wins)
-		wins.innerHTML = user?.wins.toString() ?? "";
-	if (losses)
-		losses.innerHTML = user?.losses.toString() ?? "";
-	if (totalGames)
-		totalGames.innerHTML = user?.totalGames?.toString() ?? "";
-	if (totalTournaments)
-		totalTournaments.innerHTML = user?.totalTournaments?.toString() ?? "";
+
+}
+  
+
+
+
+export async function loadProfilePage() {
+	await fetchAndRender("profile");
+	const ctx = document.getElementById('myChart');
+
+	const statusSpan = document.getElementById('verification-status') as HTMLSpanElement;
+	const factorVerificationSpan = document.getElementById('2fa-enabled') as HTMLSpanElement;
+	const isOnlineSpan = document.getElementById('online-user') as HTMLSpanElement;
+
+	const user = UserState.getUser();
+
+	const verified = true;
+	const twoFactor = false;
+	const online = true;
+
+	if (verified) {
+		statusSpan.innerHTML = succesSVG;
+	  } else {
+		statusSpan.innerHTML = errorSVG;
+	  }
+
+	  if (twoFactor) {
+		factorVerificationSpan.innerHTML = succesSVG
+	  } else {
+		factorVerificationSpan.innerHTML = errorSVG
+	  }
+
+	  if (online) {
+		isOnlineSpan.innerHTML = succesSVG
+	  }
+	  else {
+		isOnlineSpan.innerHTML = errorSVG
+	  }
+
+	await setUpdateAvatar();
 
 
 	new Chart(ctx, {
@@ -77,16 +93,16 @@ export async function loadProfilePage() {
 		  datasets: [{
 			label: 'Statistiques',
 			data: [8, 2, 16, 5],
-			borderWidth: 1,
+			borderWidth: 2,
 			backgroundColor: [
 				'rgba(255, 99, 132, 0.2)',
 				'rgba(255, 159, 64, 0.2)',
 				'rgba(255, 205, 86, 0.2)',
 				'rgba(75, 192, 192, 0.2)',
 			  ],
+			  borderRadius: 8,
 		  }],
-		  backgroundColor: ['#3b82f6', '#22c55e', '#ef4444', '#f97316'],
-		  borderRadius: 8,
+
 		},
 		options: {
 		  scales: {

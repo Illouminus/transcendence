@@ -1,69 +1,35 @@
-<div class="w-full bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex m-5 flex-col">
-	<!-- <h1 class="text-3xl font-bold text-white mb-6 text-center">My Profile</h1> -->
-		<div class="w-full bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-			<div class="flex flex-row items-start text-center justify-between">
-				<div class="m-2 flex flex-col justify-around w-max items-center shadow-lg rounded-lg p-4 max-h-full">
-					<img id="profile-avatar" class="w-full h-30 object-cover p-0.5 mb-4"
+<div class="w-full max-w-6xl mx-auto mt-10 px-4">
+	<h1 class="text-3xl font-bold text-white mb-6">My Profile</h1>
+	<div class="flex flex-col md:flex-row gap-6">
+		<div class="w-full md:w-1/3 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<div class="flex flex-col items-center text-center">
+				<img id="profile-avatar" class="w-24 h-24 rounded-full object-cover mb-4 border-2 border-blue-400"
 					src="https://via.placeholder.com/150" alt="User avatar" />
-				<h2 id="profile-username" class="text-xl font-semibold text-gray-900 dark:text-white mb-2 w-max">
+
+				<h2 id="profile-username" class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
 					John Doe
 				</h2>
+				<div class="w-full mt-4 text-gray-800 dark:text-gray-200">
+					<div class="flex justify-between my-2">
+						<span>Account verification </span>
+						<span id="verification-status" class="font-semibold">42</span>
+					</div>
+					<div class="flex justify-between my-2">
+						<span>2FA enabled</span>
+						<span id="2fa-enabled" class="font-semibold"></span>
+					</div>
+					<div class="flex justify-between my-2">
+						<span>Online</span>
+						<span id="online-user" class="font-semibold"></span>
+					</div>
 				</div>
-
-				<div class="w-full mt-4 dark:text-gray-200 flex flex-row justify-around">
-					<canvas id="myChart"></canvas>
-				  </div>
 			</div>
 		</div>
 
-		<!-- <div class="w-full md:w-2/3 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-			<h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Edit Profile</h2>
-			<form id="profile-edit-form" class="space-y-4" action="#" method="POST" enctype="multipart/form-data">
-				<div>
-					<label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-						Email
-					</label>
-					<input type="email" name="email" id="profile-email" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
-						  focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 
-						  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
-						  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="name@company.com" required />
-				</div>
-
-				<div>
-					<label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-						Username
-					</label>
-					<input type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
-						  focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 
-						  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
-						  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Your nickname" required />
-				</div>
-				<div>
-					<label for="avatar" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-						Update your avatar (optional)
-					</label>
-					<input type="file" name="avatar" id="avatar" accept="image/*" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
-						  focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 
-						  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
-						  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-				</div>
-
-				<div>
-					<label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-						New Password (optional)
-					</label>
-					<input type="password" name="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
-						  focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 
-						  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
-						  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-				</div>
-
-				<button type="submit" class="text-black bg-white hover:bg-primary-700 focus:ring-4 focus:outline-none 
-						focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center 
-						dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
-					Save Changes
-				</button>
-			</form>
-		</div> -->
+		<div class="w-full md:w-2/3 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<div class="w-full mt-4 dark:text-gray-200 flex flex-row justify-around">
+				<canvas id="myChart"></canvas>
+			  </div>
+		</div>
 	</div>
 </div>

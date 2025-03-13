@@ -3,6 +3,8 @@ import { setupUI } from "./ui.service";
 import { User } from "../models/user.model";
 import { showAlert } from "./alert.service";
 import { UserState } from "../userState";
+import { loadSettingsPage } from "../loaders/loaders";
+import { setUpdateAvatar } from "../loaders/outils";
 
 declare var google: any;
 
@@ -34,7 +36,7 @@ export async function fetchUserProfile(): Promise<User | null> {
 		return null;
 	} catch (error: any) {
 		console.error("Error fetching user profile:", error);
-		//showAlert("Error fetching user profile: " + error.message, "danger");
+		showAlert("Error fetching user profile: " + error.message, "danger");
 		return null;
 	}
 }
@@ -258,6 +260,81 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 	  
 	  await setupUI();
 	  redirectTo("/");
+	} catch (error: any) {
+	  console.error("Update error:", error);
+	  showAlert("Update error: " + error.message, "danger");
+	} finally {
+	  if (submitButton) {
+		submitButton.disabled = false;
+		submitButton.textContent = "Save Changes";
+	  }
+	}
+  }
+
+
+
+  export async function handleUpdateAvatar(e: Event): Promise<void> {
+	console.log("Update avatar");
+	e.preventDefault();
+	const avatarInput = document.getElementById("avatar-update") as HTMLInputElement;
+	console.log("Avatar input:", avatarInput);
+
+	if (avatarInput.files && avatarInput.files[0]) {
+	  const file = avatarInput.files[0];
+	  
+	  const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+	  if (!validTypes.includes(file.type)) {
+		showAlert("Invalid file type. Only JPEG, PNG, GIF and WebP images are allowed.", "danger");
+		return;
+	  }
+	  
+	  const maxSize = 5 * 1024 * 1024; 
+	  if (file.size > maxSize) {
+		showAlert(`File too large. Maximum size is ${maxSize / (1024 * 1024)}MB.`, "danger");
+		return;
+	  }
+	}
+  
+	const formData = new FormData();
+	
+	if (avatarInput.files && avatarInput.files[0]) {
+	  formData.append("avatar", avatarInput.files[0]);
+	}
+  
+	// Добавляем индикатор загрузки
+	const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+	if (submitButton) {
+	  submitButton.disabled = true;
+	  submitButton.textContent = "Updating...";
+	}
+  
+	try {
+	  const res = await fetch(`${API_URL_USER}/updatePhoto`, {
+		method: "POST",
+		body: formData,
+		credentials: "include",
+	  });
+	  
+	  if (!res.ok) {
+		const errorData = await res.json();
+		throw new Error(errorData.error || `Update failed: ${res.statusText}`);
+	  }
+	  
+	  const data = await res.json();
+	  console.log("Update response:", data);
+	  
+	  if (data.message === "User updated!") {
+		showAlert("Update was successful", "success");
+	  } else {
+		showAlert("Update failed: " + (data.error || "Unknown error"), "danger");
+	  }
+	  
+	  
+	  const user = await fetchUserProfile();
+	  if (user)
+		UserState.setUser(user);
+	
+	  setUpdateAvatar();
 	} catch (error: any) {
 	  console.error("Update error:", error);
 	  showAlert("Update error: " + error.message, "danger");

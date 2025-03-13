@@ -1,4 +1,4 @@
-import { loadHomePage, loadLoginPage, loadSignupPage, loadProfilePage, load2FAPage } from "./loaders/loaders";
+import { loadHomePage, loadLoginPage, loadSignupPage, loadProfilePage, load2FAPage, loadSettingsPage } from "./loaders/loaders";
 import { checkAuth } from "./services/auth.service";
 import { UserState } from "./userState";
 
@@ -14,6 +14,9 @@ const routes: Record<string, RouteHandler> = {
 	"/profile": async () => {
 		(UserState.isLoggedIn()) ? await loadProfilePage() : redirectTo("/login");
 	},
+	"/settings": async () => {
+		(UserState.isLoggedIn()) ? await loadSettingsPage() : redirectTo("/login");
+	}
 };
 
 export function handleRouting() {

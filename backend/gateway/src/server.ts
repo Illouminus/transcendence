@@ -5,6 +5,7 @@ import fastifyJwt, { FastifyJWT, JWT } from '@fastify/jwt';
 import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import config from './config';
+import { log } from 'console';
 
 // Create an instance of Fastify server
 const server = fastify({
@@ -42,6 +43,7 @@ server.register(fastifyHttpProxy, {
 
 
 async function verifyJWT(req: FastifyRequest, reply: FastifyReply) {
+  req.log.info('Verifying JWT');
   const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
   try {
     if(token)
@@ -75,7 +77,7 @@ interface JwtPayload {
 
 server.register(fastifyHttpProxy, {
   upstream: config.services.user_service,
-  prefix: '/user',
+  prefix: '/user', 
   rewritePrefix: "",
   http2: false,
   websocket: false,

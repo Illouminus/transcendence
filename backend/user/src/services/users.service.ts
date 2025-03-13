@@ -68,9 +68,9 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 	  let avatar_url: string | null = currentUser.avatar_url;
 	  if (avatarFile) {
 		const fileResult = await fileService.saveFileBuffer(avatarFile, "avatar.jpg");
-		if (currentUser.avatar_url) {
+		if (currentUser.avatar_url || currentUser.avatar_url !== "/images/default_avatar.jpg") {
 		  try {
-			await fileService.deleteFile(currentUser.avatar_url);
+			await fileService.deleteFile(currentUser.avatar_url!);
 		  } catch (err) {
 			logError(err, "updateUserService.deleteOldFile");
 		  }
