@@ -1,13 +1,23 @@
 <canvas id="renderCanvas" style="width: 100%; height: 100%; z-index: 100;"></canvas>
+<div id="startMenu" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background-color: rgba(0, 0, 0, 0.8); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+    <p>Prêt à lancer la partie ?</p>
+    <button id="startButton" style="margin: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Lancer la partie</button>
+</div>
+<div id="gameOverMenu" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background-color: rgba(0, 0, 0, 0.8); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+    <p>La balle est sortie. Voulez-vous relancer une partie ?</p>
+    <button id="restartButton" style="margin: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Relancer</button>
+    <button id="quitButton" style="margin: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Quitter</button>
+</div>
 
 <script>
-    // Insert the script
     const canvas = document.getElementById("renderCanvas");
-
-    // Create the Babylon.js engine
+    const startMenu = document.getElementById("startMenu");
+    const gameOverMenu = document.getElementById("gameOverMenu");
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const quitButton = document.getElementById("quitButton");
     const engine = new BABYLON.Engine(canvas, true);
 
-    // Create the scene
     const createScene = () => {
         const scene = new BABYLON.Scene(engine);
 
@@ -35,8 +45,6 @@
 
         cameraBetaAnim.setKeys(betaKeys);
         camera.animations.push(cameraBetaAnim);
-
-        scene.beginAnimation(camera, 0, 100, false);
 
         // LIGHTS
         const hemisphericLight = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
@@ -130,10 +138,10 @@
 
         // Control for Player 1
         window.addEventListener('keydown', function(event) {
-            if (event.key === 'z') {
+            if (event.key === 's') {
                 // Player 1 moves up (increasing X position)
                 player1Paddle.position.x = Math.min(player1Paddle.position.x + 1, halfCourtWidth - PADDLE_HEIGHT / 2);
-            } else if (event.key === 's') {
+            } else if (event.key === 'z') {
                 // Player 1 moves down (decreasing X position)
                 player1Paddle.position.x = Math.max(player1Paddle.position.x - 1, -(halfCourtWidth - PADDLE_HEIGHT / 2));
             }
@@ -142,39 +150,66 @@
         // BALL
         const BALL_RADIUS = 0.2;
         const BALL_SPEED = 0.1;
-
         const ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: 0.3 }, scene);
         ball.position = new BABYLON.Vector3(0, 0.25, 0);
-        let ballDirection = new BABYLON.Vector3(0.1, 0, -0.05).normalize();
+        let ballDirection;
 
-        scene.registerBeforeRender(() => {
-            // Update ball position
-            ball.position.addInPlace(ballDirection.scale(BALL_SPEED));
-
-            // Collisions with side lines
-            if (Math.abs(ball.position.x) + BALL_RADIUS >= halfCourtWidth) {
-                ballDirection.x *= -1;
-            }
-
-            // Collisions with paddles
-            if (ball.intersectsMesh(player1Paddle, false)) {
-                ballDirection.z *= -1;
-                ball.position.z = player1Paddle.position.z + BALL_RADIUS + PADDLE_DEPTH / 2;
-            }
-
-            if (ball.intersectsMesh(player2Paddle, false)) {
-                ballDirection.z *= -1;
-                ball.position.z = player2Paddle.position.z - BALL_RADIUS - PADDLE_DEPTH / 2;
-            }
-
-            // Ball out of bounds (past the paddles)
-            if (Math.abs(ball.position.z) > fullCourtLength / 2) {
-                // Reset ball position and direction
-                ball.position = new BABYLON.Vector3(0, BALL_RADIUS, 0);
-                ballDirection = new BABYLON.Vector3((Math.random() - 0.5) * 0.4, 0, Math.random() > 0.5 ? -1 : 1).normalize();
-            }
+        // Animation de la caméra terminée
+        scene.beginAnimation(camera, 0, 100, false, 1, () => {
+            startMenu.style.display = "block";
         });
 
+        let gameObserver = null;  // Variable pour stocker l'observateur du jeu
+
+        function startGame() {
+            startMenu.style.display = "none";
+            gameOverMenu.style.display = "none";
+
+            // Nettoyer l'ancien observateur s'il existe
+            if (gameObserver) {
+                scene.onBeforeRenderObservable.remove(gameObserver);
+            }
+
+            // Réinitialiser la balle
+            ball.position = new BABYLON.Vector3(0, 0.25, 0);
+            ballDirection = new BABYLON.Vector3((Math.random() - 0.5) * 0.4, 0, Math.random() > 0.5 ? -1 : 1).normalize();
+
+            // Créer un nouvel observateur pour la logique du jeu
+            gameObserver = scene.onBeforeRenderObservable.add(() => {
+                // Update ball position
+                ball.position.addInPlace(ballDirection.scale(BALL_SPEED));
+
+                // Collisions with side lines
+                if (Math.abs(ball.position.x) + BALL_RADIUS >= halfCourtWidth) {
+                    ballDirection.x *= -1;
+                }
+
+                // Collisions with paddles
+                if (ball.intersectsMesh(player1Paddle, false)) {
+                    ballDirection.z *= -1;
+                    ball.position.z = player1Paddle.position.z + BALL_RADIUS + PADDLE_DEPTH / 2;
+                }
+
+                if (ball.intersectsMesh(player2Paddle, false)) {
+                    ballDirection.z *= -1;
+                    ball.position.z = player2Paddle.position.z - BALL_RADIUS - PADDLE_DEPTH / 2;
+                }
+
+                // Ball out of bounds (past the paddles)
+                if (Math.abs(ball.position.z) > fullCourtLength / 2) {
+                    scene.onBeforeRenderObservable.remove(gameObserver);
+                    gameOverMenu.style.display = "block";
+                }
+            });
+        }
+
+        // Event listeners
+        startButton.onclick = startGame;
+        restartButton.onclick = startGame;
+        quitButton.onclick = () => {
+            alert("Merci d'avoir joué !");
+            gameOverMenu.style.display = "none";
+        };
 
         return scene;
     };
