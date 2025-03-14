@@ -5,20 +5,24 @@ import { get } from "http";
 
 
 export async function getUserByEmail(email: string): Promise<User | null> {
+	const normalizedEmail = email.trim().toLowerCase();
 	return new Promise((resolve, reject) => {
-		db.get(
-			"SELECT * FROM users WHERE email = ?",
-			[email],
-			(err: Error | null, user: User | undefined) => {
-				if (err) reject(err);
-				else resolve(user || null);
-			}
-		);
+	  db.get(
+		"SELECT * FROM users WHERE LOWER(email) = ?",
+		[normalizedEmail],
+		(err: Error | null, user: User | undefined) => {
+		  if (err) {
+			reject(err);
+		  } else {
+			resolve(user || null);
+		  }
+		}
+	  );
 	});
-}
+  }
 
 
-export async function updateUserData(
+  export async function updateUserData(
 	userId: number,
 	data: {
 	  username: string;
@@ -26,32 +30,39 @@ export async function updateUserData(
 	  password_hash?: string | null;
 	}
   ): Promise<User | null> {
+	// Собираем массивы для строк обновления и параметров
 	const updateFields: string[] = [];
 	const params: any[] = [];
   
-	Object.entries(data).forEach(([key, value]) => {
+	// Для каждого поля, которое передано в data, если значение определено,
+	// добавляем строку вида "ключ = ?" и соответствующий параметр.
+	for (const [key, value] of Object.entries(data)) {
 	  if (value !== undefined) {
 		updateFields.push(`${key} = ?`);
 		params.push(value);
 	  }
-	});
+	}
   
+	// Всегда обновляем дату обновления
 	updateFields.push("updated_at = datetime('now')");
-	
+	// Добавляем идентификатор пользователя для условия WHERE
 	params.push(userId);
   
 	const query = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
   
-	return new Promise((resolve, reject) => {
+	// Выполняем SQL-запрос через Promise
+	await new Promise<void>((resolve, reject) => {
 	  db.run(query, params, function (err: Error | null) {
 		if (err) {
 		  reject(err);
 		} else {
-		  const user = getUserById(userId);
-		  resolve(user);
+		  resolve();
 		}
 	  });
 	});
+  
+	// После обновления возвращаем обновлённого пользователя
+	return await getUserById(userId);
   }
   
 

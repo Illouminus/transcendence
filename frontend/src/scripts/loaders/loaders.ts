@@ -30,7 +30,7 @@ export async function loadSettingsPage() {
 	await fetchAndRender("settings");
 
 	document.querySelector("#update-avatar-form")?.addEventListener("submit", handleUpdateAvatar);
-	document.querySelector("form")?.addEventListener("submit", handleUpdateProfile);
+	document.querySelector("#profile-edit-form")?.addEventListener("submit", handleUpdateProfile);
 
 	const username = document.getElementById("profile-username") as HTMLInputElement;
 	const usernameChange = document.getElementById("username") as HTMLInputElement;
@@ -49,7 +49,6 @@ export async function loadSettingsPage() {
   
 
 
-
 export async function loadProfilePage() {
 	await fetchAndRender("profile");
 	const ctx = document.getElementById('myChart');
@@ -57,6 +56,7 @@ export async function loadProfilePage() {
 	const statusSpan = document.getElementById('verification-status') as HTMLSpanElement;
 	const factorVerificationSpan = document.getElementById('2fa-enabled') as HTMLSpanElement;
 	const isOnlineSpan = document.getElementById('online-user') as HTMLSpanElement;
+	const username = document.getElementById('profile-username') as HTMLSpanElement;
 
 	const user = UserState.getUser();
 
@@ -64,6 +64,7 @@ export async function loadProfilePage() {
 	const twoFactor = false;
 	const online = true;
 
+	username.innerHTML = user?.username ?? "";
 	if (verified) {
 		statusSpan.innerHTML = succesSVG;
 	  } else {

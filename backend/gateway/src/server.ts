@@ -33,6 +33,17 @@ server.register(fastifyJwt, {
 	},
   });
 // Register the HTTP Proxy plugin with our configuration for the auth service
+
+server.register(fastifyHttpProxy, {
+  upstream: config.services.auth_service,
+  prefix: '/auth/update',
+  rewritePrefix: "/update",
+  http2: false,
+  websocket: false,
+  preHandler: verifyJWT
+});
+
+
 server.register(fastifyHttpProxy, {
     upstream: config.services.auth_service,
     prefix: '/auth',

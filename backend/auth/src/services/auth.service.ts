@@ -122,9 +122,13 @@ export async function registerUserService( username: string, email: string, pass
 }
 
 
-export async function updateUserService( username: string, email: string, password?: string | null): Promise<User | null> {
+export async function updateUserService(userId: number, username: string, email: string, password?: string | null): Promise<User | null> {
 	try {
-	  const currentUser = await getUserByEmail(email!);
+
+	  console.log("updateUserService", username, email, password);
+	  const currentUser = await getUserById(userId!);
+
+	  console.log("currentUser", currentUser);
 
 	  if (!currentUser) {
 		throw createNotFoundError("User not found");

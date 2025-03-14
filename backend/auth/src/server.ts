@@ -3,6 +3,7 @@ import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
 import authRoutes from "./routes/auth.routes";
+import fastifyMultipart from "@fastify/multipart";
 import { logError } from "./utils/errorHandler";
 import { connectRabbit } from "./rabbit/rabbit";
 import config from "./config";
@@ -46,6 +47,14 @@ server.register(fastifyCookie, {
 	  sameSite: 'none',
 	},
   });
+
+
+  server.register(fastifyMultipart, {
+	limits: {
+		fileSize: config.files.maxFileSize,
+	},
+	attachFieldsToBody: 'keyValues',
+});
 
 
 // Register the JWT plugin with our configuration

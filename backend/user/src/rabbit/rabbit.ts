@@ -66,7 +66,7 @@ async function handleUserRegistered(data: UserRegisteredEvent) {
 async function handleUserUpdated(data: any) {
   console.log("Handling user.updated event with data:", data);
 
-  await updateUsernameService(data.userId, data.username);
+  await updateUsernameService(data.userId, data.username, data.email);
   // Здесь можно обновить профиль пользователя, например, изменить username или другие поля
   // Пример:
   // updateUserProfile(data.userId, { username: data.username });

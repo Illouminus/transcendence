@@ -18,7 +18,7 @@ export async function updateAvatar(userId: number, avatar_url: string | null): P
 	}	
 }
 
-export async function updateUsername(userId: number, username: string): Promise<void> {
+export async function updateUsername(userId: number, username: string, email: string): Promise<void> {
 	return new Promise((resolve, reject) => {
 		db.run(
 			"UPDATE user_profile SET username = ? WHERE auth_user_id = ?",
@@ -37,11 +37,6 @@ export async function updateUserData(
 	data: {
 	  username?: string;
 	  email?: string;
-	  password_hash?: string | null;
-	  avatar_url?: string | null;
-	  is_verified?: boolean;
-	  wins?: number;
-	  losses?: number;
 	}
   ): Promise<void> {
 	const updateFields: string[] = [];
@@ -58,7 +53,7 @@ export async function updateUserData(
 	
 	params.push(userId);
   
-	const query = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
+	const query = `UPDATE user_profile SET ${updateFields.join(", ")} WHERE auth_user_id = ?`;
   
 	return new Promise((resolve, reject) => {
 	  db.run(query, params, function (err: Error | null) {

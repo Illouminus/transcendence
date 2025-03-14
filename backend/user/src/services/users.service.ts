@@ -1,4 +1,4 @@
-import { createUser, getUserById, getUserAchievements,updateAvatar, updateUsername } from "../models/user.model";
+import { createUser, getUserById, getUserAchievements,updateAvatar, updateUsername, updateUserData } from "../models/user.model";
 import { UserProfile, PublicUserProfile } from "../@types/user.types";
 import * as fileService from "./file.service";
 import { createNotFoundError,createValidationError,createDatabaseError,logError } from "../utils/errorHandler";
@@ -89,9 +89,9 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
   }
 
 
-  export async function updateUsernameService( userId: number, username: string): Promise<void> {
+  export async function updateUsernameService( userId: number, username: string, email: string): Promise<void> {
 	try {
-		const response = await updateUsername(userId, username);
+		const response = await updateUserData(userId, {username, email});
 		console.log("Username updated", response);
 	} catch (error) {
 		logError(error, "updateProfile");

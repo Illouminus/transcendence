@@ -75,18 +75,25 @@ export async function logoutController(req: FastifyRequest, res: FastifyReply) {
 
 export async function updateController(req: FastifyRequest<{Body: RegisterUser}>, res: FastifyReply) {
 	try {
+
+		const userIdHeader = req.headers['x-user-id'];
+		if (!userIdHeader) {
+			return res.status(401).send({ error: "User ID not provided" });
+		}
+		const userId = parseInt(userIdHeader as string, 10);
+
 		const {email, username, password} = req.body;
-		if (!email || !username || !password) {
+		if (!email || !username) {
 			res.status(400).send({ error: "All fields are required" });
 		}
-		const user = await updateUserService(email, username, password);
+		const user = await updateUserService(userId, username, email, password);
 		if (!user) 
 		{
 			res.status(404).send({ error: "Update failed" });
 		} 
 		else 
 		{
-			publishToQueue("user.updated", { userId: user.id, username: user.username });
+			publishToQueue("user.updated", { userId: user.id, username: user.username, email: user.email });
 			res.status(200).send({ message: "User updated successfully" });
 		}
 	} catch (error: any) {
