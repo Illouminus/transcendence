@@ -7,32 +7,30 @@ export const UserState = {
 	user: null as User | null,
 	setUser: (user: User) => {
 		UserState.user = user;
-
-		if (avatarImg) {
-			avatarImg.onerror = () => {
-				avatarImg.onerror = null;
-				avatarImg.src = "http://localhost:8080/user/images/default_avatar.png";
-			};
-			if (user.avatarUrl) {
-				avatarImg.src = `http://localhost:8080/user${user.avatarUrl}`;
-			} else {
-				avatarImg.src = "http://localhost:8080/user//images/default_avatar.png";
-			}
-		}
+		renderAvatar(user.avatarUrl);
 	},
-	getUser: () => {
-		return UserState.user;
+	updateUser: (partial: Partial<User>) => {
+		if (UserState.user) {
+			UserState.user = { ...UserState.user, ...partial };
+			renderAvatar(UserState.user.avatarUrl);
+		  }
 	},
-	isLoggedIn: () => {
-		return UserState.user !== null;
-	},
+	getUser: () => UserState.user,
+	isLoggedIn: () => UserState.user !== null,
 	logout: () => {
-		UserState.user = null;
-	},
-	setUserId: (userId: number) => {
-		UserState.user!.id = userId;
-	},
-	getUserId: () => {
-		return UserState.user!.id;
+	  UserState.user = null;
+	  renderAvatar(null);
 	},
 };
+
+
+function renderAvatar(avatarUrl?: string | null) {
+	const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
+	if (avatarImg) {
+	  avatarImg.onerror = () => {
+		avatarImg.onerror = null;
+		avatarImg.src = "http://localhost:8080/user/images/default_avatar.png";
+	  };
+	  avatarImg.src = avatarUrl ? `http://localhost:8080/user${avatarUrl}` : "http://localhost:8080/user/images/default_avatar.png";
+	}
+  }

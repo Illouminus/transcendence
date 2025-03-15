@@ -1,7 +1,6 @@
 import { fetchAndRender, setUpdateAvatar } from "./outils";
 import { login, renderGoogleButton, login2FA, handleSignupSubmit, handleUpdateAvatar, handleUpdateProfile } from "../services/auth.service";
 import {UserState} from "../userState";
-import { FlowGraphSaturateBlock } from "babylonjs";
 import {succesSVG, errorSVG} from "./outils"
 
 
@@ -59,6 +58,8 @@ export async function loadProfilePage() {
 	const username = document.getElementById('profile-username') as HTMLSpanElement;
 
 	const user = UserState.getUser();
+
+	console.log("User in profile page", user);
 
 	const verified = true;
 	const twoFactor = false;

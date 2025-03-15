@@ -24,23 +24,30 @@ export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyRep
 }
 
 
-export async function loginUser( email: string, password: string) {
+export interface LoginResponse {
+	user?: User;
+	message?: string;
+}
+
+export async function loginUser( email: string, password: string): Promise<LoginResponse> {
 	
 	const user = await getUserByEmail(email);
 	if (!user || !user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
 		throw new Error("Invalid credentials");
 	}
-
-	const twoFactorCode = crypto.randomInt(100000, 999999).toString();
-
-	const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-
-	await save2FACode(user.id, twoFactorCode, expiresAt);
-
-	if (!sendEmail(email, "2FA Code", `Your 2FA code is: ${twoFactorCode}`)) {
-		throw new Error("Failed to send 2FA code");
+	if(user.two_factor_enabled) {
+		const twoFactorCode = crypto.randomInt(100000, 999999).toString();
+		const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+		await save2FACode(user.id, twoFactorCode, expiresAt);
+		if (!sendEmail(email, "2FA Code", `Your 2FA code is: ${twoFactorCode}`)) {
+			throw new Error("Failed to send 2FA code");
+		}
+		return { message: "2FA code sent to email" };
 	}
-	return { message: "2FA code sent to email" };
+	else {
+		return {user};
+	}
+
 }
 
 export async function verifyTwoFactorAuth( fastify: FastifyInstance, email: string, code: string, ): Promise<number> {

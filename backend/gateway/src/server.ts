@@ -5,13 +5,11 @@ import fastifyJwt, { FastifyJWT, JWT } from '@fastify/jwt';
 import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import config from './config';
-import { log } from 'console';
+import { AuthUser, Profile, UserProfile } from './types';
+
 
 // Create an instance of Fastify server
-const server = fastify({
-    logger: true,
-});
-
+const server = fastify({logger: true});
 
 server.register(cors, {
 	origin: config.server.corsOrigin,
@@ -19,10 +17,7 @@ server.register(cors, {
   });
 
 
-server.register(fastifyJwt, {
-    secret: config.security.jwtSecret,
-  });
-
+server.register(fastifyJwt, {secret: config.security.jwtSecret});
 
   server.register(fastifyCookie, {
 	secret: config.security.cookieSecret,
@@ -32,6 +27,7 @@ server.register(fastifyJwt, {
 	  sameSite: 'none',
 	},
   });
+
 // Register the HTTP Proxy plugin with our configuration for the auth service
 
 server.register(fastifyHttpProxy, {
@@ -67,7 +63,7 @@ async function verifyJWT(req: FastifyRequest, reply: FastifyReply) {
     // else
     //   reply.status(404).send("Acces refused");
   } catch (error) {
-      reply.status(404).send("Acces refused");
+      reply.status(401).send("Acces refused");
   }
 }
 
@@ -125,6 +121,56 @@ server.register(fastifyHttpProxy, {
     http2: false,
     websocket: true,
 });
+
+
+server.get('/aggregated/profile', {preHandler: verifyJWT}, async (req, reply) => {
+  const userId = req.headers['x-user-id'];
+  
+  if (!userId) {
+    return reply.status(401).send({ error: 'No userId in token' });
+  }
+
+  try {
+
+    // ----------------- Get user data from auth service -----------------
+    const authUrl = `${config.services.auth_service}/me`;
+    const authResponse = await fetch(authUrl, {
+      method: 'GET',
+      headers: {
+        'x-user-id': userId.toString(),
+      }
+    });
+    const authJson: AuthUser = await authResponse.json();
+   
+    // ----------------- Get user data from user service -----------------
+    const userUrl = `${config.services.user_service}/me`;
+    const userResponse = await fetch(userUrl, {
+      method: 'GET',
+      headers: {
+        'x-user-id': userId.toString(),
+      }
+    });
+    const userJson: UserProfile = await userResponse.json();
+
+    const profile: Profile = {
+      id: userJson.id,
+      is_verified: authJson.user.is_verified,
+      two_factor_enabled: authJson.user.two_factor_enabled,
+      username: userJson.username,
+      email: userJson.email,
+      avatar: userJson.avatarUrl,
+      wins: userJson.wins,
+      losses: userJson.losses,
+      achievements: userJson.achievements,
+    };
+
+
+    return profile;
+  } catch (error) {
+    return reply.status(500).send({ error: 'Error fetching profile data' });
+  }
+});
+
 
 const start  =  async () => {
     try {

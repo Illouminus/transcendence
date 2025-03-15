@@ -1,22 +1,59 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { loginUser, verifyTwoFactorAuth, googleAuthenticator, 
 	logoutUser, registerUserService, updateUserService } from "../services/auth.service";
-import { LoginBody, TwoFABody, RegisterUser } from "../@types/auth.types";
+import { LoginBody, TwoFABody, RegisterUser, UserPublic } from "../@types/auth.types";
 import { getErrorMessage, getErrorStatusCode, logError } from "../utils/errorHandler";
 import { issueAndSetToken } from "../services/auth.service"
 import { publishToQueue } from "../rabbit/rabbit"
-import { getUserByVerificationToken, verifyEmail } from "../models/user.model";
+import { getUserById, getUserByVerificationToken, verifyEmail } from "../models/user.model";
 
 
 export async function loginController( req: FastifyRequest<{ Body: LoginBody }>, res: FastifyReply) {
 	try {
-		console.log(req.body);
 		const response = await loginUser(req.body.email, req.body.password);
-		return res.status(200).send(response);
+		if(response.user)
+		{
+			const publicProfile: UserPublic = {
+				id: response.user.id,
+				is_verified: response.user.is_verified,
+				two_factor_enabled: response.user.two_factor_enabled,
+				email: response.user.email
+			};
+
+			await issueAndSetToken(res.server, res, response.user.id);
+			return res.status(200).send({message: "Login successful", user: publicProfile });
+		}
+		return res.status(200).send({ message: response.message });
 	} catch (error) {
 		return res.status(400).send({ error: getErrorMessage(error) });
 	}
 }
+
+
+
+export async function getUserInfoController(req: FastifyRequest, res: FastifyReply) {
+	try {
+		const userIdHeader = req.headers['x-user-id'];
+		if (!userIdHeader) {
+			return res.status(401).send({ error: "User ID not provided" });
+		}
+		const userId = parseInt(userIdHeader as string, 10);
+		const user = await getUserById(userId);
+		if (!user) {
+			return res.status(404).send({ error: "User not found" });
+		}
+		const publicProfile: UserPublic = {
+			id: user.id,
+			is_verified: user.is_verified,
+			two_factor_enabled: user.two_factor_enabled,
+			email: user.email,
+		};
+		return res.status(200).send({ user: publicProfile });
+	} catch (error) {
+		return res.status(400).send({ error: getErrorMessage(error) });
+	}
+}
+
 
 export async function verifyEmailController(req: FastifyRequest<{Querystring: {token: string}}>, res: FastifyReply) {
 	try {
@@ -55,9 +92,20 @@ export async function googleAuthLogin( req: FastifyRequest<{ Body: { idToken: st
 		}
 
 		const user = await googleAuthenticator(idToken);
-		const token = await issueAndSetToken(res.server, res, user.id);
+		if (!user) {
+			return res.status(400).send({ error: "Login failed" });
+		}
+
+
+		const pubclicProfile: UserPublic = {
+			id: user.id,
+			is_verified: user.is_verified,
+			two_factor_enabled: user.two_factor_enabled,
+			email: user.email,
+		};
+		await issueAndSetToken(res.server, res, user.id);
+		return res.status(200).send({ message: "Login successful!", user: pubclicProfile });
 		
-		return res.status(200).send({ message: "Login successful!", token });
 	} catch (error) {
 		return res.status(400).send({ error: getErrorMessage(error) });
 	}

@@ -4,5 +4,6 @@ import { updateAvatarController, getUserInfoController } from "../controllers/us
 export default async function userRoutes(fastify: FastifyInstance) {
 	fastify.post("/updatePhoto", updateAvatarController);
 	fastify.get("/getUserInfo", getUserInfoController);
+	fastify.get("/me", getUserInfoController);
 }
 

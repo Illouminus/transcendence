@@ -19,6 +19,7 @@ export interface User {
 	google_id: string | null;
 	is_verified: boolean;
 	two_factor_secret: string | null;
+	two_factor_enabled: boolean;
 	created_at: string;
 	updated_at: string;
 }
@@ -37,4 +38,11 @@ export interface RegisterUser {
 export interface TwoFABody {
 	email: string;
 	code: string;
+}
+
+export interface UserPublic {
+	id: number;
+	is_verified: boolean;
+	two_factor_enabled: boolean;
+	email: string;
 }

@@ -22,7 +22,6 @@ export async function fetchUserProfile(): Promise<User | null> {
 		const res = await fetch(`${API_URL_USER}/getUserInfo`, { credentials: "include" });
 		if (res.ok) {
 			const user: User = await res.json();
-			console.log("User profile:", user);
 			return user;
 		}
 		return null;
@@ -45,7 +44,7 @@ export async function login2FA(email: string, code: string) {
 		showAlert("2FA successful", "success");
 		const user = await fetchUserProfile();
 		if (user)
-			UserState.setUser(user);
+			UserState.updateUser(user);
 		await setupUI();
 		redirectTo("/");
 	} catch (error: any) {
@@ -107,6 +106,7 @@ export async function renderGoogleButton() {
 
 // Function to handle the response from the Google Sign-In / 
 // Login by sending the ID token to the backend or register the user
+
 function handleCredentialResponse(response: any) {
 	fetch(`${API_URL}/google-authenticator`, {
 		method: "POST",
@@ -121,10 +121,17 @@ function handleCredentialResponse(response: any) {
 				return;;
 			
 			}
+			console.log("Google Sign-In response:", data);
+			if(data.user)
+			{
+				UserState.setUser(data.user);
+				console.log("User from state", UserState.getUser());
+			}
 			showAlert("Google Sign-In successful", "success");
 			const user = await fetchUserProfile();
 			if (user)
-				UserState.setUser(user);
+				UserState.updateUser(user);
+			console.log("User from state after update from user", UserState.getUser());
 			await setupUI();
 			redirectTo("/");
 		})
@@ -228,7 +235,7 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 	  }
 	  const user = await fetchUserProfile();
 	  if (user)
-		UserState.setUser(user);
+		UserState.updateUser(user);
 	
 	  await loadSettingsPage();
 	} catch (error: any) {
@@ -299,7 +306,7 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 	  
 	  const user = await fetchUserProfile();
 	  if (user)
-		UserState.setUser(user);
+		UserState.updateUser(user);
 	
 	  setUpdateAvatar();
 	} catch (error: any) {

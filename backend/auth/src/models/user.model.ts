@@ -21,6 +21,22 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   }
 
 
+  export async function is2FAEnabled(userId: number): Promise<boolean> {
+	return new Promise((resolve, reject) => {
+	  db.get(
+		"SELECT * FROM users WHERE id = ? AND two_factor_enabled = 1",
+		[userId],
+		(err: Error | null, user: User | undefined) => {
+		  if (err) {
+			reject(err);
+		  } else {
+			resolve(!!user);
+		  }
+		}
+	  );
+	});
+	  }
+
   export async function getUserByVerificationToken(token:string): Promise<User | null> {
 	return new Promise((resolve, reject) => {
 		db.get(

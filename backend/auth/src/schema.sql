@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     is_verified BOOLEAN DEFAULT 0,
     verification_token TEXT DEFAULT NULL,
     two_factor_secret TEXT DEFAULT NULL,
+    two_factor_enabled BOOLEAN DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
