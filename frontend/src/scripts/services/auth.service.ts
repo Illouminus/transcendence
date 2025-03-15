@@ -13,13 +13,14 @@ const clientId = "747067169-6jotvfqmsp06iq9muu28jq2547q3v32s.apps.googleusercont
 
 const API_URL = "http://localhost:8080/auth";
 const API_URL_USER = "http://localhost:8080/user";
+const API_AGREGATED = "http://localhost:8080";
 
 
 // Function to fetch the user profile from the user API
 
 export async function fetchUserProfile(): Promise<User | null> {
 	try {
-		const res = await fetch(`${API_URL_USER}/getUserInfo`, { credentials: "include" });
+		const res = await fetch(`${API_AGREGATED}/aggregated/profile`, { credentials: "include" });
 		if (res.ok) {
 			const user: User = await res.json();
 			return user;
@@ -306,7 +307,7 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 	  
 	  const user = await fetchUserProfile();
 	  if (user)
-		UserState.updateUser(user);
+		UserState.setUser(user);
 	
 	  setUpdateAvatar();
 	} catch (error: any) {

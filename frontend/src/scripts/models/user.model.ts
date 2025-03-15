@@ -9,7 +9,7 @@ export interface User {
 	id: number;
 	username: string;
 	email: string;
-	avatarUrl?: string;
+	avatar?: string;
 	googleId?: string;
 	is_verified: boolean;
 	two_factor_enabled?: boolean;

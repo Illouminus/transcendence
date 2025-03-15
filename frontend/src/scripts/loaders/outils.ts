@@ -29,7 +29,7 @@ export const errorSVG =
 
 export async function setUpdateAvatar() {
 	const user = UserState.getUser();
-	
+	console.log("User from state", user);
 	let avatar = document.getElementById("profile-avatar") as HTMLImageElement;
 	
 	if(avatar)
@@ -38,8 +38,8 @@ export async function setUpdateAvatar() {
 			avatar.onerror = null;
 			avatar.src = "http://localhost:8080/user/images/default_avatar.png";
 		};
-		if (user?.avatarUrl) {
-			avatar.src = `http://localhost:8080/user${user.avatarUrl}`;
+		if (user?.avatar) {
+			avatar.src = `http://localhost:8080/user${user.avatar}`;
 		} else {
 			avatar.src = "http://localhost:8080/user/images/default_avatar.png";
 		}
