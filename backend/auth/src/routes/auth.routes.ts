@@ -6,7 +6,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
 	fastify.post("/login", loginController);
 	fastify.post("/verify-2fa", verify2FAController);
 	fastify.post("/google-authenticator", googleAuthLogin);
-	fastify.post("/logout", logoutController);
+	fastify.get("/logout", logoutController);
 	fastify.post("/update", updateController);
 	fastify.post("/register", registerController);
 }

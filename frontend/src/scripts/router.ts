@@ -1,5 +1,4 @@
 import { loadHomePage, loadLoginPage, loadSignupPage, loadProfilePage, load2FAPage, loadSettingsPage } from "./loaders/loaders";
-import { checkAuth } from "./services/auth.service";
 import { UserState } from "./userState";
 
 type RouteHandler = () => void | Promise<void>;

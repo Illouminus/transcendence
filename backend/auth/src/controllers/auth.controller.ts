@@ -56,7 +56,7 @@ export async function registerController(req: FastifyRequest<{Body: RegisterUser
 	  const user = await registerUserService( username, email, password);
 	  publishToQueue("user.registered", { userId: user.id, email: user.email, username: user.username });
 	  
-	  return reply.status(201).send({message : "Registration successful"});
+	  return reply.status(201).send({message : "User registered!"});
 	} catch (error) {
 	  logError(error, "registerUser");
 	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });

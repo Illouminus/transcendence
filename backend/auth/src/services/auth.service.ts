@@ -121,7 +121,6 @@ export async function registerUserService( username: string, email: string, pass
 	return newUser;
 }
 
-
 // Function to update user details 
 // The fileds that can be updated are username, email and password
 // The password is optional and can be null

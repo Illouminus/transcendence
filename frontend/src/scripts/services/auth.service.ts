@@ -14,16 +14,8 @@ const clientId = "747067169-6jotvfqmsp06iq9muu28jq2547q3v32s.apps.googleusercont
 const API_URL = "http://localhost:8080/auth";
 const API_URL_USER = "http://localhost:8080/user";
 
-// Проверка авторизации
-export async function checkAuth(): Promise<boolean> {
-	try {
-		const res = await fetch(`${API_URL}/getUserInfo`, { credentials: "include" });
-		return res.ok;
-	} catch (error) {
-		console.error("Error in checkAuth:", error);
-		return false;
-	}
-}
+
+// Function to fetch the user profile from the user API
 
 export async function fetchUserProfile(): Promise<User | null> {
 	try {
@@ -62,6 +54,7 @@ export async function login2FA(email: string, code: string) {
 	}
 }
 
+// Function to login the user using the email and password
 export async function login(email: string, password: string) {
 	try {
 		const res = await fetch(`${API_URL}/login`, {
@@ -78,15 +71,16 @@ export async function login(email: string, password: string) {
 		showAlert("Login failed: " + error.message, "danger");
 	}
 }
+
+// Function to logout the user from the application
 export async function logout() {
 	try {
-		await fetch(`${API_URL}/logout`, { method: "POST", credentials: "include" });
+		await fetch(`${API_URL}/logout`, { method: "GET", credentials: "include" });
 		UserState.logout();
 		showAlert("Logout successful", "success");
 		await setupUI();
 		redirectTo("/");
 	} catch (error: any) {
-		console.error("Logout failed:", error);
 		showAlert("Logout failed: " + error.message, "danger");
 	}
 }
@@ -111,6 +105,8 @@ export async function renderGoogleButton() {
 	}
 }
 
+// Function to handle the response from the Google Sign-In / 
+// Login by sending the ID token to the backend or register the user
 function handleCredentialResponse(response: any) {
 	fetch(`${API_URL}/google-authenticator`, {
 		method: "POST",
@@ -137,32 +133,32 @@ function handleCredentialResponse(response: any) {
 		});
 }
 
+
+// Function to handle the user registration form submission
 export async function handleSignupSubmit(e: Event): Promise<void> {
 	e.preventDefault();
 
 	const username = (document.getElementById("username") as HTMLInputElement).value;
 	const email = (document.getElementById("email") as HTMLInputElement).value;
 	const password = (document.getElementById("password") as HTMLInputElement).value;
-	const avatarInput = document.getElementById("avatar") as HTMLInputElement;
 
 
 	const formData = new FormData();
 	formData.append("username", username);
 	formData.append("email", email);
 	formData.append("password", password);
-	if (avatarInput.files && avatarInput.files[0]) {
-		formData.append("avatar", avatarInput.files[0]);
-	}
 
 	try {
-		const res = await fetch(`${API_URL_USER}/register`, {
+		const res = await fetch(`${API_URL}/register`, {
 			method: "POST",
 			body: formData,
 			credentials: "include",
 		});
 		if (!res.ok) {
-			throw new Error(`Registration failed: ${res.statusText}`);
+			const errorData = await res.json();
+			throw new Error(errorData.error || `Registration failed: ${res.statusText}`);
 		}
+		console.log("Registration response:", res);
 		const data = await res.json();
 		console.log("Registration response:", data);
 		if (data.message === "User registered!")
@@ -172,7 +168,6 @@ export async function handleSignupSubmit(e: Event): Promise<void> {
 		await setupUI();
 		redirectTo("/");
 	} catch (error: any) {
-		console.error("Registration error:", error);
 		showAlert("Registration error: " + error.message, "danger");
 	}
 }
