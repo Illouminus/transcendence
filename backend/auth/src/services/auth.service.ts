@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
-import { getUserByEmail, getUserByGoogleId,getUserById, createGooleUser, deleteSession, dbCreateUser, updateUserData} from "../models/user.model";
+import { getUserByEmail, getUserByGoogleId,getUserById, createGooleUser, deleteSession, dbCreateUser, updateUserData, updateUserVerificationToken} from "../models/user.model";
 import { save2FACode, verify2FACode, updateJWT } from "../models/auth.model";
 import { sendEmail } from "./mailer.services";
 import { GoogleUser, User} from "../@types/auth.types";
@@ -114,10 +114,19 @@ export async function registerUserService( username: string, email: string, pass
 	const passwordHash = await bcrypt.hash(password, 10);
 
 	const newUser = await dbCreateUser(username, email, passwordHash );
-	
+
 	if (!newUser) {
 		throw new Error("User creation failed");
 	}
+
+	const token = crypto.randomBytes(32).toString("hex");
+	await updateUserVerificationToken(newUser.id, token);
+
+	const verifyLink = `${process.env.VERIFY_URL}/auth/verify?token=${token}`;
+
+	const mailBody = `Hello! Please confirm your account by clicking on the link: ${verifyLink}`;
+	sendEmail(email, "Please confirm your account", mailBody);
+	
 	return newUser;
 }
 

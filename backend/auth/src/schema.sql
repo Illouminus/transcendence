@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT DEFAULT NULL,
     google_id TEXT UNIQUE DEFAULT NULL,
     is_verified BOOLEAN DEFAULT 0,
+    verification_token TEXT DEFAULT NULL,
     two_factor_secret TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP

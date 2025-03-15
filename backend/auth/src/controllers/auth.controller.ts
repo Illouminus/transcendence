@@ -1,9 +1,11 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { loginUser, verifyTwoFactorAuth, googleAuthenticator, logoutUser, registerUserService, updateUserService } from "../services/auth.service";
+import { loginUser, verifyTwoFactorAuth, googleAuthenticator, 
+	logoutUser, registerUserService, updateUserService } from "../services/auth.service";
 import { LoginBody, TwoFABody, RegisterUser } from "../@types/auth.types";
 import { getErrorMessage, getErrorStatusCode, logError } from "../utils/errorHandler";
 import { issueAndSetToken } from "../services/auth.service"
 import { publishToQueue } from "../rabbit/rabbit"
+import { getUserByVerificationToken, verifyEmail } from "../models/user.model";
 
 
 export async function loginController( req: FastifyRequest<{ Body: LoginBody }>, res: FastifyReply) {
@@ -16,6 +18,22 @@ export async function loginController( req: FastifyRequest<{ Body: LoginBody }>,
 	}
 }
 
+export async function verifyEmailController(req: FastifyRequest<{Querystring: {token: string}}>, res: FastifyReply) {
+	try {
+		const {token} = req.query;
+		if (!token) {
+			return res.status(400).send({ error: "Token is required" });
+		}
+		const user = await getUserByVerificationToken(token);
+		if (!user) {
+			return res.status(400).send({ error: "Invalid token" });
+		}
+		await verifyEmail(user.id);
+		return res.redirect(`${process.env.FRONTEND_URL}/login`);
+	} catch (error) {
+		return res.status(400).send({ error: getErrorMessage(error) });
+	}
+}
 
 
 export async function verify2FAController( req: FastifyRequest<{Body: TwoFABody}>, res: FastifyReply,) {

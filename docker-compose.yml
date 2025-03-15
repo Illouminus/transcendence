@@ -63,6 +63,8 @@ services:
       - DATABASE_PATH=${DATABASE_PATH}
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - VERIFY_URL=${VERIFY_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
     networks:
       - transcendance-network
     depends_on:

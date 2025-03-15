@@ -1,7 +1,6 @@
 import db from "../database";
 import { GoogleUser, User} from "../@types/auth.types";
 import { createDatabaseError } from "../utils/errorHandler";
-import { get } from "http";
 
 
 export async function getUserByEmail(email: string): Promise<User | null> {
@@ -21,6 +20,55 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 	});
   }
 
+
+  export async function getUserByVerificationToken(token:string): Promise<User | null> {
+	return new Promise((resolve, reject) => {
+		db.get(
+			"SELECT * FROM users WHERE verification_token = ?",
+			[token],
+			(err: Error | null, user: User | undefined) => {
+				if (err) reject(err);
+				else resolve(user || null);
+			}
+		)
+	})
+  }
+
+  export async function verifyEmail(userId: number): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+	  db.run(
+		"UPDATE users SET is_verified = 1 WHERE id = ?",
+		[userId],
+		function (err: Error | null) {
+		  if (err) {
+			reject(err);
+		  } else {
+			resolve();
+		  }
+		}
+	  );
+	});
+  }
+
+
+  export async function updateUserVerificationToken(
+	userId: number,
+	token: string
+  ): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+	  db.run(
+		"UPDATE users SET verification_token = ? WHERE id = ?",
+		[token, userId],
+		function (err: Error | null) {
+		  if (err) {
+			reject(err);
+		  } else {
+			resolve();
+		  }
+		}
+	  );
+	});
+  }
 
   export async function updateUserData(
 	userId: number,
