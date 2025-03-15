@@ -94,6 +94,7 @@ export async function updateController(req: FastifyRequest<{Body: RegisterUser}>
 		else 
 		{
 			publishToQueue("user.updated", { userId: user.id, username: user.username, email: user.email });
+			
 			res.status(200).send({ message: "User updated successfully" });
 		}
 	} catch (error: any) {

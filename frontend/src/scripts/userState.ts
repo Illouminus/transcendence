@@ -14,7 +14,7 @@ export const UserState = {
 				avatarImg.src = "http://localhost:8080/user/images/default_avatar.png";
 			};
 			if (user.avatarUrl) {
-				avatarImg.src = `http://localhost:8080/user/${user.avatarUrl}`;
+				avatarImg.src = `http://localhost:8080/user${user.avatarUrl}`;
 			} else {
 				avatarImg.src = "http://localhost:8080/user//images/default_avatar.png";
 			}

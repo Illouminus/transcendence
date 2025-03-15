@@ -122,18 +122,19 @@ export async function registerUserService( username: string, email: string, pass
 }
 
 
+// Function to update user details 
+// The fileds that can be updated are username, email and password
+// The password is optional and can be null
+
 export async function updateUserService(userId: number, username: string, email: string, password?: string | null): Promise<User | null> {
 	try {
-
-	  console.log("updateUserService", username, email, password);
 	  const currentUser = await getUserById(userId!);
-
-	  console.log("currentUser", currentUser);
-
 	  if (!currentUser) {
 		throw createNotFoundError("User not found");
 	  }
+
 	  let hashedPassword: string | null = null;
+
 	  if (password && password.trim() !== "") {
 		hashedPassword = await bcrypt.hash(password, 10);
 	  }
@@ -143,8 +144,8 @@ export async function updateUserService(userId: number, username: string, email:
 		email,
 		password_hash: hashedPassword,
 	  });
-
 	  return updatedUser;
+
 	} catch (error) {
 	  logError(error, "updateUserService");
 	  throw createDatabaseError("Failed to update user", {
