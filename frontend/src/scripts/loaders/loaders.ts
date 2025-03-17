@@ -1,12 +1,14 @@
 import { fetchAndRender, setUpdateAvatar } from "./outils";
-import { login, renderGoogleButton, login2FA, handleSignupSubmit, handleUpdateAvatar, handleUpdateProfile } from "../services/auth.service";
+import { loginHandler, renderGoogleButton, login2FA, registerHandler } from "../services/auth.service";
 import {UserState} from "../userState";
 import {succesSVG, errorSVG} from "./outils"
+import { handleUpdateProfile, handleUpdateAvatar, enable2FA, disable2FA } from "../services/user.service";
 
 
 export async function loadHomePage() {
 	await fetchAndRender("dog");
 }
+
 
 export async function loadLoginPage() {
 	await fetchAndRender("login");
@@ -15,17 +17,18 @@ export async function loadLoginPage() {
 		e.preventDefault();
 		const email = (document.getElementById("email") as HTMLInputElement).value;
 		const password = (document.getElementById("password") as HTMLInputElement).value;
-		await login(email, password);
+		await loginHandler(email, password);
 	});
 }
 
+
 export async function loadSignupPage() {
 	await fetchAndRender("signup");
-	document.querySelector("form")?.addEventListener("submit", handleSignupSubmit);
+	document.querySelector("form")?.addEventListener("submit", registerHandler);
 }
 
+
 export async function loadSettingsPage() {
-	console.log("Settings Page");
 	await fetchAndRender("settings");
 
 	document.querySelector("#update-avatar-form")?.addEventListener("submit", handleUpdateAvatar);
@@ -35,7 +38,34 @@ export async function loadSettingsPage() {
 	const usernameChange = document.getElementById("username") as HTMLInputElement;
 	const email = document.getElementById("profile-email") as HTMLInputElement;
 
+	const span2FA = document.getElementById('span2FA') as HTMLSpanElement; 
+	const faInput = document.getElementById('2faInput') as HTMLInputElement;
+
+	faInput.addEventListener('change', async () => {
+		if (faInput.checked) {
+		  console.log("2FA enabled");
+		  await enable2FA();
+		  loadSettingsPage();
+		} else {
+		  console.log("2FA disabled");
+		  await disable2FA();
+		  loadSettingsPage();
+		}
+	  });
+
+
 	const user = UserState.getUser();
+
+	if (user?.two_factor_enabled) {
+		span2FA.innerText = "Disable 2FA";
+		faInput.checked = true;
+	}
+	else {
+		span2FA.innerText = "Enable 2FA";
+		faInput.checked = false;
+	}
+
+	
 	await setUpdateAvatar();
 	if (username)
 		username.innerHTML = user?.username ?? "";
@@ -43,7 +73,6 @@ export async function loadSettingsPage() {
 		usernameChange.value = user?.username ?? "";
 	if (email)
 		email.value = user?.email ?? "";
-
 }
   
 
@@ -59,10 +88,8 @@ export async function loadProfilePage() {
 
 	const user = UserState.getUser();
 
-	console.log("User in profile page", user);
-
-	const verified = true;
-	const twoFactor = false;
+	const verified = user?.is_verified ?? false;
+	const twoFactor = user?.two_factor_enabled ?? false;
 	const online = true;
 
 	username.innerHTML = user?.username ?? "";

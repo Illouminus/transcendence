@@ -2,7 +2,7 @@ import { setupUI } from "./services/ui.service";
 import { handleRouting } from "./router";
 import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick, onSettingsClick } from "./services/click.service";
 import { UserState } from "./userState";
-import { fetchUserProfile } from "./services/auth.service";
+import { fetchUserProfile } from "./services/user.service";
 
 
 document.addEventListener("DOMContentLoaded", async () => {
