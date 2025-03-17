@@ -59,6 +59,7 @@ export async function loginHandler(email: string, password: string) {
 		if(data.message === "2FA code sent to email")
 		{
 			showAlert("Login successful - you need to enter you 2FA code", "success");
+			UserState.tempEmail = data.email;
 			redirectTo("/2fa");
 		}
 		else if(data.message === "Login successful")

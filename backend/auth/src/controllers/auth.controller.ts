@@ -18,7 +18,7 @@ export async function loginController( req: FastifyRequest<{ Body: LoginBody }>,
 		}
 		else
 		{
-			return res.status(200).send({message: "2FA code sent to email"});
+			return res.status(200).send({message: "2FA code sent to email", email: req.body.email});
 		}
 	} catch (error) {
 		return res.status(400).send({ error: getErrorMessage(error) });
