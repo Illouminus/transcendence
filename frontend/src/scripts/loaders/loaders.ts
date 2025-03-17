@@ -151,7 +151,7 @@ export async function load2FAPage() {
 	document.querySelector("form")?.addEventListener("submit", async (e) => {
 		e.preventDefault();
 		const code = (document.getElementById("code") as HTMLInputElement).value;
-		const email = (document.getElementById("email-2fa") as HTMLInputElement).value;
+		const email = UserState.tempEmail;
 		await login2FA(email, code);
 	});
 }

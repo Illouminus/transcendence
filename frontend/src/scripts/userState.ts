@@ -5,6 +5,7 @@ const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
 
 export const UserState = {
 	user: null as User | null,
+	tempEmail: "",
 	setUser: (user: User) => {
 		UserState.user = user;
 		renderAvatar(user.avatar);
