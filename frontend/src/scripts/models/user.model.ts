@@ -9,10 +9,10 @@ export interface User {
 	id: number;
 	username: string;
 	email: string;
-	avatarUrl?: string;
+	avatar?: string;
 	googleId?: string;
-	isVerified: boolean;
-	twoFactorSecret?: string;
+	is_verified: boolean;
+	two_factor_enabled?: boolean;
 	createdAt: string;
 	updatedAt: string;
 	wins: number;

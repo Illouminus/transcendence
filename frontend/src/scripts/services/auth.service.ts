@@ -3,38 +3,32 @@ import { setupUI } from "./ui.service";
 import { User } from "../models/user.model";
 import { showAlert } from "./alert.service";
 import { UserState } from "../userState";
+import { loadSettingsPage } from "../loaders/loaders";
+import { setUpdateAvatar } from "../loaders/outils";
 
 declare var google: any;
 
 // Google OAuth 2.0 Client ID
 const clientId = "747067169-6jotvfqmsp06iq9muu28jq2547q3v32s.apps.googleusercontent.com";
 
-const API_URL = "http://localhost:5555/auth";
-const API_URL_USER = "http://localhost:5555/user";
+const API_URL = "http://localhost:8080/auth";
+const API_URL_USER = "http://localhost:8080/user";
+const API_AGREGATED = "http://localhost:8080";
 
-// Проверка авторизации
-export async function checkAuth(): Promise<boolean> {
-	try {
-		const res = await fetch(`${API_URL}/me`, { credentials: "include" });
-		return res.ok;
-	} catch (error) {
-		console.error("Error in checkAuth:", error);
-		return false;
-	}
-}
+
+// Function to fetch the user profile from the user API
 
 export async function fetchUserProfile(): Promise<User | null> {
 	try {
-		const res = await fetch(`${API_URL}/me`, { credentials: "include" });
+		const res = await fetch(`${API_AGREGATED}/aggregated/profile`, { credentials: "include" });
 		if (res.ok) {
 			const user: User = await res.json();
-			console.log("User profile:", user);
 			return user;
 		}
 		return null;
 	} catch (error: any) {
 		console.error("Error fetching user profile:", error);
-		//showAlert("Error fetching user profile: " + error.message, "danger");
+		showAlert("Error fetching user profile: " + error.message, "danger");
 		return null;
 	}
 }
@@ -51,7 +45,7 @@ export async function login2FA(email: string, code: string) {
 		showAlert("2FA successful", "success");
 		const user = await fetchUserProfile();
 		if (user)
-			UserState.setUser(user);
+			UserState.updateUser(user);
 		await setupUI();
 		redirectTo("/");
 	} catch (error: any) {
@@ -60,6 +54,7 @@ export async function login2FA(email: string, code: string) {
 	}
 }
 
+// Function to login the user using the email and password
 export async function login(email: string, password: string) {
 	try {
 		const res = await fetch(`${API_URL}/login`, {
@@ -69,22 +64,35 @@ export async function login(email: string, password: string) {
 			credentials: "include",
 		});
 		if (!res.ok) throw new Error("Invalid credentials");
-		showAlert("Login successful - you need to enter you 2FA code", "success");
-		redirectTo("/2fa");
+		const user = await fetchUserProfile();
+		if (user)
+			UserState.setUser(user);
+		await setupUI();
+		if(UserState.getUser()?.two_factor_enabled)
+		{
+			showAlert("Login successful - you need to enter you 2FA code", "success");
+			redirectTo("/2fa");
+		}
+		else
+		{
+			showAlert("Login successful", "success");
+			redirectTo("/profile");
+		}
 	} catch (error: any) {
 		console.error("Login failed:", error);
 		showAlert("Login failed: " + error.message, "danger");
 	}
 }
+
+// Function to logout the user from the application
 export async function logout() {
 	try {
-		await fetch(`${API_URL}/logout`, { method: "POST", credentials: "include" });
+		await fetch(`${API_URL}/logout`, { method: "GET", credentials: "include" });
 		UserState.logout();
 		showAlert("Logout successful", "success");
 		await setupUI();
 		redirectTo("/");
 	} catch (error: any) {
-		console.error("Logout failed:", error);
 		showAlert("Logout failed: " + error.message, "danger");
 	}
 }
@@ -109,6 +117,9 @@ export async function renderGoogleButton() {
 	}
 }
 
+// Function to handle the response from the Google Sign-In / 
+// Login by sending the ID token to the backend or register the user
+
 function handleCredentialResponse(response: any) {
 	fetch(`${API_URL}/google-authenticator`, {
 		method: "POST",
@@ -120,12 +131,20 @@ function handleCredentialResponse(response: any) {
 		.then(async (data) => {
 			if (data.error) {
 				showAlert("Google Sign-In Error - Possibly duplicate email", "danger");
-				return;
+				return;;
+			
+			}
+			console.log("Google Sign-In response:", data);
+			if(data.user)
+			{
+				UserState.setUser(data.user);
+				console.log("User from state", UserState.getUser());
 			}
 			showAlert("Google Sign-In successful", "success");
 			const user = await fetchUserProfile();
 			if (user)
-				UserState.setUser(user);
+				UserState.updateUser(user);
+			console.log("User from state after update from user", UserState.getUser());
 			await setupUI();
 			redirectTo("/");
 		})
@@ -134,32 +153,32 @@ function handleCredentialResponse(response: any) {
 		});
 }
 
+
+// Function to handle the user registration form submission
 export async function handleSignupSubmit(e: Event): Promise<void> {
 	e.preventDefault();
 
 	const username = (document.getElementById("username") as HTMLInputElement).value;
 	const email = (document.getElementById("email") as HTMLInputElement).value;
 	const password = (document.getElementById("password") as HTMLInputElement).value;
-	const avatarInput = document.getElementById("avatar") as HTMLInputElement;
 
 
 	const formData = new FormData();
 	formData.append("username", username);
 	formData.append("email", email);
 	formData.append("password", password);
-	if (avatarInput.files && avatarInput.files[0]) {
-		formData.append("avatar", avatarInput.files[0]);
-	}
 
 	try {
-		const res = await fetch(`${API_URL_USER}/register`, {
+		const res = await fetch(`${API_URL}/register`, {
 			method: "POST",
 			body: formData,
 			credentials: "include",
 		});
 		if (!res.ok) {
-			throw new Error(`Registration failed: ${res.statusText}`);
+			const errorData = await res.json();
+			throw new Error(errorData.error || `Registration failed: ${res.statusText}`);
 		}
+		console.log("Registration response:", res);
 		const data = await res.json();
 		console.log("Registration response:", data);
 		if (data.message === "User registered!")
@@ -169,7 +188,6 @@ export async function handleSignupSubmit(e: Event): Promise<void> {
 		await setupUI();
 		redirectTo("/");
 	} catch (error: any) {
-		console.error("Registration error:", error);
 		showAlert("Registration error: " + error.message, "danger");
 	}
 }
@@ -178,13 +196,14 @@ export async function handleSignupSubmit(e: Event): Promise<void> {
 
 export async function handleUpdateProfile(e: Event): Promise<void> {
 	e.preventDefault();
-  
 	const username = (document.getElementById("username") as HTMLInputElement).value;
 	const email = (document.getElementById("profile-email") as HTMLInputElement).value;
 	const password = (document.getElementById("password") as HTMLInputElement).value;
-	const avatarInput = document.getElementById("avatar") as HTMLInputElement;
+
+	console.log("Username:", username);
+	console.log("Email:", email);
+	console.log("Password:", password);
   
-	// Валидация полей формы
 	if (!username.trim()) {
 	  showAlert("Username is required", "danger");
 	  return;
@@ -194,40 +213,16 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 	  showAlert("Email is required", "danger");
 	  return;
 	}
-  
-	// Валидация файла аватара, если он выбран
-	if (avatarInput.files && avatarInput.files[0]) {
-	  const file = avatarInput.files[0];
-	  
-	  // Проверка типа файла
-	  const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-	  if (!validTypes.includes(file.type)) {
-		showAlert("Invalid file type. Only JPEG, PNG, GIF and WebP images are allowed.", "danger");
-		return;
-	  }
-	  
-	  // Проверка размера файла
-	  const maxSize = 5 * 1024 * 1024; // 5MB
-	  if (file.size > maxSize) {
-		showAlert(`File too large. Maximum size is ${maxSize / (1024 * 1024)}MB.`, "danger");
-		return;
-	  }
-	}
+
   
 	const formData = new FormData();
 	formData.append("username", username);
 	formData.append("email", email);
 	
-	// Добавляем пароль только если он не пустой
 	if (password.trim()) {
 	  formData.append("password", password);
 	}
 	
-	if (avatarInput.files && avatarInput.files[0]) {
-	  formData.append("avatar", avatarInput.files[0]);
-	}
-  
-	// Добавляем индикатор загрузки
 	const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
 	if (submitButton) {
 	  submitButton.disabled = true;
@@ -235,8 +230,8 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 	}
   
 	try {
-	  const res = await fetch(`${API_URL_USER}/update`, {
-		method: "PUT",
+	  const res = await fetch(`${API_URL}/update`, {
+		method: "POST",
 		body: formData,
 		credentials: "include",
 	  });
@@ -247,7 +242,73 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 	  }
 	  
 	  const data = await res.json();
-	  console.log("Update response:", data);
+	  
+	  if (data.message === "User updated successfully") {
+		showAlert("Update was successful", "success");
+	  }
+	  const user = await fetchUserProfile();
+	  if (user)
+		UserState.updateUser(user);
+	
+	  await loadSettingsPage();
+	} catch (error: any) {
+	  console.error("Update error:", error);
+	  showAlert("Update error: " + error.message, "danger");
+	} finally {
+	  if (submitButton) {
+		submitButton.disabled = false;
+		submitButton.textContent = "Save Changes";
+	  }
+	}
+  }
+
+
+
+  export async function handleUpdateAvatar(e: Event): Promise<void> {
+	e.preventDefault();
+	const avatarInput = document.getElementById("avatar-update") as HTMLInputElement;
+	console.log("Avatar input:", avatarInput);
+
+	if (avatarInput.files && avatarInput.files[0]) {
+	  const file = avatarInput.files[0];
+	  
+	  const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+	  if (!validTypes.includes(file.type)) {
+		showAlert("Invalid file type. Only JPEG, PNG, GIF and WebP images are allowed.", "danger");
+		return;
+	  }
+	  
+	  const maxSize = 5 * 1024 * 1024; 
+	  if (file.size > maxSize) {
+		showAlert(`File too large. Maximum size is ${maxSize / (1024 * 1024)}MB.`, "danger");
+		return;
+	  }
+	}
+  
+	const formData = new FormData();
+	
+	if (avatarInput.files && avatarInput.files[0]) {
+	  formData.append("avatar", avatarInput.files[0]);
+	}
+	const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+	if (submitButton) {
+	  submitButton.disabled = true;
+	  submitButton.textContent = "Updating...";
+	}
+  
+	try {
+	  const res = await fetch(`${API_URL_USER}/updatePhoto`, {
+		method: "POST",
+		body: formData,
+		credentials: "include",
+	  });
+	  
+	  if (!res.ok) {
+		const errorData = await res.json();
+		throw new Error(errorData.error || `Update failed: ${res.statusText}`);
+	  }
+	  
+	  const data = await res.json();
 	  
 	  if (data.message === "User updated!") {
 		showAlert("Update was successful", "success");
@@ -255,10 +316,13 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 		showAlert("Update failed: " + (data.error || "Unknown error"), "danger");
 	  }
 	  
-	  await setupUI();
-	  redirectTo("/");
+	  
+	  const user = await fetchUserProfile();
+	  if (user)
+		UserState.setUser(user);
+	
+	  setUpdateAvatar();
 	} catch (error: any) {
-	  console.error("Update error:", error);
 	  showAlert("Update error: " + error.message, "danger");
 	} finally {
 	  if (submitButton) {

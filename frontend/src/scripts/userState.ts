@@ -7,26 +7,30 @@ export const UserState = {
 	user: null as User | null,
 	setUser: (user: User) => {
 		UserState.user = user;
-
-		if (avatarImg) {
-			avatarImg.onerror = () => {
-				avatarImg.onerror = null;
-				avatarImg.src = "http://localhost:5555/images/default_avatar.png";
-			};
-			if (user.avatarUrl) {
-				avatarImg.src = `http://localhost:5555${user.avatarUrl}`;
-			} else {
-				avatarImg.src = "http://localhost:5555/images/default_avatar.png";
-			}
-		}
+		renderAvatar(user.avatar);
 	},
-	getUser: () => {
-		return UserState.user;
+	updateUser: (partial: Partial<User>) => {
+		if (UserState.user) {
+			UserState.user = { ...UserState.user, ...partial };
+			renderAvatar(UserState.user.avatar);
+		  }
 	},
-	isLoggedIn: () => {
-		return UserState.user !== null;
-	},
+	getUser: () => UserState.user,
+	isLoggedIn: () => UserState.user !== null,
 	logout: () => {
-		UserState.user = null;
-	}
+	  UserState.user = null;
+	  renderAvatar(null);
+	},
 };
+
+
+function renderAvatar(avatar?: string | null) {
+	const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
+	if (avatarImg) {
+	  avatarImg.onerror = () => {
+		avatarImg.onerror = null;
+		avatarImg.src = "http://localhost:8080/user/images/default_avatar.png";
+	  };
+	  avatarImg.src = avatar ? `http://localhost:8080/user${avatar}` : "http://localhost:8080/user/images/default_avatar.png";
+	}
+  }

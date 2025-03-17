@@ -1,25 +1,6 @@
 version: "3.8"
 
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: transcendence_backend
-    restart: always
-    working_dir: /app
-    volumes:
-      - /app/node_modules
-      - ./backend:/app
-      - db-data:/db
-    ports:
-      - "5555:5000"
-    environment:
-      - NODE_ENV=${NODE_ENV}
-      - GMAIL_USER=${GMAIL_USER}
-      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - DATABASE_PATH=${DATABASE_PATH}
   frontend:
     build:
       context: ./frontend
@@ -33,8 +14,136 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - backend
+      - gateway
+    networks:
+      - transcendance-network
+
+  gateway:
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    container_name: transcendence_gateway
+    restart: always
+    working_dir: /app
+    volumes:
+      - /app/node_modules
+      - ./backend/gateway:/app
+    ports:
+      - "8080:8080"
+    environment:
+      - GATEWAY_PORT=${GATEWAY_PORT}
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - GAME_SERVICE_URL=${GAME_SERVICE_URL}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
+    networks:
+      - transcendance-network
+
+  auth:
+    build:
+      context: ./backend/auth
+      dockerfile: Dockerfile
+    container_name: transcendence_auth
+    restart: always
+    working_dir: /app
+    volumes:
+      - /app/node_modules
+      - ./backend/auth:/app
+      - db-data:/db
+    ports:
+      - "8081:8081"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - VERIFY_URL=${VERIFY_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+    networks:
+      - transcendance-network
+    depends_on:
+     rabbitmq:
+        condition: service_healthy
+
+  user:
+    build:
+      context: ./backend/user
+      dockerfile: Dockerfile
+    container_name: transcendence_user
+    restart: always
+    working_dir: /app
+    volumes:
+      - /app/node_modules
+      - ./backend/user:/app
+      - db-data:/db
+    ports:
+      - "8082:8082"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - transcendance-network
+    depends_on:
+     rabbitmq:
+        condition: service_healthy
+
+  game:
+    build:
+      context: ./backend/game
+      dockerfile: Dockerfile
+    container_name: transcendence_game
+    restart: always
+    working_dir: /app
+    volumes:
+      - /app/node_modules
+      - ./backend/game:/app
+      - db-data:/db
+    ports:
+      - "8083:8083"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - transcendance-network
+    depends_on:
+     rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    container_name: transcendence_rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - transcendance-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
 volumes:
   db-data:
     driver: local
+
+networks:
+  transcendance-network:
+    driver: bridge

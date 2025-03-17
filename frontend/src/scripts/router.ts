@@ -1,5 +1,5 @@
-import { loadHomePage, loadLoginPage, loadSignupPage, loadProfilePage, load2FAPage } from "./loaders/loaders";
-import { checkAuth } from "./services/auth.service";
+import { loadHomePage, loadLoginPage, loadSignupPage, loadProfilePage, load2FAPage, loadSettingsPage } from "./loaders/loaders";
+import { UserState } from "./userState";
 
 type RouteHandler = () => void | Promise<void>;
 
@@ -7,12 +7,15 @@ const routes: Record<string, RouteHandler> = {
 	"/": loadHomePage,
 	"/2fa": load2FAPage,
 	"/login": async () => {
-		(await checkAuth()) ? redirectTo("/profile") : await loadLoginPage();
+		(UserState.isLoggedIn()) ? redirectTo("/profile") : await loadLoginPage();
 	},
 	"/signup": loadSignupPage,
 	"/profile": async () => {
-		(await checkAuth()) ? await loadProfilePage() : redirectTo("/login");
+		(UserState.isLoggedIn()) ? await loadProfilePage() : redirectTo("/login");
 	},
+	"/settings": async () => {
+		(UserState.isLoggedIn()) ? await loadSettingsPage() : redirectTo("/login");
+	}
 };
 
 export function handleRouting() {
