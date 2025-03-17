@@ -41,6 +41,27 @@ server.register(fastifyHttpProxy, {
 
 
 server.register(fastifyHttpProxy, {
+  upstream: config.services.auth_service,
+  prefix: '/auth/enable-2fa',
+  rewritePrefix: "/enable-2fa",
+  http2: false,
+  websocket: false,
+  preHandler: verifyJWT,
+});
+
+
+server.register(fastifyHttpProxy, {
+  upstream: config.services.auth_service,
+  prefix: '/auth/disable-2fa',
+  rewritePrefix: "/disable-2fa",
+  http2: false,
+  websocket: false,
+  preHandler: verifyJWT,
+});
+
+
+
+server.register(fastifyHttpProxy, {
     upstream: config.services.auth_service,
     prefix: '/auth',
     rewritePrefix: "",
@@ -113,6 +134,7 @@ server.register(fastifyHttpProxy, {
     preHandler: verifyJWT,
 });
 
+
 // Register the HTTP Proxy plugin with our configuration for the chat service
 server.register(fastifyHttpProxy, {
     upstream: config.services.chat_service,
@@ -121,6 +143,9 @@ server.register(fastifyHttpProxy, {
     http2: false,
     websocket: true,
 });
+
+
+
 
 
 server.get('/aggregated/profile', {preHandler: verifyJWT}, async (req, reply) => {
@@ -163,7 +188,6 @@ server.get('/aggregated/profile', {preHandler: verifyJWT}, async (req, reply) =>
       losses: userJson.losses,
       achievements: userJson.achievements,
     };
-
 
     return profile;
   } catch (error) {
