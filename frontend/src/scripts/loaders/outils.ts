@@ -47,3 +47,4 @@ export async function setUpdateAvatar() {
 
 	return avatar;
 }
+

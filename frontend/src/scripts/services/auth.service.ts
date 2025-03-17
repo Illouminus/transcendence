@@ -51,19 +51,23 @@ export async function loginHandler(email: string, password: string) {
 			body: JSON.stringify({ email, password }),
 			credentials: "include",
 		});
+
+		const data = await res.json();
+		console.log("Login response:", data);
 		if (!res.ok) throw new Error("Invalid credentials");
-		const user = await fetchUserProfile();
-		if (user)
-			UserState.setUser(user);
-		await setupUI();
-		if(UserState.getUser()?.two_factor_enabled)
+
+		if(data.message === "2FA code sent to email")
 		{
 			showAlert("Login successful - you need to enter you 2FA code", "success");
 			redirectTo("/2fa");
 		}
-		else
+		else if(data.message === "Login successful")
 		{
 			showAlert("Login successful", "success");
+			const user = await fetchUserProfile();
+			if (user)
+				UserState.setUser(user);
+			await setupUI();
 			redirectTo("/profile");
 		}
 	} catch (error: any) {

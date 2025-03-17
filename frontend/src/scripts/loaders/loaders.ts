@@ -45,9 +45,11 @@ export async function loadSettingsPage() {
 		if (faInput.checked) {
 		  console.log("2FA enabled");
 		  await enable2FA();
+		  loadSettingsPage();
 		} else {
 		  console.log("2FA disabled");
 		  await disable2FA();
+		  loadSettingsPage();
 		}
 	  });
 

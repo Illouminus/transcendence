@@ -14,10 +14,12 @@ export async function loginController( req: FastifyRequest<{ Body: LoginBody }>,
 		if(response.user)
 		{
 			await issueAndSetToken(res.server, res, response.user.id);
-			return res.status(200).send( "Login successful");
+			return res.status(200).send({message: "Login successful"});
 		}
 		else
-		 throw new Error("Login failed");
+		{
+			return res.status(200).send({message: "2FA code sent to email"});
+		}
 	} catch (error) {
 		return res.status(400).send({ error: getErrorMessage(error) });
 	}
