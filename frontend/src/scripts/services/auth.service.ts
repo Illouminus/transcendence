@@ -64,8 +64,20 @@ export async function login(email: string, password: string) {
 			credentials: "include",
 		});
 		if (!res.ok) throw new Error("Invalid credentials");
-		showAlert("Login successful - you need to enter you 2FA code", "success");
-		redirectTo("/2fa");
+		const user = await fetchUserProfile();
+		if (user)
+			UserState.setUser(user);
+		await setupUI();
+		if(UserState.getUser()?.two_factor_enabled)
+		{
+			showAlert("Login successful - you need to enter you 2FA code", "success");
+			redirectTo("/2fa");
+		}
+		else
+		{
+			showAlert("Login successful", "success");
+			redirectTo("/profile");
+		}
 	} catch (error: any) {
 		console.error("Login failed:", error);
 		showAlert("Login failed: " + error.message, "danger");

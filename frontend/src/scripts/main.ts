@@ -17,15 +17,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 	//Fetch user profile and set user state accordingly
 	const user = await fetchUserProfile();
-	const userAuth = await fetch("http://localhost:8080/aggregated/profile", {
-		method: "GET",
-		credentials: "include",
-	});
-	const userJson = await userAuth.json();
-	
-	console.log("User from auth", userJson);
-
-	console.log("Basic user", user);
 	if (user) {
 		if(UserState.getUser() === null)
 			UserState.updateUser(user);
