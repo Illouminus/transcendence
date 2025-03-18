@@ -1,4 +1,4 @@
-import { fetchAndRender, fetchBabylon } from "./outils";
+import { fetchAndRender } from "./outils";
 import { login, renderGoogleButton, login2FA, handleSignupSubmit, fetchUserProfile, handleUpdateProfile } from "../services/auth.service";
 import { loadPongPageScript} from "../pong";
 
