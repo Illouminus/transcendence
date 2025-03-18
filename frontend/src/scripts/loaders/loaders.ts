@@ -1,5 +1,6 @@
 import { fetchAndRender, fetchBabylon } from "./outils";
 import { login, renderGoogleButton, login2FA, handleSignupSubmit, fetchUserProfile, handleUpdateProfile } from "../services/auth.service";
+import { loadPongPageScript} from "../pong";
 
 export async function loadHomePage() {
 	await fetchAndRender("dog");
@@ -73,9 +74,7 @@ export async function load2FAPage() {
 	});
 }
 
-export async function loadPongPage()
-{
-	console.log("Pong Page");
-	await fetchBabylon("pong");
-
-}
+export async function loadPongPage() {
+	await fetchAndRender("pong");
+	loadPongPageScript();
+  }
