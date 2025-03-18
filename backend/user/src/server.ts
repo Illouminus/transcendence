@@ -2,6 +2,7 @@ import fastify from "fastify";
 import fastifyStatic from "@fastify/static";
 import fastifyMultipart from "@fastify/multipart";
 import userRoutes from "./routes/users.routes";
+import friendsRoutes from "./routes/friends.routes";
 import { logError } from "./utils/errorHandler";
 import config from "./config";
 import { connectRabbit } from "./rabbit/rabbit";
@@ -55,6 +56,7 @@ server.setErrorHandler((error, request, reply) => {
 // Register the routes - prefix means that all routes in the authRoutes will start with /auth
 // For example, if you have a route in the authRoutes file with the path /login, you can access it at http://localhost:5000/user/update
 server.register(userRoutes);
+server.register(friendsRoutes , { prefix: '/friends' });
 
 
 // Start the server
