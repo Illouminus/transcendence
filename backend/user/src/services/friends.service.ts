@@ -1,5 +1,7 @@
 import { FriendsList } from "../@types/friends.types";
-import { getFriendsListFromDB, sendFriendRequestDB, getIncomingRequestsDb } from "../models/friends.model";
+import { getFriendsListFromDB, sendFriendRequestDB, getIncomingRequestsDb,
+    getOutgoingRequestsDb,
+ } from "../models/friends.model";
 
 
 
@@ -34,6 +36,18 @@ export async function getIncomingRequestsService(userId: number) : Promise<Array
     try {
         incomingRequests = await getIncomingRequestsDb(userId);
         return incomingRequests;
+    } catch (error) {
+        throw error;
+    }
+}
+
+
+// This function should return a list of outgoing friend requests for the user with the given userId.
+export async function getOutgoingRequestsService(userId: number) : Promise<Array<FriendsList>> {
+    let outgoingRequests: Array<FriendsList> = [];
+    try {
+        outgoingRequests = await getOutgoingRequestsDb(userId);
+        return outgoingRequests;
     } catch (error) {
         throw error;
     }

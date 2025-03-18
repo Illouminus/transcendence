@@ -1,7 +1,9 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { getUserIdFromHeader } from '../utils/outils';
 import { getErrorMessage, getErrorStatusCode } from '../utils/errorHandler';
-import { getFriendsListService, sendFriendRequestService, getIncomingRequestsService } from '../services/friends.service';
+import { getFriendsListService, sendFriendRequestService, getIncomingRequestsService,
+    getOutgoingRequestsService,
+ } from '../services/friends.service';
 
 export async function getFirendsListController(request: FastifyRequest, reply: FastifyReply) {
     try {
@@ -32,6 +34,17 @@ export async function getIncomingRequestsController(request: FastifyRequest, rep
         const userId = getUserIdFromHeader(request);
         const incomingRequests = await getIncomingRequestsService(userId);
         reply.code(200).send(incomingRequests);
+    } catch (error) {
+        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+    }
+}
+
+
+export async function getOutgoingRequestsController(request: FastifyRequest, reply: FastifyReply) {
+    try {
+        const userId = getUserIdFromHeader(request);
+        const outgoingRequests = await getOutgoingRequestsService(userId);
+        reply.code(200).send(outgoingRequests);
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
     }
