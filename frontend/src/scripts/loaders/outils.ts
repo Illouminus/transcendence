@@ -13,6 +13,7 @@ export async function fetchBabylon(page: string) {
     const html = await response.text();
     const appDiv = document.getElementById("app")!;
     appDiv.innerHTML = html;
+    
 
     // Re-exécuter les scripts du fichier HTML inséré
     appDiv.querySelectorAll("script").forEach((oldScript) => {

@@ -77,4 +77,5 @@ export async function loadPongPage()
 {
 	console.log("Pong Page");
 	await fetchBabylon("pong");
+
 }
