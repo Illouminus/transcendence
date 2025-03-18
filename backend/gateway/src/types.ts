@@ -3,6 +3,7 @@ export interface AuthUser {
     id: number;
     is_verified: boolean;
     two_factor_enabled: boolean;
+    is_google_auth: boolean;
     email: string;
   }
 }
@@ -24,6 +25,7 @@ export interface Profile {
   email: string;
   is_verified: boolean;
   two_factor_enabled: boolean;
+  is_google_auth: boolean;
   avatar: string;
   wins: number;
   losses: number;

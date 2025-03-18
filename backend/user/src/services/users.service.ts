@@ -10,7 +10,6 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 	  if (!user) {
 		throw createNotFoundError("User");
 	  }
-  
 	  const  achievements = await getUserAchievements(userId);
   
 	  const fullProfile: UserProfile = { ...user, achievements };

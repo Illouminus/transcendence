@@ -10,15 +10,15 @@ export interface User {
 	username: string;
 	email: string;
 	avatar?: string;
-	googleId?: string;
 	is_verified: boolean;
+	is_google_auth: boolean;
 	two_factor_enabled?: boolean;
 	createdAt: string;
 	updatedAt: string;
 	wins: number;
 	losses: number;
-	totalGames?: number;
-	totalTournaments?: number;
-	tournamentWins?: number;
+	// totalGames?: number;
+	// totalTournaments?: number;
+	// tournamentWins?: number;
 	achievements?: Achievement[];
 }

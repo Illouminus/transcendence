@@ -38,16 +38,15 @@ export async function loadSettingsPage() {
 	const usernameChange = document.getElementById("username") as HTMLInputElement;
 	const email = document.getElementById("profile-email") as HTMLInputElement;
 
+	const label2FA = document.getElementById('2faLabel') as HTMLLabelElement;
 	const span2FA = document.getElementById('span2FA') as HTMLSpanElement; 
 	const faInput = document.getElementById('2faInput') as HTMLInputElement;
 
 	faInput.addEventListener('change', async () => {
 		if (faInput.checked) {
-		  console.log("2FA enabled");
 		  await enable2FA();
 		  loadSettingsPage();
 		} else {
-		  console.log("2FA disabled");
 		  await disable2FA();
 		  loadSettingsPage();
 		}
@@ -55,6 +54,10 @@ export async function loadSettingsPage() {
 
 
 	const user = UserState.getUser();
+
+	if(user?.is_google_auth)
+		label2FA.style.display = "none";
+
 
 	if (user?.two_factor_enabled) {
 		span2FA.innerText = "Disable 2FA";

@@ -1,6 +1,7 @@
 import fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import fastifyHttpProxy from '@fastify/http-proxy';
-import fastifyStatic from '@fastify/static';
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUI from '@fastify/swagger-ui';
 import fastifyJwt, { FastifyJWT, JWT } from '@fastify/jwt';
 import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
@@ -28,6 +29,27 @@ server.register(fastifyJwt, {secret: config.security.jwtSecret});
 	},
   });
 
+
+
+  server.register(fastifySwagger);
+  
+  server.register(fastifySwaggerUI, {
+    routePrefix: '/documentation', 
+    uiConfig: {
+      docExpansion: 'full',
+      deepLinking: false,
+    },
+    uiHooks: {
+      onRequest: function (request, reply, next) { next() },
+      preHandler: function (request, reply, next) { next() }
+    },
+    staticCSP: true,
+    transformStaticCSP: (header: string) => header,
+    transformSpecification: (swaggerObject, request, reply) => { return swaggerObject },
+    transformSpecificationClone: true
+  });
+
+  
 // Register the HTTP Proxy plugin with our configuration for the auth service
 
 server.register(fastifyHttpProxy, {
@@ -176,11 +198,11 @@ server.get('/aggregated/profile', {preHandler: verifyJWT}, async (req, reply) =>
       }
     });
     const userJson: UserProfile = await userResponse.json();
-
     const profile: Profile = {
       id: userJson.id,
       is_verified: authJson.user.is_verified,
       two_factor_enabled: authJson.user.two_factor_enabled,
+      is_google_auth: authJson.user.is_google_auth,
       username: userJson.username,
       email: userJson.email,
       avatar: userJson.avatarUrl,
