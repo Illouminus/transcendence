@@ -73,18 +73,12 @@ function createLights(scene: BABYLON.Scene): void {
 
 
 function createGround(scene: BABYLON.Scene): BABYLON.Mesh {
-  const ground = BABYLON.MeshBuilder.CreateGround(
-    "ground",
-    { width: 10.97, height: 23.77 },
-    scene
-  );
+  const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10.97, height: 23.77 }, scene);
   const clayMaterial = new BABYLON.StandardMaterial("clayMaterial", scene);
-  clayMaterial.diffuseTexture = new BABYLON.Texture(
-    "https://media.istockphoto.com/id/520420178/fr/photo/abstrait-rouge-texture-de-mur-de-ciment.jpg?s=612x612&w=0&k=20&c=wq5Y1JHKIQTPywXnLnJTcK3DLjYP_Wa6uQWbNNvz39Y",
-    scene
-  );
+  clayMaterial.diffuseTexture = new BABYLON.Texture("https://media.istockphoto.com/id/520420178/fr/photo/abstrait-rouge-texture-de-mur-de-ciment.jpg?s=612x612&w=0&k=20&c=wq5Y1JHKIQTPywXnLnJTcK3DLjYP_Wa6uQWbNNvz39Y=", scene); // Replace with a realistic texture
   clayMaterial.specularColor = BABYLON.Color3.Black();
   ground.material = clayMaterial;
+
   return ground;
 }
 
