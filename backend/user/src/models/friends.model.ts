@@ -76,3 +76,75 @@ export async function getFriendsListFromDB(userId: number): Promise<FriendsList[
       });
     });
   }
+
+
+  export async function acceptFriendRequestDB(userId: number, friendId: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        UPDATE friends
+        SET status = 'accepted'
+        WHERE user_profile_id = ? AND friend_profile_id = ?
+      `;
+      db.run(query, [friendId, userId], function (err: Error | null) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve('Friend request accepted successfully');
+        }
+      });
+    });
+  }
+
+
+
+  export async function rejectFriendRequestDB(userId: number, friendId: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        DELETE FROM friends
+        WHERE user_profile_id = ? AND friend_profile_id = ?
+      `;
+      db.run(query, [friendId, userId], function (err: Error | null) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve('Friend request rejected successfully');
+        }
+      });
+    });
+  }
+
+
+  export async function blockFriendDB(userId: number, friendId: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        UPDATE friends
+        SET status = 'blocked'
+        WHERE user_profile_id = ? AND friend_profile_id = ?
+      `;
+      db.run(query, [userId, friendId], function (err: Error | null) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve('Friend blocked successfully');
+        }
+      });
+    });
+  }
+
+
+  export async function unblockFriendDb(userId: number, friendId: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        UPDATE friends
+        SET status = 'accepted'
+        WHERE user_profile_id = ? AND friend_profile_id = ?
+      `;
+      db.run(query, [userId, friendId], function (err: Error | null) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve('Friend unblocked successfully');
+        }
+      });
+    });
+  }

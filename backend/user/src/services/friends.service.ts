@@ -1,6 +1,7 @@
 import { FriendsList } from "../@types/friends.types";
 import { getFriendsListFromDB, sendFriendRequestDB, getIncomingRequestsDb,
-    getOutgoingRequestsDb,
+    getOutgoingRequestsDb, acceptFriendRequestDB, rejectFriendRequestDB, blockFriendDB,
+    unblockFriendDb
  } from "../models/friends.model";
 
 
@@ -52,4 +53,54 @@ export async function getOutgoingRequestsService(userId: number) : Promise<Array
         throw error;
     }
     return [];
+}
+
+
+// This function should accept a friend request from the user with the given userId to the user with the given friendId.
+// If the friend request is successfully accepted, return a success message.
+// If the friend request is not successfully accepted, return an error message.
+export async function acceptFriendRequestService(userId: number, friendId: number) : Promise<string> {
+    try {
+        const reponse = await acceptFriendRequestDB(userId, friendId);
+        return reponse;
+    } catch (error) {
+        throw error;
+    }
+}
+
+
+// This function should reject a friend request from the user with the given userId to the user with the given friendId.
+// If the friend request is successfully rejected, return a success message.
+// If the friend request is not successfully rejected, return an error message.
+export async function rejectFriendRequestService(userId: number, friendId: number) : Promise<string> {
+    try {
+        const response = await rejectFriendRequestDB(userId, friendId);
+        return response;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// This function should block a friend with the given friendId for the user with the given userId.
+// If the friend is successfully blocked, return a success message.
+// If the friend is not successfully blocked, return an error message.
+export async function blockFriendService(userId: number, friendId: number) : Promise<string> {
+    try {
+        const response = await blockFriendDB(userId, friendId);
+        return response;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// This function should unblock a friend with the given friendId for the user with the given userId.
+// If the friend is successfully unblocked, return a success message.
+// If the friend is not successfully unblocked, return an error message.
+export async function unblockFriendService(userId: number, friendId: number) : Promise<string> {
+    try {
+        const response = await unblockFriendDb(userId, friendId);
+        return response;
+    } catch (error) {
+        throw error;
+    }
 }
