@@ -1,3 +1,12 @@
+// Ajout des variables de score
+let scorePlayer1 = 0;
+let scorePlayer2 = 0;
+
+function updateScoreDisplay(): void {
+  const scoreDisplay = document.getElementById("scoreDisplay") as HTMLElement;
+  scoreDisplay.innerHTML = `${scorePlayer1} : ${scorePlayer2}`;
+}
+
 function getElements(): {
   canvas: HTMLCanvasElement;
   startMenu: HTMLElement;
@@ -288,15 +297,14 @@ export function loadPongPageScript(): void {
   let gameObserver: BABYLON.Observer<BABYLON.Scene> | null = null;
 
 
+  // Fonction modifiée pour gérer les scores et mettre à jour l'affichage
   function startGame(): void {
     startMenu.style.display = "none";
     gameOverMenu.style.display = "none";
 
-
     if (gameObserver) {
       scene.onBeforeRenderObservable.remove(gameObserver);
     }
-
 
     ball.position = new BABYLON.Vector3(0, 0.25, 0);
     let ballDirection = new BABYLON.Vector3(
@@ -305,15 +313,14 @@ export function loadPongPageScript(): void {
       Math.random() > 0.5 ? -1 : 1
     ).normalize();
 
+    updateScoreDisplay(); // Mise à jour initiale de l'affichage des scores
 
     gameObserver = scene.onBeforeRenderObservable.add(() => {
       ball.position.addInPlace(ballDirection.scale(BALL_SPEED));
 
-
       if (Math.abs(ball.position.x) + BALL_RADIUS >= halfCourtWidth) {
         ballDirection.x *= -1;
       }
-
 
       if (ball.intersectsMesh(player1, false)) {
         ballDirection.z *= -1;
@@ -324,11 +331,19 @@ export function loadPongPageScript(): void {
         ball.position.z = player2.position.z - BALL_RADIUS - PADDLE_DEPTH / 2;
       }
 
-
       if (Math.abs(ball.position.z) > fullCourtLength / 2) {
         if (gameObserver) {
           scene.onBeforeRenderObservable.remove(gameObserver);
         }
+
+        // Mise à jour des scores
+        if (ball.position.z > fullCourtLength / 2) {
+          scorePlayer1++;
+        } else {
+          scorePlayer2++;
+        }
+
+        updateScoreDisplay(); // Mettre à jour l'affichage des scores
         gameOverMenu.style.display = "block";
       }
     });
