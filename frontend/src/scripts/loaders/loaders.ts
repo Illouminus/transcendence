@@ -4,6 +4,7 @@ import {UserState} from "../userState";
 import {succesSVG, errorSVG} from "./outils"
 import { handleUpdateProfile, handleUpdateAvatar, enable2FA, disable2FA } from "../services/user.service";
 import { fetchUsers, loadUserProfileData } from "../users";
+import { initializeFriends } from "../friends";
 
 
 export async function loadHomePage() {
@@ -179,4 +180,17 @@ export async function loadUserProfilePage(): Promise<void> {
     } catch (error) {
         console.error("Error loading user profile page:", error);
     }
+}
+
+
+export async function loadFriendsPage(): Promise<void> {
+	try {
+		await fetchAndRender("friends");
+		initializeFriends();
+		// Ensure the DOM is updated before attaching event listeners
+		await new Promise(resolve => setTimeout(resolve, 0));
+		//await fetchUsers();
+	} catch (error) {
+		console.error("Error loading friends page:", error);
+	}
 }

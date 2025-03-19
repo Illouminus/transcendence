@@ -30,3 +30,7 @@ export async function onSettingsClick() {
 export async function onUsersClick() {
 	redirectTo("/users");
 }
+
+export async function onFriendsClick() {
+	redirectTo("/friends");
+}

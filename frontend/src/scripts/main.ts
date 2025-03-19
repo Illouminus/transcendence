@@ -1,6 +1,7 @@
 import { setupUI } from "./services/ui.service";
 import { handleRouting } from "./router";
-import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick, onSettingsClick, onUsersClick } from "./services/click.service";
+import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick, 
+	onSettingsClick, onUsersClick, onFriendsClick } from "./services/click.service";
 import { UserState } from "./userState";
 import { fetchUserProfile } from "./services/user.service";
 import { fetchAllUsers } from "./loaders/outils";
@@ -16,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 	document.getElementById("profile-button")?.addEventListener("click", onProfileClick);
 	document.getElementById("settings-button")?.addEventListener("click", onSettingsClick);
 	document.getElementById("users-button")?.addEventListener("click", onUsersClick);
+	document.getElementById("friends-button")?.addEventListener("click", onFriendsClick);
 
 	//Fetch user profile and set user state accordingly
 	const user = await fetchUserProfile();

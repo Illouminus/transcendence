@@ -1,4 +1,4 @@
-import { loadHomePage, loadLoginPage, loadSignupPage, loadSettingsPage, loadProfilePage, load2FAPage, loadUsersPage, loadUserProfilePage } from "./loaders/loaders";
+import { loadHomePage, loadLoginPage, loadSignupPage, loadSettingsPage, loadProfilePage, load2FAPage, loadUsersPage, loadUserProfilePage, loadFriendsPage } from "./loaders/loaders";
 import { UserState } from "./userState";
 
 type RouteHandler = () => void | Promise<void>;
@@ -21,6 +21,9 @@ const routes: Record<string, RouteHandler> = {
 	},
 	"/user-profile": async () => {
 		(UserState.isLoggedIn()) ? await loadUserProfilePage() : redirectTo("/login");
+	},
+	"/friends": async () => {
+		(UserState.isLoggedIn()) ? await loadFriendsPage() : redirectTo("/login");
 	}
 };
 
