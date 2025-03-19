@@ -205,3 +205,13 @@ export async function getUserAchievements(userId: number): Promise<Achievement[]
 		);
 	});
 }
+
+
+export async function getAllUsers(): Promise<User[]> {
+	return new Promise((resolve, reject) => {
+		db.all("SELECT * FROM user_profile", (err: Error | null, users: User[]) => {
+			if (err) reject(err);
+			else resolve(users);
+		});
+	});
+}

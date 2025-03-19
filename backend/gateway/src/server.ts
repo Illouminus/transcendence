@@ -2,7 +2,8 @@ import fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import fastifyHttpProxy from '@fastify/http-proxy';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
-import fastifyJwt, { FastifyJWT, JWT } from '@fastify/jwt';
+import fastifyJwt from '@fastify/jwt';
+import fastifyWebsocket from '@fastify/websocket';
 import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import config from './config';
@@ -12,10 +13,14 @@ import { AuthUser, Profile, UserProfile } from './types';
 // Create an instance of Fastify server
 const server = fastify({logger: true});
 
+server.register(fastifyWebsocket);
+
 server.register(cors, {
 	origin: config.server.corsOrigin,
 	credentials: true,
   });
+
+
 
 
 server.register(fastifyJwt, {secret: config.security.jwtSecret});
@@ -130,7 +135,7 @@ server.register(fastifyHttpProxy, {
   prefix: '/user', 
   rewritePrefix: "",
   http2: false,
-  websocket: false,
+  websocket: true,
   preHandler: verifyJWT,
 });
 
@@ -165,8 +170,6 @@ server.register(fastifyHttpProxy, {
     http2: false,
     websocket: true,
 });
-
-
 
 
 

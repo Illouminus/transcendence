@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { registerUserService, updateAvatarService, updateUsernameService, getUserProfileService } from "../services/users.service";
+import { registerUserService, updateAvatarService, updateUsernameService, getUserProfileService, getAllUsersService } from "../services/users.service";
 import { getErrorMessage, getErrorStatusCode, logError, createValidationError, createAuthenticationError } from "../utils/errorHandler";
 import { getUserById } from "../models/user.model";
 import { getUserIdFromHeader } from "../utils/outils";
@@ -63,3 +63,13 @@ export async function updateUsernameController(userId: number, username: string,
 	}
   }
 
+
+
+  export async function getAllUsersController(req: FastifyRequest, reply: FastifyReply) {
+	try {
+	  const users = await getAllUsersService();
+	  return users;
+	} catch (error) {	
+	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
+	}
+  }

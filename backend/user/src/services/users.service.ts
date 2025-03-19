@@ -1,5 +1,5 @@
-import { createUser, getUserById, getUserAchievements,updateAvatar, updateUsername, updateUserData } from "../models/user.model";
-import { UserProfile, PublicUserProfile } from "../@types/user.types";
+import { createUser, getUserById, getUserAchievements,updateAvatar, getAllUsers, updateUserData } from "../models/user.model";
+import { UserProfile, PublicUserProfile, User } from "../@types/user.types";
 import * as fileService from "./file.service";
 import { createNotFoundError,createValidationError,createDatabaseError,logError } from "../utils/errorHandler";
 
@@ -98,3 +98,16 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 	}
 
 
+
+
+  export async function getAllUsersService(): Promise<Array<User>> {
+	try {
+	  const users = await getAllUsers();
+	  return users;
+	} catch (error) {	
+	  logError(error, "getAllUsersService");
+	  throw createDatabaseError("Failed to get all users", {
+		error: error instanceof Error ? error.message : "Unknown error",
+	  });
+	}
+  }

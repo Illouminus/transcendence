@@ -1,10 +1,12 @@
 import { User } from "./models/user.model";
+import { UserArray } from "./users";
 
 
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
 
 export const UserState = {
 	user: null as User | null,
+	allUsers: [] as UserArray[],
 	tempEmail: "",
 	setUser: (user: User) => {
 		UserState.user = user;
@@ -22,6 +24,10 @@ export const UserState = {
 	  UserState.user = null;
 	  renderAvatar(null);
 	},
+	setAllUsers: (users: UserArray[]) => {
+		UserState.allUsers = users;
+	},
+	getAllUsers: () => UserState.allUsers
 };
 
 
