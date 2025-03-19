@@ -1,3 +1,4 @@
+import { friendCard } from "../components/friendCard";
 import { UserState } from "./userState";
 
 interface Friend {
@@ -50,7 +51,6 @@ class FriendsManager {
                 this.friendsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friends yet</p>';
                 return;
             }
-            console.log(user.friends);
             this.friendsContainer.innerHTML = '';
             user.friends.forEach(friend => {
                 const card = this.createFriendCard(friend);
@@ -93,35 +93,36 @@ class FriendsManager {
 
     private createFriendCard(friend: Friend): HTMLElement {
         const card = document.createElement('div');
-        card.className = 'friend-card bg-gray-800 rounded-lg p-4 flex items-center justify-between transition-all hover:bg-gray-700';
-        card.setAttribute('data-friend-id', friend.id.toString());
+        //card.className = 'friend-card bg-gray-800 rounded-lg p-4 flex items-center justify-between transition-all hover:bg-gray-700';
+        //card.setAttribute('data-friend-id', friend.id.toString());
 
         //const statusColor = friend.status === 'online' ? 'bg-green-500' : 'bg-gray-500';
-        const statusColor = 'bg-green-500';
+        //const statusColor = 'bg-green-500';
 
-        card.innerHTML = `
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <img src="http://localhost:8080/user${friend.avatar}" alt="${friend.username}'s avatar" 
-                         class="w-12 h-12 rounded-full bg-gray-600 object-cover">
-                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full ${statusColor} border-2 border-gray-800"></span>
-                </div>
-                <div>
-                    <h3 class="text-white font-medium">${friend.username}</h3>
+        card.innerHTML = friendCard(friend);
+        // `
+        //     <div class="flex items-center space-x-4">
+        //         <div class="relative">
+        //             <img src="http://localhost:8080/user${friend.avatar}" alt="${friend.username}'s avatar" 
+        //                  class="w-12 h-12 rounded-full bg-gray-600 object-cover">
+        //             <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full ${statusColor} border-2 border-gray-800"></span>
+        //         </div>
+        //         <div>
+        //             <h3 class="text-white font-medium">${friend.username}</h3>
 
-                </div>
-            </div>
-            <div class="flex space-x-2">
-                <button class="invite-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                    Invite to Game
-                </button>
-                <button class="block-button bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        `;
+        //         </div>
+        //     </div>
+        //     <div class="flex space-x-2">
+        //         <button class="invite-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+        //             Invite to Game
+        //         </button>
+        //         <button class="block-button bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors">
+        //             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        //                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        //             </svg>
+        //         </button>
+        //     </div>
+        // `;
 
         return card;
     }
