@@ -178,8 +178,9 @@ class FriendsManager {
     }
 
     private async acceptFriendRequest(requestId: number, card: HTMLElement) {
+
         try {
-            const response = await fetch('http://localhost:8080/friends/accept', {
+            const response = await fetch(`http://localhost:8080/user/friends/requests/${requestId}/accept`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ requestId }),
