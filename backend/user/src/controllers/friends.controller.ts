@@ -3,7 +3,7 @@ import { getUserIdFromHeader } from '../utils/outils';
 import { getErrorMessage, getErrorStatusCode } from '../utils/errorHandler';
 import { getFriendsListService, sendFriendRequestService, getIncomingRequestsService,
     getOutgoingRequestsService, acceptFriendRequestService, rejectFriendRequestService,
-    blockFriendService, unblockFriendService
+    blockFriendService, unblockFriendService, deleteFriendService
  } from '../services/friends.service';
 
 export async function getFirendsListController(request: FastifyRequest, reply: FastifyReply) {
@@ -97,6 +97,18 @@ export async function unblockFriendController(request: FastifyRequest<{Params: {
         const friendId = request.params.id;
 
         const response = await unblockFriendService(userId, friendId);
+        reply.code(200).send(response);
+    } catch (error) {
+        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+    }
+}
+
+export async function deleteFriendController(request: FastifyRequest<{Params: {id: number}}>, reply: FastifyReply) {
+    try {
+        const userId = getUserIdFromHeader(request);
+        const friendId = request.params.id;
+
+        const response = await deleteFriendService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));

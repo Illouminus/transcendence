@@ -1,7 +1,7 @@
 import {FastifyInstance} from 'fastify';
 import { getFirendsListController, sendFriendRequestsController, getIncomingRequestsController,
     getOutgoingRequestsController, acceptFriendRequestController, rejectFriendRequestController,
-    blockFriendController, unblockFriendController
+    blockFriendController, deleteFriendController
 } from '../controllers/friends.controller';
 
 export default async function friendsRoutes(fastify: FastifyInstance) {
@@ -13,5 +13,5 @@ export default async function friendsRoutes(fastify: FastifyInstance) {
     fastify.post('/requests/:id/accept', acceptFriendRequestController);
     fastify.post('/requests/:id/reject', rejectFriendRequestController);
     fastify.post('/:id/block', blockFriendController);
-    fastify.post('/:id/unblock', unblockFriendController);
+    fastify.post('/:id/delete', deleteFriendController);
 }

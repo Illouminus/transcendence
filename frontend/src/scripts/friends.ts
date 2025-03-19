@@ -8,12 +8,6 @@ interface Friend {
     avatar: string;
 }
 
-interface FriendRequest {
-    id: number;
-    username: string;
-    avatar: string;
-}
-
 class FriendsManager {
     private friendsContainer: HTMLElement | null;
     private requestsContainer: HTMLElement | null;
@@ -24,7 +18,6 @@ class FriendsManager {
     }
 
     async initialize() {
-        // Wait for DOM to be ready
         this.friendsContainer = document.querySelector('.friends-section .grid');
         this.requestsContainer = document.querySelector('.friend-requests-section .grid');
 
@@ -32,7 +25,6 @@ class FriendsManager {
             console.error('Required containers not found');
             return;
         }
-
         try {
             await this.loadFriends();
             await this.loadFriendRequests();
@@ -101,16 +93,18 @@ class FriendsManager {
         // Friend card event listeners
         this.friendsContainer.addEventListener('click', async (e) => {
             const target = e.target as HTMLElement;
-            const card = target.closest('.friend-card');
+            const card = target.closest('[data-friend-id]');
             if (!card) return;
 
             const friendId = card.getAttribute('data-friend-id');
             if (!friendId) return;
 
-            if (target.closest('.invite-button')) {
+            if (target.closest('.game-button')) {
                 await this.inviteToGame(parseInt(friendId), card as HTMLElement);
-            } else if (target.closest('.block-button')) {
+            } else if (target.closest('.block-button') || target.closest('.unblock-button')) {
                 await this.blockFriend(parseInt(friendId), card as HTMLElement);
+            } else if (target.closest('.remove-button')) {
+                await this.removeFriend(parseInt(friendId), card as HTMLElement);
             }
         });
 
@@ -220,6 +214,27 @@ class FriendsManager {
         } catch (error) {
             console.error('Error rejecting friend request:', error);
             this.showNotification('Failed to reject friend request', 'error');
+        }
+    }
+
+    private async removeFriend(friendId: number, card: HTMLElement) {
+        try {
+            const response = await fetch(`http://localhost:8080/user/friends/${friendId}/delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ friendId }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) throw new Error('Failed to remove friend');
+
+            card.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => card.remove(), 300);
+
+            this.showNotification('Friend removed successfully', 'success');
+        } catch (error) {
+            console.error('Error removing friend:', error);
+            this.showNotification('Failed to remove friend', 'error');
         }
     }
 

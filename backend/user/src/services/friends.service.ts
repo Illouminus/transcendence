@@ -1,7 +1,7 @@
 import { FriendsList } from "../@types/friends.types";
 import { getFriendsListFromDB, sendFriendRequestDB, getIncomingRequestsDb,
     getOutgoingRequestsDb, acceptFriendRequestDB, rejectFriendRequestDB, blockFriendDB,
-    unblockFriendDb
+    unblockFriendDb, deleteFriendDb
  } from "../models/friends.model";
 
 
@@ -99,6 +99,18 @@ export async function blockFriendService(userId: number, friendId: number) : Pro
 export async function unblockFriendService(userId: number, friendId: number) : Promise<string> {
     try {
         const response = await unblockFriendDb(userId, friendId);
+        return response;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// This function should delete a friend with the given friendId for the user with the given userId.
+// If the friend is successfully deleted, return a success message.
+// If the friend is not successfully deleted, return an error message.
+export async function deleteFriendService(userId: number, friendId: number) : Promise<string> {
+    try {
+        const response = await deleteFriendDb(userId, friendId);
         return response;
     } catch (error) {
         throw error;
