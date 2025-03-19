@@ -303,27 +303,27 @@ export function loadPongPageScript(): void {
   function startGame(): void {
     startMenu.style.display = "none";
     gameOverMenu.style.display = "none";
-
+  
     if (gameObserver) {
       scene.onBeforeRenderObservable.remove(gameObserver);
     }
-
+  
     ball.position = new BABYLON.Vector3(0, 0.25, 0);
     let ballDirection = new BABYLON.Vector3(
       (Math.random() - 0.5) * 0.4,
       0,
       Math.random() > 0.5 ? -1 : 1
     ).normalize();
-
+  
     updateScoreDisplay(); // Mise à jour initiale de l'affichage des scores
-
+  
     gameObserver = scene.onBeforeRenderObservable.add(() => {
       ball.position.addInPlace(ballDirection.scale(BALL_SPEED));
-
+  
       if (Math.abs(ball.position.x) + BALL_RADIUS >= halfCourtWidth) {
         ballDirection.x *= -1;
       }
-
+  
       if (ball.intersectsMesh(player1, false)) {
         ballDirection.z *= -1;
         ball.position.z = player1.position.z + BALL_RADIUS + PADDLE_DEPTH / 2;
@@ -332,28 +332,46 @@ export function loadPongPageScript(): void {
         ballDirection.z *= -1;
         ball.position.z = player2.position.z - BALL_RADIUS - PADDLE_DEPTH / 2;
       }
-
+  
       if (Math.abs(ball.position.z) > fullCourtLength / 2) {
-        if (gameObserver) {
-          scene.onBeforeRenderObservable.remove(gameObserver);
-        }
-
         // Mise à jour des scores
         if (ball.position.z > fullCourtLength / 2) {
           scorePlayer1++;
         } else {
           scorePlayer2++;
         }
-
+  
         updateScoreDisplay(); // Mettre à jour l'affichage des scores
-        gameOverMenu.style.display = "block";
+  
+        // Vérification si un joueur atteint 5 points
+        if (scorePlayer1 === 5 || scorePlayer2 === 5) {
+          scene.onBeforeRenderObservable.remove(gameObserver); // Arrêter le jeu
+          gameOverMenu.style.display = "block";
+        } else {
+          // Relancer la balle si le score n'a pas atteint 5
+          ball.position = new BABYLON.Vector3(0, 0.25, 0); // Réinitialiser la position de la balle
+          ballDirection = new BABYLON.Vector3(
+            (Math.random() - 0.5) * 0.4,
+            0,
+            Math.random() > 0.5 ? -1 : 1
+          ).normalize(); // Réinitialiser la direction de la balle
+        }
       }
     });
   }
-
+  
 
   startButton.onclick = startGame;
-  restartButton.onclick = startGame;
+  restartButton.onclick = () => {
+    // Réinitialiser les scores
+    scorePlayer1 = 0;
+    scorePlayer2 = 0;
+  
+    updateScoreDisplay(); // Mettre à jour l'affichage des scores
+  
+    startGame(); // Redémarrer le jeu
+  };
+  
   quitButton.onclick = () => {
     alert("Merci d'avoir joué !");
     gameOverMenu.style.display = "none";
