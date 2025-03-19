@@ -1,8 +1,10 @@
 import { setupUI } from "./services/ui.service";
 import { handleRouting } from "./router";
-import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick, onSettingsClick } from "./services/click.service";
+import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick, 
+	onSettingsClick, onUsersClick, onFriendsClick } from "./services/click.service";
 import { UserState } from "./userState";
 import { fetchUserProfile } from "./services/user.service";
+import { fetchAllUsers } from "./loaders/outils";
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -14,14 +16,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 	document.getElementById("logo-button")?.addEventListener("click", onLogoClick);
 	document.getElementById("profile-button")?.addEventListener("click", onProfileClick);
 	document.getElementById("settings-button")?.addEventListener("click", onSettingsClick);
+	document.getElementById("users-button")?.addEventListener("click", onUsersClick);
+	document.getElementById("friends-button")?.addEventListener("click", onFriendsClick);
 
 	//Fetch user profile and set user state accordingly
 	const user = await fetchUserProfile();
+	const allUsers = await fetchAllUsers();
+
+	if(allUsers)
+		UserState.setAllUsers(allUsers);
+
 	if (user) {
 		if(UserState.getUser() === null)
 			UserState.updateUser(user);
 		UserState.setUser(user);
-		console.log("User from state", UserState.getUser());
 	}
 	else {
 		UserState.logout();

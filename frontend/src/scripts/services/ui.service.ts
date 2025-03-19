@@ -11,6 +11,8 @@ export async function setupUI() {
 	toggleVisibility("game-button", isAuth);
 	toggleVisibility("logout-button", isAuth);
 	toggleVisibility("user-photo-button", isAuth);
+	toggleVisibility("users-button", isAuth);
+	toggleVisibility("friends-button", isAuth);
 }
 
 function toggleVisibility(elementId: string, isVisible: boolean) {

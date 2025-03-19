@@ -1,7 +1,10 @@
-import fastify from "fastify";
+import fastify, { FastifyRequest } from "fastify";
 import fastifyStatic from "@fastify/static";
 import fastifyMultipart from "@fastify/multipart";
+import FastifyWebsocket from '@fastify/websocket';
+
 import userRoutes from "./routes/users.routes";
+import friendsRoutes from "./routes/friends.routes";
 import { logError } from "./utils/errorHandler";
 import config from "./config";
 import { connectRabbit } from "./rabbit/rabbit";
@@ -16,6 +19,16 @@ const server = fastify({
 });
 
 
+server.register(FastifyWebsocket);
+
+server.register(async function (fastify) {
+    fastify.get('/ws', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
+      connection.on('message', (message: unknown) => {
+        // message.toString() === 'hi from client'
+        connection.send('hi from server yep')
+      })
+    })
+  })
 // Register the Multipart plugin with our configuration for file uploads
 server.register(fastifyMultipart, {
 	limits: {
@@ -51,10 +64,19 @@ server.setErrorHandler((error, request, reply) => {
 	  statusCode: error.statusCode || 500,
 	});
   });
+  
 
 // Register the routes - prefix means that all routes in the authRoutes will start with /auth
 // For example, if you have a route in the authRoutes file with the path /login, you can access it at http://localhost:5000/user/update
 server.register(userRoutes);
+server.register(friendsRoutes , { prefix: '/friends' });
+
+
+// server.get('/testWebsocket', { websocket: true}, (socket, req: FastifyRequest) => {
+// 	socket.on('message', (msg) => {
+// 		socket.send(msg);
+// 	});
+// })
 
 
 // Start the server
@@ -65,6 +87,7 @@ const start = async () => {
 		port: config.server.port, 
 		host: config.server.host 
 	  });
+
 
 	  const address = server.server.address();
 	  if (address) {

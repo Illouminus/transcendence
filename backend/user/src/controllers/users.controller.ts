@@ -1,7 +1,8 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { registerUserService, updateAvatarService, updateUsernameService, getUserProfileService } from "../services/users.service";
+import { registerUserService, updateAvatarService, updateUsernameService, getUserProfileService, getAllUsersService } from "../services/users.service";
 import { getErrorMessage, getErrorStatusCode, logError, createValidationError, createAuthenticationError } from "../utils/errorHandler";
 import { getUserById } from "../models/user.model";
+import { getUserIdFromHeader } from "../utils/outils";
 
 
 interface UpdateProfileFileds {
@@ -12,11 +13,7 @@ interface UpdateProfileFileds {
 
 export async function updateAvatarController(req: FastifyRequest<{Body: UpdateProfileFileds}>, reply: FastifyReply) {
 	try {
-	 const userIdHeader = req.headers['x-user-id'];
-	 if (!userIdHeader) {
-		return reply.status(401).send({ error: "User ID not provided" });
-	}
-	 const userId = parseInt(userIdHeader as string, 10);
+	 const userId = getUserIdFromHeader(req);
 	 const { avatar } = req.body;
 	 
 	  const user = await getUserById(userId);
@@ -54,11 +51,7 @@ export async function updateUsernameController(userId: number, username: string,
 
   export async function getUserInfoController(req: FastifyRequest, reply: FastifyReply) {
 	try {
-		const userIdHeader = req.headers['x-user-id'];
-		if (!userIdHeader) {
-		  return reply.status(401).send({ error: "User ID not provided" });
-		}
-		const userId = parseInt(userIdHeader as string, 10);
+		const userId = getUserIdFromHeader(req);
 		const user = await getUserProfileService(userId);
 		if (!user) {
 			return reply.status(401).send({ error: "User not found" });
@@ -70,3 +63,13 @@ export async function updateUsernameController(userId: number, username: string,
 	}
   }
 
+
+
+  export async function getAllUsersController(req: FastifyRequest, reply: FastifyReply) {
+	try {
+	  const users = await getAllUsersService();
+	  return users;
+	} catch (error) {	
+	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
+	}
+  }

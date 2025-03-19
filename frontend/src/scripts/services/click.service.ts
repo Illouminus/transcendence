@@ -26,3 +26,11 @@ export async function onProfileClick() {
 export async function onSettingsClick() {
 	redirectTo("/settings");
 }
+
+export async function onUsersClick() {
+	redirectTo("/users");
+}
+
+export async function onFriendsClick() {
+	redirectTo("/friends");
+}

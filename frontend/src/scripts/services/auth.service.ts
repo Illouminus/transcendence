@@ -3,7 +3,7 @@ import { setupUI } from "./ui.service";
 import { showAlert } from "./alert.service";
 import { UserState } from "../userState";
 import { loadSettingsPage } from "../loaders/loaders";
-import { setUpdateAvatar } from "../loaders/outils";
+import { fetchAllUsers, setUpdateAvatar } from "../loaders/outils";
 import { fetchUserProfile } from "./user.service";
 
 declare var google: any;
@@ -59,15 +59,18 @@ export async function loginHandler(email: string, password: string) {
 		if(data.message === "2FA code sent to email")
 		{
 			showAlert("Login successful - you need to enter you 2FA code", "success");
-			UserState.tempEmail = data.email;
+			UserState.setTempEmail = data.email;
 			redirectTo("/2fa");
 		}
 		else if(data.message === "Login successful")
 		{
 			showAlert("Login successful", "success");
 			const user = await fetchUserProfile();
+			const allUsers = await fetchAllUsers();
 			if (user)
 				UserState.setUser(user);
+			if(allUsers)
+				UserState.setAllUsers(allUsers);
 			await setupUI();
 			redirectTo("/profile");
 		}
@@ -124,6 +127,10 @@ async function googleSignIn(response: any): Promise<void> {
 	  if (res.ok)
 	  	showAlert("Google Sign-In successful", "success");
 	  const user = await fetchUserProfile();
+	  const allUsers = await fetchAllUsers();
+	  if (allUsers) {
+		UserState.setAllUsers(allUsers);
+	  }
 	  if (user) {
 		UserState.setUser(user);
 	  }

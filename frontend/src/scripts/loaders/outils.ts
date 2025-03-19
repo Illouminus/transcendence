@@ -48,3 +48,10 @@ export async function setUpdateAvatar() {
 	return avatar;
 }
 
+
+
+export async function fetchAllUsers() {
+	const response = await fetch("http://localhost:8080/user/getAllUsers");
+	if (!response.ok) throw new Error("Error loading users");
+	return response.json();
+}

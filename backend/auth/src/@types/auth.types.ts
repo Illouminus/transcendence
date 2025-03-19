@@ -45,4 +45,5 @@ export interface UserPublic {
 	is_verified: boolean;
 	two_factor_enabled: boolean;
 	email: string;
+	is_google_auth: boolean;
 }

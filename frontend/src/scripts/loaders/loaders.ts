@@ -3,6 +3,8 @@ import { loginHandler, renderGoogleButton, login2FA, registerHandler } from "../
 import {UserState} from "../userState";
 import {succesSVG, errorSVG} from "./outils"
 import { handleUpdateProfile, handleUpdateAvatar, enable2FA, disable2FA } from "../services/user.service";
+import { fetchUsers, loadUserProfileData } from "../users";
+import { initializeFriends } from "../friends";
 
 
 export async function loadHomePage() {
@@ -38,16 +40,15 @@ export async function loadSettingsPage() {
 	const usernameChange = document.getElementById("username") as HTMLInputElement;
 	const email = document.getElementById("profile-email") as HTMLInputElement;
 
+	const label2FA = document.getElementById('2faLabel') as HTMLLabelElement;
 	const span2FA = document.getElementById('span2FA') as HTMLSpanElement; 
 	const faInput = document.getElementById('2faInput') as HTMLInputElement;
 
 	faInput.addEventListener('change', async () => {
 		if (faInput.checked) {
-		  console.log("2FA enabled");
 		  await enable2FA();
 		  loadSettingsPage();
 		} else {
-		  console.log("2FA disabled");
 		  await disable2FA();
 		  loadSettingsPage();
 		}
@@ -55,6 +56,10 @@ export async function loadSettingsPage() {
 
 
 	const user = UserState.getUser();
+
+	if(user?.is_google_auth)
+		label2FA.style.display = "none";
+
 
 	if (user?.two_factor_enabled) {
 		span2FA.innerText = "Disable 2FA";
@@ -154,4 +159,38 @@ export async function load2FAPage() {
 		const email = UserState.tempEmail;
 		await login2FA(email, code);
 	});
+}
+
+
+export async function loadUsersPage(): Promise<void> {
+    try {
+        await fetchAndRender("users");
+        // Ensure the DOM is updated before attaching event listeners
+        await new Promise(resolve => setTimeout(resolve, 0));
+        await fetchUsers();
+    } catch (error) {
+        console.error("Error loading users page:", error);
+    }
+}
+
+export async function loadUserProfilePage(): Promise<void> {
+    try {
+        await fetchAndRender("user-profile");
+        await loadUserProfileData();
+    } catch (error) {
+        console.error("Error loading user profile page:", error);
+    }
+}
+
+
+export async function loadFriendsPage(): Promise<void> {
+	try {
+		await fetchAndRender("friends");
+		initializeFriends();
+		// Ensure the DOM is updated before attaching event listeners
+		await new Promise(resolve => setTimeout(resolve, 0));
+		//await fetchUsers();
+	} catch (error) {
+		console.error("Error loading friends page:", error);
+	}
 }

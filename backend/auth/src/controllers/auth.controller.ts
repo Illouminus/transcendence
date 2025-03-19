@@ -43,8 +43,10 @@ export async function getUserInfoController(req: FastifyRequest, res: FastifyRep
 			id: user.id,
 			is_verified: user.is_verified,
 			two_factor_enabled: user.two_factor_enabled,
+			is_google_auth: user.google_id ? true : false,
 			email: user.email,
 		};
+
 		return res.status(200).send({ user: publicProfile });
 	} catch (error) {
 		return res.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
