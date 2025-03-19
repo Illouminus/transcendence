@@ -1,4 +1,5 @@
 import { friendCard } from "../components/friendCard";
+import { requestComponent } from "../components/requestList";
 import { UserState } from "./userState";
 
 interface Friend {
@@ -11,7 +12,6 @@ interface FriendRequest {
     id: number;
     username: string;
     avatar: string;
-    email: string;
 }
 
 class FriendsManager {
@@ -51,6 +51,7 @@ class FriendsManager {
                 this.friendsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friends yet</p>';
                 return;
             }
+            
             this.friendsContainer.innerHTML = '';
             user.friends.forEach(friend => {
                 const card = this.createFriendCard(friend);
@@ -76,11 +77,8 @@ class FriendsManager {
                 return;
             }
 
-            this.requestsContainer.innerHTML = '';
-            user.incomingRequests.forEach(request => {
-                const card = this.createFriendRequestCard(request);
-                this.requestsContainer?.appendChild(card);
-            });
+            // Используем новый компонент requestList
+            this.requestsContainer.innerHTML = requestComponent(user.incomingRequests);
 
             if (user.incomingRequests.length === 0) {
                 this.requestsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friend requests</p>';
@@ -93,67 +91,7 @@ class FriendsManager {
 
     private createFriendCard(friend: Friend): HTMLElement {
         const card = document.createElement('div');
-        //card.className = 'friend-card bg-gray-800 rounded-lg p-4 flex items-center justify-between transition-all hover:bg-gray-700';
-        //card.setAttribute('data-friend-id', friend.id.toString());
-
-        //const statusColor = friend.status === 'online' ? 'bg-green-500' : 'bg-gray-500';
-        //const statusColor = 'bg-green-500';
-
         card.innerHTML = friendCard(friend);
-        // `
-        //     <div class="flex items-center space-x-4">
-        //         <div class="relative">
-        //             <img src="http://localhost:8080/user${friend.avatar}" alt="${friend.username}'s avatar" 
-        //                  class="w-12 h-12 rounded-full bg-gray-600 object-cover">
-        //             <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full ${statusColor} border-2 border-gray-800"></span>
-        //         </div>
-        //         <div>
-        //             <h3 class="text-white font-medium">${friend.username}</h3>
-
-        //         </div>
-        //     </div>
-        //     <div class="flex space-x-2">
-        //         <button class="invite-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-        //             Invite to Game
-        //         </button>
-        //         <button class="block-button bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors">
-        //             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        //                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        //             </svg>
-        //         </button>
-        //     </div>
-        // `;
-
-        return card;
-    }
-
-    private createFriendRequestCard(request: FriendRequest): HTMLElement {
-        const card = document.createElement('div');
-        card.className = 'request-card bg-gray-800 rounded-lg p-4 flex items-center justify-between transition-all hover:bg-gray-700';
-        card.setAttribute('data-request-id', request.id.toString());
-
-        card.innerHTML = `
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <img src="http://localhost:8080/user${request.avatar}" alt="${request.username}'s avatar" 
-                         class="w-12 h-12 rounded-full bg-gray-600 object-cover">
-                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-yellow-500 border-2 border-gray-800"></span>
-                </div>
-                <div>
-                    <h3 class="text-white font-medium">${request.username}</h3>
-                    <p class="text-gray-400 text-sm">Wants to be your friend</p>
-                </div>
-            </div>
-            <div class="flex space-x-2">
-                <button class="accept-button bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-                    Accept
-                </button>
-                <button class="reject-button bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
-                    Reject
-                </button>
-            </div>
-        `;
-
         return card;
     }
 
@@ -179,7 +117,7 @@ class FriendsManager {
         // Friend request event listeners
         this.requestsContainer.addEventListener('click', async (e) => {
             const target = e.target as HTMLElement;
-            const card = target.closest('.request-card');
+            const card = target.closest('[data-request-id]');
             if (!card) return;
 
             const requestId = card.getAttribute('data-request-id');
