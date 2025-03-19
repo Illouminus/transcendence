@@ -22,6 +22,7 @@ export async function sendFriendRequestsController(request: FastifyRequest<{Body
         const userId = getUserIdFromHeader(request);
         const friendId = request.body.userId;
 
+        console.log(userId, friendId);
         const response = await sendFriendRequestService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {

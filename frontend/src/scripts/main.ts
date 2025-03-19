@@ -28,7 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 		if(UserState.getUser() === null)
 			UserState.updateUser(user);
 		UserState.setUser(user);
-		console.log("User from global state", UserState.getUser());
 	}
 	else {
 		UserState.logout();

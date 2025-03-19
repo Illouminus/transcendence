@@ -2,6 +2,7 @@ import { createUser, getUserById, getUserAchievements,updateAvatar, getAllUsers,
 import { UserProfile, PublicUserProfile, User } from "../@types/user.types";
 import * as fileService from "./file.service";
 import { createNotFoundError,createValidationError,createDatabaseError,logError } from "../utils/errorHandler";
+import { getFriendsListFromDB, getIncomingRequestsDb, getOutgoingRequestsDb } from "../models/friends.model";
 
 
 export async function getUserProfileService(userId: number): Promise<PublicUserProfile> {
@@ -11,6 +12,9 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 		throw createNotFoundError("User");
 	  }
 	  const  achievements = await getUserAchievements(userId);
+	  const outcomingRequests = await getOutgoingRequestsDb(userId);
+	  const incomingRequests = await getIncomingRequestsDb(userId);
+	  const friends = await getFriendsListFromDB(userId);
   
 	  const fullProfile: UserProfile = { ...user, achievements };
   
@@ -22,6 +26,9 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 		losses: fullProfile.losses,
 		achievements: fullProfile.achievements,
 		email: fullProfile.email,
+		friends: friends,
+		incomingRequests: incomingRequests,
+		outgoingRequests: outcomingRequests,
 	  };
   
 	  return publicProfile;
@@ -43,7 +50,7 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 		  username: Boolean(username),
 		});
 	  }
-	  const avatar_url = "../../public/images/default_avatar.jpg";
+	  const avatar_url = "/images/default_avatar.jpg";
 	  await createUser(userId,username, avatar_url, email);
 	  return { message: "User registered!" };
 	} catch (error) {

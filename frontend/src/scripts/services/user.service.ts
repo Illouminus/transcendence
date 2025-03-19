@@ -12,7 +12,9 @@ export async function fetchUserProfile(): Promise<User | null> {
     try {
         const res = await fetch(`${API_AGREGATED}/aggregated/profile`, { credentials: "include" });
         if (res.ok) {
+            //console.log("User profile fetched successfully", await res.json());
             const user: User = await res.json();
+            console.log("User profile fetched successfully", user);
             return user;
         }
         return null;

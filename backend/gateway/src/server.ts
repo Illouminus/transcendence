@@ -212,6 +212,9 @@ server.get('/aggregated/profile', {preHandler: verifyJWT}, async (req, reply) =>
       wins: userJson.wins,
       losses: userJson.losses,
       achievements: userJson.achievements,
+      friends: userJson.friends,
+      incomingRequests: userJson.incomingRequests,
+      outgoingRequests: userJson.outgoingRequests,
     };
 
     return profile;

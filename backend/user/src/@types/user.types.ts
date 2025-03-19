@@ -1,4 +1,5 @@
 import { FastifyMultipartOptions } from 'fastify-multipart';
+import { FriendsList } from './friends.types';
 
 export interface RegisterBody {
 	username: string;
@@ -50,7 +51,6 @@ export interface CountRow {
 }
 
 export interface UserProfile extends User {
-
 	achievements: Achievement[];
 }
 
@@ -62,4 +62,7 @@ export interface PublicUserProfile {
 	losses: number;
 	achievements: Achievement[];
 	email: string;
+	friends: FriendsList[];
+	incomingRequests: FriendsList[];
+	outgoingRequests: FriendsList[];
 }

@@ -4,31 +4,63 @@ import { UserArray } from "./users";
 
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
 
-export const UserState = {
-	user: null as User | null,
-	allUsers: [] as UserArray[],
-	tempEmail: "",
-	setUser: (user: User) => {
-		UserState.user = user;
+export class UserState {
+	private static user: User | null = null;
+	private static allUsers: UserArray[] = [];
+	private static sentFriendRequests: Set<number> = new Set();
+	private static tempEmail: string = "";
+
+	static setUser(user: User) {
+		this.user = user;
 		renderAvatar(user.avatar);
-	},
-	updateUser: (partial: Partial<User>) => {
-		if (UserState.user) {
-			UserState.user = { ...UserState.user, ...partial };
-			renderAvatar(UserState.user.avatar);
-		  }
-	},
-	getUser: () => UserState.user,
-	isLoggedIn: () => UserState.user !== null,
-	logout: () => {
-	  UserState.user = null;
-	  renderAvatar(null);
-	},
-	setAllUsers: (users: UserArray[]) => {
-		UserState.allUsers = users;
-	},
-	getAllUsers: () => UserState.allUsers
-};
+	}
+
+	static updateUser(partial: Partial<User>) {
+		if (this.user) {
+			this.user = { ...this.user, ...partial };
+			renderAvatar(this.user.avatar);
+		}
+	}
+
+	static getUser() {
+		return this.user;
+	}
+
+	static isLoggedIn() {
+		return this.user !== null;
+	}
+
+	static logout() {
+		this.user = null;
+		this.allUsers = [];
+		this.sentFriendRequests.clear();
+		renderAvatar(null);
+	}
+
+	static setAllUsers(users: UserArray[]) {
+		this.allUsers = users;
+	}
+
+	static getAllUsers() {
+		return this.allUsers;
+	}
+
+	static addSentFriendRequest(userId: number) {
+		this.sentFriendRequests.add(userId);
+	}
+
+	static hasSentFriendRequest(userId: number): boolean {
+		return this.sentFriendRequests.has(userId);
+	}
+
+	static removeSentFriendRequest(userId: number) {
+		this.sentFriendRequests.delete(userId);
+	}
+
+	static setTempEmail(email: string) {
+		this.tempEmail = email;
+	}
+}
 
 
 function renderAvatar(avatar?: string | null) {

@@ -3,7 +3,7 @@ import { loginHandler, renderGoogleButton, login2FA, registerHandler } from "../
 import {UserState} from "../userState";
 import {succesSVG, errorSVG} from "./outils"
 import { handleUpdateProfile, handleUpdateAvatar, enable2FA, disable2FA } from "../services/user.service";
-import { fetchUsers } from "../users";
+import { fetchUsers, loadUserProfileData } from "../users";
 
 
 export async function loadHomePage() {
@@ -172,13 +172,11 @@ export async function loadUsersPage(): Promise<void> {
     }
 }
 
-// export async function loadUserProfilePage(): Promise<void> {
-//     try {
-//         await fetchAndRender("user-profile");
-//         // Ensure the DOM is updated before loading profile data
-//         await new Promise(resolve => setTimeout(resolve, 0));
-//         await loadUserProfileData();
-//     } catch (error) {
-//         console.error("Error loading user profile page:", error);
-//     }
-// }
+export async function loadUserProfilePage(): Promise<void> {
+    try {
+        await fetchAndRender("user-profile");
+        await loadUserProfileData();
+    } catch (error) {
+        console.error("Error loading user profile page:", error);
+    }
+}

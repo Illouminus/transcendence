@@ -8,6 +8,12 @@ export interface AuthUser {
   }
 }
 
+interface FriendsList {
+  id: number;
+  username: string;
+  avatar: string;
+  status: string;
+}
 
 export interface UserProfile {
     id: number;
@@ -17,6 +23,9 @@ export interface UserProfile {
     losses: number;
     achievements: string[];
     email: string;
+    friends: FriendsList[];
+    incomingRequests: FriendsList[];
+    outgoingRequests: FriendsList[];
 }
 
 export interface Profile {
@@ -30,4 +39,7 @@ export interface Profile {
   wins: number;
   losses: number;
   achievements: string[];
+  friends: FriendsList[];
+  incomingRequests: FriendsList[];
+  outgoingRequests: FriendsList[];
 }
