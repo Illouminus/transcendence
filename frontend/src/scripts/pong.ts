@@ -9,6 +9,7 @@ function updateScoreDisplay(): void {
 
 function getElements(): {
   canvas: HTMLCanvasElement;
+  scoreDisplay: HTMLElement;
   startMenu: HTMLElement;
   gameOverMenu: HTMLElement;
   startButton: HTMLButtonElement;
@@ -16,13 +17,14 @@ function getElements(): {
   quitButton: HTMLButtonElement;
 } {
   const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+  const scoreDisplay = document.getElementById("scoreDisplay") as HTMLElement;
   const startMenu = document.getElementById("startMenu") as HTMLElement;
   const gameOverMenu = document.getElementById("gameOverMenu") as HTMLElement;
   const startButton = document.getElementById("startButton") as HTMLButtonElement;
   const restartButton = document.getElementById("restartButton") as HTMLButtonElement;
   const quitButton = document.getElementById("quitButton") as HTMLButtonElement;
 
-  return { canvas, startMenu, gameOverMenu, startButton, restartButton, quitButton };
+  return { canvas, startMenu, gameOverMenu, startButton, restartButton, quitButton, scoreDisplay };
 }
 
 
@@ -359,6 +361,7 @@ export function loadPongPageScript(): void {
 
 
   engine.runRenderLoop(() => {
+    updateScoreDisplay();
     scene.render();
   });
 
