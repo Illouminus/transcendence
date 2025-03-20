@@ -1,4 +1,4 @@
-import { loadHomePage, loadLoginPage, loadSignupPage, loadSettingsPage, loadProfilePage, load2FAPage, loadUsersPage, loadUserProfilePage, loadFriendsPage } from "./loaders/loaders";
+import { loadPongPage, loadHomePage, loadLoginPage, loadSignupPage, loadSettingsPage, loadProfilePage, load2FAPage, loadUsersPage, loadUserProfilePage, loadFriendsPage } from "./loaders/loaders";
 import { UserState } from "./userState";
 
 type RouteHandler = () => void | Promise<void>;
