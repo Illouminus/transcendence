@@ -25,7 +25,7 @@ export async function getFriendsListFromDB(userId: number): Promise<FriendsList[
   export async function sendFriendRequestDB(userId: number, friendId: number): Promise<string> {
     return new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO friends (user_profile_id, friend_profile_id, status)
+        INSERT INTO friends (user_profile_id, friend_profile_id, status) 
         VALUES (?, ?, 'pending')
       `;
       db.run(query, [userId, friendId], function (err: Error | null) {

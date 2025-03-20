@@ -17,6 +17,7 @@ export async function getFirendsListController(request: FastifyRequest, reply: F
 }
 
 
+
 export async function sendFriendRequestsController(request: FastifyRequest<{Body: {userId: number}}>, reply: FastifyReply) {
     try {
         const userId = getUserIdFromHeader(request);
@@ -114,3 +115,4 @@ export async function deleteFriendController(request: FastifyRequest<{Params: {i
         reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
     }
 }
+

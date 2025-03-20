@@ -24,6 +24,12 @@ export async function getFriendsListService(userId: number) : Promise<Array<Frie
 // If the friend request is not successfully sent, return an error message.
 export async function sendFriendRequestService(userId: number, friendId: number) : Promise<string> {
     try {
+    const outgoingRequests = await getOutgoingRequestsDb(userId);
+    outgoingRequests.forEach(request => {
+        if (request.id === friendId) {
+            throw new Error("Friend request already sent.");
+        }
+    });
      const response = await sendFriendRequestDB(userId, friendId);
      return response;
     } catch (error) {
