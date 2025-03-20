@@ -1,8 +1,7 @@
-import { checkAuth, logout } from "./auth.service";
-import { redirectTo } from "../router";
+import { UserState } from "../userState";
 
 export async function setupUI() {
-	const isAuth = await checkAuth();
+	const isAuth = UserState.isLoggedIn();
 	toggleVisibility("login-button", !isAuth);
 	toggleVisibility("signup-button", !isAuth);
 	toggleVisibility("profile-button", isAuth);
@@ -12,6 +11,8 @@ export async function setupUI() {
 	toggleVisibility("game-button", isAuth);
 	toggleVisibility("logout-button", isAuth);
 	toggleVisibility("user-photo-button", isAuth);
+	toggleVisibility("users-button", isAuth);
+	toggleVisibility("friends-button", isAuth);
 }
 
 function toggleVisibility(elementId: string, isVisible: boolean) {

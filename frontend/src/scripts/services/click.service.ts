@@ -22,3 +22,15 @@ export async function onLogoClick() {
 export async function onProfileClick() {
 	redirectTo("/profile");
 }
+
+export async function onSettingsClick() {
+	redirectTo("/settings");
+}
+
+export async function onUsersClick() {
+	redirectTo("/users");
+}
+
+export async function onFriendsClick() {
+	redirectTo("/friends");
+}
