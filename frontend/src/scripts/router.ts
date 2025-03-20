@@ -1,5 +1,5 @@
-import { loadHomePage, loadLoginPage, loadSignupPage, loadProfilePage, load2FAPage, loadPongPage } from "./loaders/loaders";
-import { checkAuth } from "./services/auth.service";
+import { loadHomePage, loadLoginPage, loadSignupPage, loadSettingsPage, loadProfilePage, load2FAPage, loadUsersPage, loadUserProfilePage, loadFriendsPage } from "./loaders/loaders";
+import { UserState } from "./userState";
 
 type RouteHandler = () => void | Promise<void>;
 
@@ -8,17 +8,30 @@ const routes: Record<string, RouteHandler> = {
 	"/2fa": load2FAPage,
 	"/pong": loadPongPage,
 	"/login": async () => {
-		(await checkAuth()) ? redirectTo("/profile") : await loadLoginPage();
+		(UserState.isLoggedIn()) ? redirectTo("/profile") : await loadLoginPage();
 	},
 	"/signup": loadSignupPage,
 	"/profile": async () => {
-		(await checkAuth()) ? await loadProfilePage() : redirectTo("/login");
+		(UserState.isLoggedIn()) ? await loadProfilePage() : redirectTo("/login");
 	},
+	"/settings": async () => {
+		(UserState.isLoggedIn()) ? await loadSettingsPage() : redirectTo("/login");
+	},
+	"/users": async () => {
+		(UserState.isLoggedIn()) ? await loadUsersPage() : redirectTo("/login");
+	},
+	"/user-profile": async () => {
+		(UserState.isLoggedIn()) ? await loadUserProfilePage() : redirectTo("/login");
+	},
+	"/friends": async () => {
+		(UserState.isLoggedIn()) ? await loadFriendsPage() : redirectTo("/login");
+	}
 };
 
 export function handleRouting() {
-	const route = routes[window.location.pathname] || loadHomePage;
-	route();
+	const path = window.location.pathname;
+	const handler = routes[path] || loadHomePage;
+	handler();
 }
 
 export function redirectTo(path: string) {

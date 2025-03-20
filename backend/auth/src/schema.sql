@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT DEFAULT NULL,
+    google_id TEXT UNIQUE DEFAULT NULL,
+    is_verified BOOLEAN DEFAULT 0,
+    verification_token TEXT DEFAULT NULL,
+    two_factor_secret TEXT DEFAULT NULL,
+    two_factor_enabled BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    jwt_token TEXT DEFAULT NULL,
+    two_factor_code TEXT DEFAULT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
