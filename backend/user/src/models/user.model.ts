@@ -228,3 +228,17 @@ export async function incrementWins(userId: number): Promise<void> {
 		);
 	});
 }
+
+export async function incrementLosses(userId: number): Promise<void> {
+	return new Promise((resolve, reject) => {
+	  db.run(
+		"UPDATE user_profile SET losses = losses + 1 WHERE auth_user_id = ?",
+		[userId],
+		function (err: Error | null) {
+		  if (err) reject(err);
+		  else resolve();
+		}
+	  );
+	});
+  }
+  

@@ -357,8 +357,11 @@ export function loadPongPageScript(): void {
         // Vérification si un joueur atteint 5 points
         if (scorePlayer1 === 5 || scorePlayer2 === 5) {
           if (scorePlayer1 === 5 && userId !== null) {
-            incrementWins(userId);
+            incrementWins(userId, 'win');
+          } else if (scorePlayer2 === 5 && userId !== null) {
+            incrementWins(userId, 'loss');
           }
+          
           scene.onBeforeRenderObservable.remove(gameObserver); // Arrêter le jeu
           gameOverMenu.style.display = "block";
         } else {

@@ -74,13 +74,19 @@ export async function updateUsernameController(userId: number, username: string,
 	}
   }
 
+
 export async function incrementWinsController(req: FastifyRequest, reply: FastifyReply) {
 	try {
-		const userId = getUserIdFromHeader(req);
-		await incrementWinsService(userId);
-		return { message: "Wins incremented successfully" };
+	  const { userId, type } = req.body as { userId: number; type: 'win' | 'loss' };
+	  if (!userId || !type) {
+		return reply.status(400).send({ error: 'Missing userId or type' });
+	  }
+  
+	  await incrementWinsService(userId, type);
+	  return { message: `${type} incremented successfully` };
 	} catch (error) {
-		logError(error, "incrementWins");
-		return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
+	  logError(error, "incrementWins");
+	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
 	}
-}
+  }
+  
