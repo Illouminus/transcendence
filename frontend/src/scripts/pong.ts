@@ -1,6 +1,16 @@
-// Ajout des variables de score
+import { fetchUserProfile } from "./services/user.service";
+import { incrementWins } from "./services/user.service";
+
 let scorePlayer1 = 0;
 let scorePlayer2 = 0;
+let userId: number | null = null;
+
+// Récupérer l'ID utilisateur au chargement
+fetchUserProfile().then(user => {
+  if (user) {
+    userId = user.id;
+  }
+});
 
 function updateScoreDisplay(): void {
   const scoreDisplay = document.getElementById("scoreDisplay") as HTMLElement;
@@ -262,6 +272,7 @@ function createBall(scene: BABYLON.Scene): BABYLON.Mesh {
 
 
 export function loadPongPageScript(): void {
+  
   const { canvas, startMenu, gameOverMenu, startButton, restartButton, quitButton } = getElements();
 
   const engine = createEngine(canvas);
@@ -345,6 +356,9 @@ export function loadPongPageScript(): void {
   
         // Vérification si un joueur atteint 5 points
         if (scorePlayer1 === 5 || scorePlayer2 === 5) {
+          if (scorePlayer1 === 5 && userId !== null) {
+            incrementWins(userId);
+          }
           scene.onBeforeRenderObservable.remove(gameObserver); // Arrêter le jeu
           gameOverMenu.style.display = "block";
         } else {

@@ -1,4 +1,4 @@
-import { createUser, getUserById, getUserAchievements,updateAvatar, getAllUsers, updateUserData } from "../models/user.model";
+import { createUser, getUserById, getUserAchievements,updateAvatar, getAllUsers, updateUserData, incrementWins } from "../models/user.model";
 import { UserProfile, PublicUserProfile, User } from "../@types/user.types";
 import * as fileService from "./file.service";
 import { createNotFoundError,createValidationError,createDatabaseError,logError } from "../utils/errorHandler";
@@ -114,6 +114,18 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 	} catch (error) {	
 	  logError(error, "getAllUsersService");
 	  throw createDatabaseError("Failed to get all users", {
+		error: error instanceof Error ? error.message : "Unknown error",
+	  });
+	}
+  }
+
+  export async function incrementWinsService(userId: number): Promise<void> {
+	try {
+	  await incrementWins(userId);
+	} catch (error) {
+	  logError(error, "incrementWinsService");
+	  throw createDatabaseError("Failed to increment wins", {
+		userId,
 		error: error instanceof Error ? error.message : "Unknown error",
 	  });
 	}

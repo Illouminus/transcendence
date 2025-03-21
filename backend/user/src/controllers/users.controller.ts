@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { registerUserService, updateAvatarService, updateUsernameService, getUserProfileService, getAllUsersService } from "../services/users.service";
+import { registerUserService, updateAvatarService, updateUsernameService, getUserProfileService, getAllUsersService, incrementWinsService } from "../services/users.service";
 import { getErrorMessage, getErrorStatusCode, logError, createValidationError, createAuthenticationError } from "../utils/errorHandler";
 import { getUserById } from "../models/user.model";
 import { getUserIdFromHeader } from "../utils/outils";
@@ -73,3 +73,14 @@ export async function updateUsernameController(userId: number, username: string,
 	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
 	}
   }
+
+export async function incrementWinsController(req: FastifyRequest, reply: FastifyReply) {
+	try {
+		const userId = getUserIdFromHeader(req);
+		await incrementWinsService(userId);
+		return { message: "Wins incremented successfully" };
+	} catch (error) {
+		logError(error, "incrementWins");
+		return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
+	}
+}
