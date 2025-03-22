@@ -2,6 +2,7 @@ import { friendCard } from "../components/friendCard";
 import { requestComponent } from "../components/requestList";
 import { UserState } from "./userState";
 
+
 interface Friend {
     id: number;
     username: string;
@@ -20,6 +21,20 @@ class FriendsManager {
     async initialize() {
         this.friendsContainer = document.querySelector('.friends-section .grid');
         this.requestsContainer = document.querySelector('.friend-requests-section .grid');
+
+
+        // socket.addEventListener("open", (event) => {
+        //     socket.send("Hello Server!");
+        //   });
+
+
+        // socket.onopen = () => {
+        //     console.log('WebSocket connection established');
+        // };
+
+        // socket.onmessage = (event) => {
+        //     console.log('WebSocket message received:', event.data);
+        // };
 
         if (!this.friendsContainer || !this.requestsContainer) {
             console.error('Required containers not found');
@@ -129,7 +144,9 @@ class FriendsManager {
         try {
             const response = await fetch('http://localhost:8080/game/invite', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json' ,
+                    'authorization': `Bearer ${localStorage.getItem('token')}`
+                },
                 body: JSON.stringify({ friendId }),
                 credentials: 'include'
             });

@@ -9,6 +9,7 @@ export class UserState {
 	private static allUsers: UserArray[] = [];
 	private static sentFriendRequests: Set<number> = new Set();
 	private static tempEmail: string = "";
+	private static socket: WebSocket | null = null;
 
 	static setUser(user: User) {
 		this.user = user;
@@ -59,6 +60,14 @@ export class UserState {
 
 	static setTempEmail(email: string) {
 		this.tempEmail = email;
+	}
+
+	static setSocket(socket: WebSocket) {
+		this.socket = socket;
+	}
+
+	static getSocket() {
+		return this.socket;
 	}
 }
 

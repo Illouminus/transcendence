@@ -11,6 +11,7 @@ import { connectRabbit } from "./rabbit/rabbit";
 
 // Import the database connection - auto launches the connection
 import "./database";
+import { JwtPayload } from "./@types/user.types";
 connectRabbit();
 // Create an instance of Fastify server
 const server = fastify({
@@ -21,14 +22,29 @@ const server = fastify({
 
 server.register(FastifyWebsocket);
 
+const activeConnections = new Map<number, WebSocket>();
+
 server.register(async function (fastify) {
     fastify.get('/ws', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
       connection.on('message', (message: unknown) => {
         // message.toString() === 'hi from client'
+		if (typeof message === 'string' || message instanceof Buffer) {
+			console.log(message.toString());
+		} else {
+			console.log('Received non-string message');
+		}
         connection.send('hi from server yep')
       })
     })
   })
+
+
+function sendNotification(userId: number, data: any) {
+	const ws = activeConnections.get(userId);
+	if (ws && ws.readyState === ws.OPEN) {
+	  ws.send(JSON.stringify(data));
+	}
+  }
 // Register the Multipart plugin with our configuration for file uploads
 server.register(fastifyMultipart, {
 	limits: {
