@@ -12,7 +12,7 @@ export async function getFirendsListController(request: FastifyRequest, reply: F
         const friendsList = await getFriendsListService(userId);
         reply.code(200).send(friendsList);
     } catch (error) {
-        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+        reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }
 }
 
@@ -23,11 +23,10 @@ export async function sendFriendRequestsController(request: FastifyRequest<{Body
         const userId = getUserIdFromHeader(request);
         const friendId = request.body.userId;
 
-        console.log(userId, friendId);
         const response = await sendFriendRequestService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {
-        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+        reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }
 }
 
@@ -38,7 +37,7 @@ export async function getIncomingRequestsController(request: FastifyRequest, rep
         const incomingRequests = await getIncomingRequestsService(userId);
         reply.code(200).send(incomingRequests);
     } catch (error) {
-        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+        reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }
 }
 
@@ -49,7 +48,7 @@ export async function getOutgoingRequestsController(request: FastifyRequest, rep
         const outgoingRequests = await getOutgoingRequestsService(userId);
         reply.code(200).send(outgoingRequests);
     } catch (error) {
-        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+        reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }
 }
 
@@ -62,7 +61,7 @@ export async function acceptFriendRequestController(request: FastifyRequest<{Par
         const response = await acceptFriendRequestService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {
-        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+        reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }
 }
 
@@ -75,7 +74,7 @@ export async function rejectFriendRequestController(request: FastifyRequest<{Par
         const response = await rejectFriendRequestService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {
-        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+        reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }
 }
 
@@ -87,7 +86,7 @@ export async function blockFriendController(request: FastifyRequest<{Params: {id
         const response = await blockFriendService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {
-        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+        reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }
 }
 
@@ -100,7 +99,7 @@ export async function unblockFriendController(request: FastifyRequest<{Params: {
         const response = await unblockFriendService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {
-        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+        reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }
 }
 
@@ -112,7 +111,7 @@ export async function deleteFriendController(request: FastifyRequest<{Params: {i
         const response = await deleteFriendService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {
-        reply.code(getErrorStatusCode(error)).send(getErrorMessage(error));
+        reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }
 }
 

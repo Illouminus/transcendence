@@ -28,11 +28,13 @@ async function addFriend(userId: number): Promise<void> {
                 'Content-Type': 'application/json',
             },
         });
-
         if (!response.ok) {
-            throw new Error('Failed to add friend');
+            const data = await response.json();
+            throw new Error(data.error);
         }
-        showAlert('Friend request sent successfully!', 'success');
+
+        const data = await response.json();
+        showAlert(data.message, 'success');
         const user = await fetchUserProfile();
         if(user)
             UserState.updateUser(user);
@@ -41,9 +43,9 @@ async function addFriend(userId: number): Promise<void> {
         
         // Refresh the users list to update the button state
         await fetchUsers();
-    } catch (error) {
+    } catch (error: any ) {
         console.error('Error adding friend:', error);
-        showAlert('Failed to send friend request', 'danger');
+        showAlert(error, 'danger');
     }
 }
 

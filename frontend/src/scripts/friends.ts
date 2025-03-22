@@ -4,10 +4,11 @@ import { showAlert } from "./services/alert.service";
 import { fetchUserProfile } from "./services/user.service";
 import { UserState } from "./userState";
 
-interface Friend {
+export interface Friend {
     id: number;
     username: string;
     avatar: string;
+    status: string;
 }
 
 class FriendsManager {
@@ -37,7 +38,6 @@ class FriendsManager {
     }
 
     private async loadFriends() {
-        console.log("Friends Container", this.friendsContainer)
         if (!this.friendsContainer) return;
         try {
             const user = UserState.getUser();
@@ -157,7 +157,14 @@ class FriendsManager {
 
     private async blockFriend(friendId: number, card: HTMLElement) {
         try {
-            const response = await fetch('http://localhost:8080/friends/block', {
+            let url = '';
+            if(card.querySelector('.block-button')){
+                url = `http://localhost:8080/user/friends/${friendId}/block`;
+            }
+            else {
+                url = `http://localhost:8080/user/friends/${friendId}/unblock`;
+            }
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ friendId }),
@@ -166,8 +173,9 @@ class FriendsManager {
 
             if (!response.ok) throw new Error('Failed to block friend');
             await this.updateUser();
-            card.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => card.remove(), 300);
+            await this.loadFriends();
+            // card.classList.add('opacity-0', 'scale-95');
+            // setTimeout(() => card.remove(), 300);
 
             showAlert('Friend blocked successfully', 'success');
         } catch (error) {
@@ -176,6 +184,26 @@ class FriendsManager {
         }
     }
 
+    private async unblockFriend(friendId: number, card: HTMLElement) {
+        try {
+            const response = await fetch(`http://localhost:8080/user/friends/${friendId}/unblock`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ friendId }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) throw new Error('Failed to unblock friend');
+            await this.updateUser();
+            card.classList.add('opacity-0', 'scale-95');
+            //setTimeout(() => card.remove(), 300);
+
+            showAlert('Friend blocked successfully', 'success');
+        } catch (error) {
+            console.error('Error blocking friend:', error);
+            showAlert('Failed to block friend', 'danger');
+        }
+    }
     private async acceptFriendRequest(requestId: number, card: HTMLElement) {
         try {
             const response = await fetch(`http://localhost:8080/user/friends/requests/${requestId}/accept`, {

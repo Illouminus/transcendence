@@ -8,7 +8,7 @@ export async function getFriendsListFromDB(userId: number): Promise<FriendsList[
         SELECT u.id, u.username, u.avatar_url AS avatar, f.status
         FROM friends f
         JOIN user_profile u ON f.friend_profile_id = u.id
-        WHERE f.user_profile_id = ? AND f.status = 'accepted'
+        WHERE f.user_profile_id = ?
       `;
       db.all(query, [userId], (err: Error | null, rows: FriendsList[]) => {
         if (err) {
@@ -164,3 +164,21 @@ export async function getFriendsListFromDB(userId: number): Promise<FriendsList[
       });
     });
   }
+
+
+export async function getFriendshipRecord(userId: number, friendId: number): Promise<{ status: string } | null> {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT status 
+      FROM friends 
+      WHERE user_profile_id = ? AND friend_profile_id = ?
+    `;
+    db.get(query, [userId, friendId], (err: Error | null, row: { status: string } | undefined) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(row || null);
+      }
+    });
+  });
+}
