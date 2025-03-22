@@ -1,6 +1,8 @@
 import { UserState } from "./userState";
 import { redirectTo } from "./router";
 import { createUserRow, generateProfileContainer } from "../components/usersRow";
+import { fetchUserProfile } from "./services/user.service";
+import { showAlert } from "./services/alert.service";
 
 
 export interface UserArray {
@@ -30,17 +32,18 @@ async function addFriend(userId: number): Promise<void> {
         if (!response.ok) {
             throw new Error('Failed to add friend');
         }
-
+        showAlert('Friend request sent successfully!', 'success');
+        const user = await fetchUserProfile();
+        if(user)
+            UserState.updateUser(user);
         // Add to sent requests
         UserState.addSentFriendRequest(userId);
         
         // Refresh the users list to update the button state
         await fetchUsers();
-        
-        alert('Friend request sent successfully!');
     } catch (error) {
         console.error('Error adding friend:', error);
-        alert('Failed to send friend request');
+        showAlert('Failed to send friend request', 'danger');
     }
 }
 
@@ -82,6 +85,7 @@ function attachEventListeners(): void {
     usersList.addEventListener('click', (event: Event) => {
         const target = event.target as HTMLElement;
         const viewProfileBtn = target.closest('.view-profile-btn');
+        const addFriendBtn = target.closest('.add-friend-btn');
         if (viewProfileBtn) {
             const row = viewProfileBtn.closest('tr');
             const userId = row?.getAttribute('data-user-id');
@@ -89,16 +93,11 @@ function attachEventListeners(): void {
                 redirectTo(`/user-profile?id=${userId}`);
             }
         }
-    });
-
-    // Handle add friend clicks
-    usersList.addEventListener('click', (event: Event) => {
-        const target = event.target as HTMLElement;
-        const addFriendBtn = target.closest('.add-friend-btn');
         if (addFriendBtn) {
             const row = addFriendBtn.closest('tr');
             const userId = row?.getAttribute('data-user-id');
             if (userId) {
+                addFriendBtn.setAttribute('disabled', 'true');
                 addFriend(parseInt(userId));
             }
         }

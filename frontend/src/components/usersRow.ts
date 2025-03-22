@@ -12,7 +12,8 @@ export function createUserRow(user: UserArray): string {
     const buttonIcon = hasSentRequest 
         ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />`
         : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />`;
-
+    
+    const disableAttr = hasSentRequest ? 'disabled' : '';
     return `
         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-user-id="${user.id}">
             <!-- Desktop View -->
@@ -45,7 +46,7 @@ export function createUserRow(user: UserArray): string {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                 </button>
-                <button class="add-friend-btn ${buttonClass}" title="${buttonTitle}">
+                <button class="add-friend-btn ${buttonClass}" ${disableAttr} title="${buttonTitle}">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         ${buttonIcon}
                     </svg>

@@ -165,7 +165,6 @@ export async function load2FAPage() {
 export async function loadUsersPage(): Promise<void> {
     try {
         await fetchAndRender("users");
-        // Ensure the DOM is updated before attaching event listeners
         await new Promise(resolve => setTimeout(resolve, 0));
         await fetchUsers();
     } catch (error) {
