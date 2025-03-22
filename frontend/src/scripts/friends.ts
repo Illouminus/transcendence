@@ -165,7 +165,7 @@ class FriendsManager {
             });
 
             if (!response.ok) throw new Error('Failed to block friend');
-
+            await this.updateUser();
             card.classList.add('opacity-0', 'scale-95');
             setTimeout(() => card.remove(), 300);
 
@@ -187,10 +187,7 @@ class FriendsManager {
 
             if (!response.ok) throw new Error('Failed to accept friend request');
 
-            const user = await fetchUserProfile();
-            if(user) {
-                UserState.setUser(user);
-            }
+            await this.updateUser();
             card.classList.add('opacity-0', 'scale-95');
 
             setTimeout(() => {
@@ -215,7 +212,8 @@ class FriendsManager {
             });
 
             if (!response.ok) throw new Error('Failed to reject friend request');
-
+            
+            await this.updateUser();
             card.classList.add('opacity-0', 'scale-95');
             setTimeout(() => card.remove(), 300);
 
@@ -236,13 +234,25 @@ class FriendsManager {
             });
 
             if (!response.ok) throw new Error('Failed to remove friend');
-
+            await this.updateUser();
             card.classList.add('opacity-0', 'scale-95');
             setTimeout(() => card.remove(), 300);
             showAlert('Friend removed successfully', 'success');
         } catch (error) {
             console.error('Error removing friend:', error);
             showAlert('Failed to remove friend', 'danger');
+        }
+    }
+
+
+    private async updateUser() {
+        try {
+            const user = await fetchUserProfile();
+            if (user) {
+                UserState.setUser(user);
+            }
+        } catch (error) {
+            console.error('Error updating user:', error);
         }
     }
 }
