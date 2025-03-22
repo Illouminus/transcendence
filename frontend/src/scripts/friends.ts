@@ -1,7 +1,8 @@
 import { friendCard } from "../components/friendCard";
 import { requestComponent } from "../components/requestList";
+import { showAlert } from "./services/alert.service";
+import { fetchUserProfile } from "./services/user.service";
 import { UserState } from "./userState";
-
 
 interface Friend {
     id: number;
@@ -22,20 +23,6 @@ class FriendsManager {
         this.friendsContainer = document.querySelector('.friends-section .grid');
         this.requestsContainer = document.querySelector('.friend-requests-section .grid');
 
-
-        // socket.addEventListener("open", (event) => {
-        //     socket.send("Hello Server!");
-        //   });
-
-
-        // socket.onopen = () => {
-        //     console.log('WebSocket connection established');
-        // };
-
-        // socket.onmessage = (event) => {
-        //     console.log('WebSocket message received:', event.data);
-        // };
-
         if (!this.friendsContainer || !this.requestsContainer) {
             console.error('Required containers not found');
             return;
@@ -50,8 +37,8 @@ class FriendsManager {
     }
 
     private async loadFriends() {
+        console.log("Friends Container", this.friendsContainer)
         if (!this.friendsContainer) return;
-
         try {
             const user = UserState.getUser();
             if (!user?.friends) {
@@ -62,6 +49,7 @@ class FriendsManager {
             this.friendsContainer.innerHTML = '';
             user.friends.forEach(friend => {
                 const card = this.createFriendCard(friend);
+                console.log("Card", card)
                 this.friendsContainer?.appendChild(card);
             });
 
@@ -70,7 +58,7 @@ class FriendsManager {
             }
         } catch (error) {
             console.error('Error loading friends:', error);
-            this.showNotification('Failed to load friends', 'error');
+            showAlert('Failed to load friends', 'danger');
         }
     }
 
@@ -92,7 +80,7 @@ class FriendsManager {
             }
         } catch (error) {
             console.error('Error loading friend requests:', error);
-            this.showNotification('Failed to load friend requests', 'error');
+            showAlert('Failed to load friend requests', 'danger');
         }
     }
 
@@ -160,10 +148,10 @@ class FriendsManager {
                 button.setAttribute('disabled', 'true');
             }
 
-            this.showNotification('Game invitation sent!', 'success');
+            showAlert('Game invitation sent!', 'success');
         } catch (error) {
             console.error('Error inviting to game:', error);
-            this.showNotification('Failed to send game invitation', 'error');
+            showAlert('Failed to send game invitation', 'danger');
         }
     }
 
@@ -181,15 +169,14 @@ class FriendsManager {
             card.classList.add('opacity-0', 'scale-95');
             setTimeout(() => card.remove(), 300);
 
-            this.showNotification('Friend blocked successfully', 'success');
+            showAlert('Friend blocked successfully', 'success');
         } catch (error) {
             console.error('Error blocking friend:', error);
-            this.showNotification('Failed to block friend', 'error');
+            showAlert('Failed to block friend', 'danger');
         }
     }
 
     private async acceptFriendRequest(requestId: number, card: HTMLElement) {
-
         try {
             const response = await fetch(`http://localhost:8080/user/friends/requests/${requestId}/accept`, {
                 method: 'POST',
@@ -200,16 +187,21 @@ class FriendsManager {
 
             if (!response.ok) throw new Error('Failed to accept friend request');
 
+            const user = await fetchUserProfile();
+            if(user) {
+                UserState.setUser(user);
+            }
             card.classList.add('opacity-0', 'scale-95');
+
             setTimeout(() => {
                 card.remove();
                 this.loadFriends();
             }, 300);
 
-            this.showNotification('Friend request accepted!', 'success');
+            showAlert('Friend request accepted', 'success');
         } catch (error) {
             console.error('Error accepting friend request:', error);
-            this.showNotification('Failed to accept friend request', 'error');
+           showAlert('Failed to accept friend request', 'danger');
         }
     }
 
@@ -227,10 +219,10 @@ class FriendsManager {
             card.classList.add('opacity-0', 'scale-95');
             setTimeout(() => card.remove(), 300);
 
-            this.showNotification('Friend request rejected', 'success');
+            showAlert('Friend request rejected', 'success');
         } catch (error) {
             console.error('Error rejecting friend request:', error);
-            this.showNotification('Failed to reject friend request', 'error');
+            showAlert('Failed to reject friend request', 'danger');
         }
     }
 
@@ -247,30 +239,11 @@ class FriendsManager {
 
             card.classList.add('opacity-0', 'scale-95');
             setTimeout(() => card.remove(), 300);
-
-            this.showNotification('Friend removed successfully', 'success');
+            showAlert('Friend removed successfully', 'success');
         } catch (error) {
             console.error('Error removing friend:', error);
-            this.showNotification('Failed to remove friend', 'error');
+            showAlert('Failed to remove friend', 'danger');
         }
-    }
-
-    private showNotification(message: string, type: 'success' | 'error') {
-        const container = document.getElementById('alert-container');
-        if (!container) return;
-
-        const alert = document.createElement('div');
-        alert.className = `p-4 mb-4 rounded-lg ${
-            type === 'success' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'
-        } transition-all transform translate-y-0 opacity-100`;
-        alert.textContent = message;
-
-        container.appendChild(alert);
-
-        setTimeout(() => {
-            alert.classList.add('opacity-0', 'translate-y-2');
-            setTimeout(() => alert.remove(), 300);
-        }, 3000);
     }
 }
 
