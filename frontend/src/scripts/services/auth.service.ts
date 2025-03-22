@@ -5,6 +5,7 @@ import { UserState } from "../userState";
 import { loadSettingsPage } from "../loaders/loaders";
 import { fetchAllUsers, setUpdateAvatar } from "../loaders/outils";
 import { fetchUserProfile } from "./user.service";
+import { connectWebSocket } from "../websocket";
 
 declare var google: any;
 
@@ -28,8 +29,14 @@ export async function login2FA(email: string, code: string) {
 			credentials: "include",
 		});
 		if (!res.ok) throw new Error("Invalid 2FA code");
+		const response = await res.json();
+		localStorage.setItem("token", response.token);
 		showAlert("2FA successful", "success");
 		const user = await fetchUserProfile();
+		const allUsers = await fetchAllUsers();
+		UserState.setSocket(connectWebSocket(response.token));
+		if (allUsers)
+			UserState.setAllUsers(allUsers);
 		if (user)
 			UserState.setUser(user);
 		await setupUI();
@@ -53,7 +60,6 @@ export async function loginHandler(email: string, password: string) {
 		});
 
 		const data = await res.json();
-		console.log("Login response:", data);
 		if (!res.ok) throw new Error("Invalid credentials");
 
 		if(data.message === "2FA code sent to email")
@@ -65,12 +71,17 @@ export async function loginHandler(email: string, password: string) {
 		else if(data.message === "Login successful")
 		{
 			showAlert("Login successful", "success");
+			localStorage.setItem("token", data.token);
+
+			UserState.setSocket(connectWebSocket(data.token));
 			const user = await fetchUserProfile();
 			const allUsers = await fetchAllUsers();
+			
 			if (user)
 				UserState.setUser(user);
 			if(allUsers)
 				UserState.setAllUsers(allUsers);
+
 			await setupUI();
 			redirectTo("/profile");
 		}
@@ -86,6 +97,7 @@ export async function logout() {
 	try {
 		await fetch(`${API_URL}/logout`, { method: "GET", credentials: "include" });
 		UserState.logout();
+		localStorage.removeItem("token");
 		showAlert("Logout successful", "success");
 		await setupUI();
 		redirectTo("/");
@@ -126,6 +138,10 @@ async function googleSignIn(response: any): Promise<void> {
 	  });
 	  if (res.ok)
 	  	showAlert("Google Sign-In successful", "success");
+	  
+	  const data = await res.json();
+	  localStorage.setItem("token", data.token);
+	  UserState.setSocket(connectWebSocket(data.token));
 	  const user = await fetchUserProfile();
 	  const allUsers = await fetchAllUsers();
 	  if (allUsers) {

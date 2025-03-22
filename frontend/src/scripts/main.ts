@@ -5,6 +5,7 @@ import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick
 import { UserState } from "./userState";
 import { fetchUserProfile } from "./services/user.service";
 import { fetchAllUsers } from "./loaders/outils";
+import { connectWebSocket } from "./websocket";
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -19,22 +20,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 	document.getElementById("users-button")?.addEventListener("click", onUsersClick);
 	document.getElementById("friends-button")?.addEventListener("click", onFriendsClick);
 
-	//Fetch user profile and set user state accordingly
-	const user = await fetchUserProfile();
-	const allUsers = await fetchAllUsers();
+	const token = localStorage.getItem("token");
+	//Fetch user profile and set user state accordingly if token is present
+	if(token) 
+	{
+		const user = await fetchUserProfile();
+		const allUsers = await fetchAllUsers();
+		UserState.setSocket(connectWebSocket(token));
 
-	if(allUsers)
-		UserState.setAllUsers(allUsers);
-
-	if (user) {
-		if(UserState.getUser() === null)
-			UserState.updateUser(user);
-		UserState.setUser(user);
+		if(allUsers)
+			UserState.setAllUsers(allUsers);
+	
+		if (user) {
+			if(UserState.getUser() === null)
+				UserState.updateUser(user);
+			UserState.setUser(user);
+		}
+		else
+		{
+			UserState.logout();
+			localStorage.removeItem("token");
+		}
 	}
-	else {
-		UserState.logout();
-	}
-
+	
 	await setupUI();
 	handleRouting();
 });
