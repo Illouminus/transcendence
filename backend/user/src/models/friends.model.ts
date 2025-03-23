@@ -5,12 +5,26 @@ export async function getFriendsListFromDB(userId: number): Promise<FriendsList[
     return new Promise((resolve, reject) => {
       // Используем db.all, так как ожидаем несколько строк (список друзей)
       const query = `
-        SELECT u.id, u.username, u.avatar_url AS avatar, f.status
-        FROM friends f
-        JOIN user_profile u ON f.friend_profile_id = u.id
-        WHERE f.user_profile_id = ?
+       SELECT 
+        CASE
+          WHEN f.user_profile_id = ? THEN u2.id
+          ELSE u1.id
+        END AS friend_id,
+        CASE
+          WHEN f.user_profile_id = ? THEN u2.username
+          ELSE u1.username
+        END AS friend_username,
+        CASE
+          WHEN f.user_profile_id = ? THEN u2.avatar_url
+          ELSE u1.avatar_url
+        END AS friend_avatar,
+        f.status
+      FROM friends f
+      JOIN user_profile u1 ON u1.id = f.user_profile_id
+      JOIN user_profile u2 ON u2.id = f.friend_profile_id
+      WHERE ? IN (f.user_profile_id, f.friend_profile_id)
       `;
-      db.all(query, [userId], (err: Error | null, rows: FriendsList[]) => {
+      db.all(query, [userId, userId, userId, userId], (err: Error | null, rows: FriendsList[]) => {
         if (err) {
           reject(err);
         } else {

@@ -31,14 +31,8 @@ server.register(async function (fastify: FastifyInstance) {
 		const token = req.query.token;  
 		const payload = server.jwt.verify(token) as JwtPayload;
 		
-		console.log('New WebSocket connection for user:', payload.userId);
-		
-		console.log("CONETION SOKET BLEAD", connection);
-		// Store the WebSocket connection
 		activeConnections.set(payload.userId, connection);
 		
-		// Log active connections
-		console.log('Active connections:', Array.from(activeConnections.keys()));
 
 		// Handle connection close
 		connection.on('close', () => {

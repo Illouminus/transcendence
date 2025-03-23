@@ -22,6 +22,7 @@ export async function updateAvatarController(req: FastifyRequest<{Body: UpdatePr
 		return reply.status(401).send({ error: "User not found" });
 	  }
 	  const response = await updateAvatarService(user.id, avatar);
+	  sendNotification(userId, { type: "profile-view", payload: { userId } });
 	  return reply.status(200).send(response);
 	} catch (error) {
 	  logError(error, "updateProfile");
@@ -56,7 +57,7 @@ export async function updateUsernameController(userId: number, username: string,
 	try {
 		const userId = getUserIdFromHeader(req);
 		const user = await getUserProfileService(userId);
-		sendNotification(userId, { type: "profile-view", payload: { userId } });
+		
 		if (!user) {
 			return reply.status(401).send({ error: "User not found" });
 		}
@@ -71,8 +72,6 @@ export async function updateUsernameController(userId: number, username: string,
 
   export async function getAllUsersController(req: FastifyRequest, reply: FastifyReply) {
 	try {
-	  const bearer = req.headers.authorization;
-	  console.log("bearer", bearer);
 	  const users = await getAllUsersService();
 	  return users;
 	} catch (error) {	

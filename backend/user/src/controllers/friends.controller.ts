@@ -108,6 +108,7 @@ export async function deleteFriendController(request: FastifyRequest<{Params: {i
         const userId = getUserIdFromHeader(request);
         const friendId = request.params.id;
 
+        console.log("IDDDDDSA", userId, friendId);
         const response = await deleteFriendService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {

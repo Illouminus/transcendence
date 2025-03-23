@@ -5,9 +5,9 @@ import { fetchUserProfile } from "./services/user.service";
 import { UserState } from "./userState";
 
 export interface Friend {
-    id: number;
-    username: string;
-    avatar: string;
+    friend_id: number;
+    friend_username: string;
+    friend_avatar: string;
     status: string;
 }
 
@@ -46,6 +46,8 @@ class FriendsManager {
                 return;
             }
             
+            console.log("User friends", user.friends)
+
             this.friendsContainer.innerHTML = '';
             user.friends = user.friends.filter(friend => friend.status === 'accepted');
             user.friends.forEach(friend => {
@@ -195,6 +197,7 @@ class FriendsManager {
             if (!response.ok) throw new Error('Failed to accept friend request');
 
             await this.updateUser();
+            console.log("User friends", UserState.getUser()?.friends)
             card.classList.add('opacity-0', 'scale-95');
 
             setTimeout(() => {

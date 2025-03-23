@@ -15,7 +15,7 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 	  const outcomingRequests = await getOutgoingRequestsDb(userId);
 	  const incomingRequests = await getIncomingRequestsDb(userId);
 	  const friends = await getFriendsListFromDB(userId);
-  
+	  console.log("Friends", friends);
 	  const fullProfile: UserProfile = { ...user, achievements };
   
 	  const publicProfile: PublicUserProfile = {
