@@ -5,6 +5,8 @@ import { getFriendsListService, sendFriendRequestService, getIncomingRequestsSer
     getOutgoingRequestsService, acceptFriendRequestService, rejectFriendRequestService,
     blockFriendService, unblockFriendService, deleteFriendService
  } from '../services/friends.service';
+import { sendNotification } from '../server';
+import { getUserById } from '../models/user.model';
 
 export async function getFirendsListController( request: FastifyRequest, reply: FastifyReply) {
     try {
@@ -24,6 +26,8 @@ export async function sendFriendRequestsController(request: FastifyRequest<{Body
         const friendId = request.body.userId;
 
         const response = await sendFriendRequestService(userId, friendId);
+        const user = getUserById(userId);
+        sendNotification(friendId, {type: 'incoming_request', payload: {message: 'You have a new friend request', user: user}});
         reply.code(200).send({message: response});
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
@@ -71,6 +75,7 @@ export async function rejectFriendRequestController(request: FastifyRequest<{Par
         const userId = getUserIdFromHeader(request);
         const friendId = request.params.id;
 
+        console.log("IDDDDDSA", userId, friendId);
         const response = await rejectFriendRequestService(userId, friendId);
         reply.code(200).send(response);
     } catch (error) {

@@ -49,7 +49,7 @@ class FriendsManager {
             console.log("User friends", user.friends)
 
             this.friendsContainer.innerHTML = '';
-            user.friends = user.friends.filter(friend => friend.status === 'accepted');
+            user.friends = user.friends.filter(friend => friend.status === 'accepted' || friend.status == 'blocked');
             user.friends.forEach(friend => {
                 const card = this.createFriendCard(friend);
                 console.log("Card", card)
@@ -214,7 +214,7 @@ class FriendsManager {
 
     private async rejectFriendRequest(requestId: number, card: HTMLElement) {
         try {
-            const response = await fetch('http://localhost:8080/friends/reject', {
+            const response = await fetch(`http://localhost:8080/user/friends/requests/${requestId}/reject`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ requestId }),

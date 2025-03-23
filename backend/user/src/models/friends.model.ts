@@ -133,9 +133,9 @@ export async function getFriendsListFromDB(userId: number): Promise<FriendsList[
       const query = `
         UPDATE friends
         SET status = 'blocked'
-        WHERE user_profile_id = ? AND friend_profile_id = ?
+        WHERE user_profile_id = ? AND friend_profile_id = ? OR user_profile_id = ? AND friend_profile_id = ?
       `;
-      db.run(query, [userId, friendId], function (err: Error | null) {
+      db.run(query, [userId, friendId, friendId, userId], function (err: Error | null) {
         if (err) {
           reject(err);
         } else {
@@ -151,9 +151,9 @@ export async function getFriendsListFromDB(userId: number): Promise<FriendsList[
       const query = `
         UPDATE friends
         SET status = 'accepted'
-        WHERE user_profile_id = ? AND friend_profile_id = ?
+        WHERE user_profile_id = ? AND friend_profile_id = ? OR user_profile_id = ? AND friend_profile_id = ?
       `;
-      db.run(query, [userId, friendId], function (err: Error | null) {
+      db.run(query, [userId, friendId, friendId, userId], function (err: Error | null) {
         if (err) {
           reject(err);
         } else {
