@@ -27,9 +27,7 @@ export async function sendFriendRequestsController(request: FastifyRequest<{Body
 
         const response = await sendFriendRequestService(userId, friendId);
         const user = await getUserById(userId);
-        console.log("USER", user);
         sendNotification(friendId, {type: 'incoming_request', payload: {message: 'You have a new friend request', user: user}});
-
         reply.code(200).send({message: response});
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
@@ -65,6 +63,9 @@ export async function acceptFriendRequestController(request: FastifyRequest<{Par
         const friendId = request.params.id;
 
         const response = await acceptFriendRequestService(userId, friendId);
+        const user = await getUserById(userId);
+        sendNotification(Number(friendId), {type: 'friend_request_accepted', payload: {message: 'Your friend request has been accepted', user: user}});
+
         reply.code(200).send(response);
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
@@ -77,8 +78,9 @@ export async function rejectFriendRequestController(request: FastifyRequest<{Par
         const userId = getUserIdFromHeader(request);
         const friendId = request.params.id;
 
-        console.log("IDDDDDSA", userId, friendId);
         const response = await rejectFriendRequestService(userId, friendId);
+        const user = await getUserById(userId);
+        sendNotification(Number(friendId), {type: 'friend_request_rejected', payload: {message: 'Your friend request has been rejected', user: user}});
         reply.code(200).send(response);
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
@@ -91,6 +93,11 @@ export async function blockFriendController(request: FastifyRequest<{Params: {id
         const friendId = request.params.id;
 
         const response = await blockFriendService(userId, friendId);
+        const user = await getUserById(userId);
+
+        
+        sendNotification(Number(friendId), {type: 'friend_blocked', payload: {message: 'You have been blocked by a user', user: user}});
+
         reply.code(200).send(response);
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
@@ -104,6 +111,8 @@ export async function unblockFriendController(request: FastifyRequest<{Params: {
         const friendId = request.params.id;
 
         const response = await unblockFriendService(userId, friendId);
+        const user = await getUserById(userId);
+        sendNotification(Number(friendId), {type: 'friend_unblocked', payload: {message: 'You have been unblocked by a user', user: user}});
         reply.code(200).send(response);
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
@@ -115,8 +124,9 @@ export async function deleteFriendController(request: FastifyRequest<{Params: {i
         const userId = getUserIdFromHeader(request);
         const friendId = request.params.id;
 
-        console.log("IDDDDDSA", userId, friendId);
         const response = await deleteFriendService(userId, friendId);
+        const user = await getUserById(userId);
+        sendNotification(Number(friendId), {type: 'friend_deleted', payload: {message: 'You have been deleted by a user', user: user}});
         reply.code(200).send(response);
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});

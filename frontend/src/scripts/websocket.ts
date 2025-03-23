@@ -1,56 +1,11 @@
-import { loadFriendRequests, updateUser } from "./friends";
+import { loadFriendRequests } from "./friends";
+import { updateUser } from "./loaders/outils";
+import { WebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
-import { fetchUserProfile } from "./services/user.service";
-import { UserState } from "./userState";
 
 let socket : WebSocket | null = null;
 
-export type WebSocketMessage =
-  | {
-      type: 'incoming_request';
-      payload: FriendRequestPayload;
-    }
-  | {
-      type: 'request_accepted';
-      payload: FriendRequestAcceptedPayload;
-    }
-  | {
-      type: 'chat_message';
-      payload: ChatMessagePayload;
-    }
-  | {
-      type: 'system_notification';
-      payload: SystemNotificationPayload;
-    }
-  ;
 
-
-interface FriendRequestPayload {
-  message: string;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-    avatar: string;
-  };
-}
-
-interface FriendRequestAcceptedPayload {
-  friendId: number; // id друга, который принял заявку
-  // можно добавить имя друга, аватар, и т.д.
-}
-
-interface ChatMessagePayload {
-  fromUserId: number;
-  toUserId: number;
-  text: string;
-  // можно добавить timestamp, id сообщения и т.д.
-}
-
-interface SystemNotificationPayload {
-  message: string;
-  severity: 'info' | 'warning' | 'error';
-}
 
 export function connectWebSocket(token: string): WebSocket {
   
@@ -70,25 +25,72 @@ export function connectWebSocket(token: string): WebSocket {
     };
     socket.onmessage = async (event) => {
       const data: WebSocketMessage = JSON.parse(event.data);
-      
+    
+      console.log('WebSocket message:', data);
       switch (data.type) {
-        case 'incoming_request':
+        case 'incoming_request': {
           showAlert(`You have a new friend request from ${data.payload.user.username}`);
           await updateUser();
           loadFriendRequests();
-          console.log('incoming_request', data.payload);
           break;
-        case 'request_accepted':
-          console.log('request_accepted', data.payload);
+        }
+    
+        case 'friend_request_accepted': {
+          // Когда кто-то принял нашу заявку
+          const { message, user } = data.payload;
+          showAlert(message, 'success');
+          console.log('request_accepted from user:', user);
+          // Тоже можно сделать await updateUser();
+          // Или loadFriends() и т.д.
           break;
-        case 'chat_message':
-          console.log('chat_message', data.payload);
+        }
+    
+        case 'friend_request_rejected': {
+          const { message, user } = data.payload;
+          showAlert(message, 'warning');
+          console.log('request_rejected from user:', user);
+          // Можно обновить UserState
           break;
-        case 'system_notification':
-          console.log('system_notification', data.payload);
+        }
+    
+        case 'friend_blocked': {
+          const { message, user } = data.payload;
+          showAlert(`${message}. Blocked by ${user.username}`, 'warning');
+          console.log(data)
+          // ...
           break;
+        }
+    
+        case 'friend_unblocked': {
+          const { message, user } = data.payload;
+          showAlert(`${message}. Unblocked by ${user.username}`, 'info');
+          // ...
+          break;
+        }
+    
+        case 'friend_deleted': {
+          const { message, user } = data.payload;
+          showAlert(`${message}. Deleted by ${user.username}`, 'info');
+          // ...
+          break;
+        }
+    
+        case 'chat_message': {
+          const { fromUserId, toUserId, text } = data.payload;
+          console.log(`Chat message from ${fromUserId} to ${toUserId}: ${text}`);
+          // Возможно, вызвать какую-то chatStore.addMessage(...)
+          break;
+        }
+    
+        case 'system_notification': {
+          const { message, severity } = data.payload;
+          showAlert(message, 'danger');
+          break;
+        }
+    
+        default:
+          console.warn('Unknown WS message type:', data);
       }
-      
     };
     return socket;
   }

@@ -15,7 +15,7 @@ export function createUserRow(user: UserArray): string {
     
     const disableAttr = hasSentRequest ? 'disabled' : '';
     return `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-user-id="${user.id}">
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-user-id="${user.auth_user_id}">
             <!-- Desktop View -->
             <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">

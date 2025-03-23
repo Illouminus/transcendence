@@ -1,3 +1,4 @@
+import { fetchUserProfile } from "../services/user.service";
 import {UserState} from "../userState";
 
 
@@ -55,3 +56,15 @@ export async function fetchAllUsers() {
 	if (!response.ok) throw new Error("Error loading users");
 	return response.json();
 }
+
+
+export const updateUser = async () => {
+    try {
+        const user = await fetchUserProfile();
+        if (user) {
+            UserState.updateUser(user);
+        }
+    } catch (error) {
+        console.error('Error updating user:', error);
+    }
+};

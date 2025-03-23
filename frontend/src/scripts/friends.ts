@@ -1,5 +1,6 @@
 import { friendCard } from "../components/friendCard";
 import { requestComponent } from "../components/requestList";
+import { updateUser } from "./loaders/outils";
 import { showAlert } from "./services/alert.service";
 import { fetchUserProfile } from "./services/user.service";
 import { UserState } from "./userState";
@@ -247,16 +248,7 @@ const removeFriend = async (friendId: number, card: HTMLElement) => {
     }
 };
 
-export const updateUser = async () => {
-    try {
-        const user = await fetchUserProfile();
-        if (user) {
-            UserState.updateUser(user);
-        }
-    } catch (error) {
-        console.error('Error updating user:', error);
-    }
-};
+
 
 // Attach event listeners
 const attachEventListeners = () => {

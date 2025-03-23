@@ -61,7 +61,10 @@ interface NotificationData {
 }
 
 export function sendNotification(userId: number, data: NotificationData) {
+	console.log('sendNotification to', userId, ' => activeConnections has keys:', [...activeConnections.keys()]);
 	const ws = activeConnections.get(userId);
+	console.log("All active connections", activeConnections);
+	console.log('the ws object is', ws);
 	console.log('sending notification to user', userId);
 	console.log('Active connections:', Array.from(activeConnections.keys()));
 	console.log('WS connection exists:', !!ws);
