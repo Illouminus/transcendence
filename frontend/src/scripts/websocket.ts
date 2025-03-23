@@ -1,4 +1,4 @@
-import { loadFriendRequests } from "./friends";
+import { loadFriendRequests, loadFriends } from "./friends";
 import { updateUser } from "./loaders/outils";
 import { WebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
@@ -36,12 +36,11 @@ export function connectWebSocket(token: string): WebSocket {
         }
     
         case 'friend_request_accepted': {
-          // Когда кто-то принял нашу заявку
           const { message, user } = data.payload;
           showAlert(message, 'success');
           console.log('request_accepted from user:', user);
-          // Тоже можно сделать await updateUser();
-          // Или loadFriends() и т.д.
+          await updateUser();
+          loadFriends();
           break;
         }
     

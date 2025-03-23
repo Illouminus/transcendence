@@ -32,7 +32,7 @@ const initializeContainers = () => {
 };
 
 // Load and display friends
-const loadFriends = async () => {
+export const loadFriends = async () => {
     if (!friendsContainer) return;
     
     try {
