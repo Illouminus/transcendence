@@ -6,7 +6,7 @@ export function connectWebSocket(token: string): WebSocket {
     if (socket && socket.readyState === WebSocket.OPEN) {
       return socket;
     } 
-    socket = new WebSocket(`ws://localhost:8082/ws`);
+    socket = new WebSocket(`ws://localhost:8082/ws?token=${token}`);
     socket.onopen = () => {
       console.log("WebSocket connection established");
     };
@@ -16,6 +16,10 @@ export function connectWebSocket(token: string): WebSocket {
     };
     socket.onerror = (err) => {
       console.error("WebSocket error:", err);
+    };
+    socket.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      console.log("WebSocket message received:", data);
     };
     return socket;
   }

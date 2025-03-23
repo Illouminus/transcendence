@@ -1,8 +1,9 @@
-import fastify, { FastifyRequest } from "fastify";
+import fastify, { FastifyRequest, FastifyInstance } from "fastify";
 import fastifyStatic from "@fastify/static";
 import fastifyMultipart from "@fastify/multipart";
 import FastifyWebsocket from '@fastify/websocket';
-
+import { WebSocket } from 'ws';
+import fastifyJwt from "fastify-jwt";
 import userRoutes from "./routes/users.routes";
 import friendsRoutes from "./routes/friends.routes";
 import { logError } from "./utils/errorHandler";
@@ -13,38 +14,77 @@ import { connectRabbit } from "./rabbit/rabbit";
 import "./database";
 import { JwtPayload } from "./@types/user.types";
 connectRabbit();
+
 // Create an instance of Fastify server
-const server = fastify({
-	logger : config.server.env === "development",
+const server: FastifyInstance = fastify({
+	logger: config.server.env === "development",
 	disableRequestLogging: config.server.env === "production",
 });
 
-
+server.register(fastifyJwt, { secret: config.security.jwtSecret });
 server.register(FastifyWebsocket);
 
 const activeConnections = new Map<number, WebSocket>();
 
-server.register(async function (fastify) {
-    fastify.get('/ws', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
-      connection.on('message', (message: unknown) => {
-        // message.toString() === 'hi from client'
-		if (typeof message === 'string' || message instanceof Buffer) {
-			console.log(message.toString());
-		} else {
-			console.log('Received non-string message');
-		}
-        connection.send('hi from server yep')
-      })
-    })
-  })
+server.register(async function (fastify: FastifyInstance) {
+	fastify.get('/ws', { websocket: true }, (connection: any, req: FastifyRequest<{ Querystring: { token: string } }>) => {
+		const token = req.query.token;  
+		const payload = server.jwt.verify(token) as JwtPayload;
+		
+		console.log('New WebSocket connection for user:', payload.userId);
+		
+		console.log("CONETION SOKET BLEAD", connection);
+		// Store the WebSocket connection
+		activeConnections.set(payload.userId, connection);
+		
+		// Log active connections
+		console.log('Active connections:', Array.from(activeConnections.keys()));
 
+		// Handle connection close
+		connection.on('close', () => {
+			console.log(`User ${payload.userId} disconnected`);
+			activeConnections.delete(payload.userId);
+			console.log('Remaining connections:', Array.from(activeConnections.keys()));
+		});
 
-function sendNotification(userId: number, data: any) {
+		// Handle incoming messages
+		connection.on('message', (message: any) => {
+			console.log(`Received message from user ${payload.userId}:`, message.toString());
+			connection.send('hi from server yep');
+		});
+
+		// Handle errors
+		connection.on('error', (error: any) => {
+			console.error(`WebSocket error for user ${payload.userId}:`, error);
+			activeConnections.delete(payload.userId);
+		});
+	});
+});
+
+interface NotificationData {
+	type: string;
+	payload: unknown;
+}
+
+export function sendNotification(userId: number, data: NotificationData) {
 	const ws = activeConnections.get(userId);
-	if (ws && ws.readyState === ws.OPEN) {
-	  ws.send(JSON.stringify(data));
+	console.log('sending notification to user', userId);
+	console.log('Active connections:', Array.from(activeConnections.keys()));
+	console.log('WS connection exists:', !!ws);
+	
+	if (ws && ws.readyState === WebSocket.OPEN) {
+		try {
+			ws.send(JSON.stringify(data));
+			console.log('Notification sent successfully to user', userId);
+		} catch (error) {
+			console.error('Error sending notification:', error);
+			activeConnections.delete(userId);
+		}
+	} else {
+		console.log(`WebSocket for user ${userId} is not available or not open. ReadyState:`, ws?.readyState);
 	}
-  }
+}
+
 // Register the Multipart plugin with our configuration for file uploads
 server.register(fastifyMultipart, {
 	limits: {

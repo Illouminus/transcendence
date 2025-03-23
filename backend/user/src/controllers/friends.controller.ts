@@ -6,7 +6,7 @@ import { getFriendsListService, sendFriendRequestService, getIncomingRequestsSer
     blockFriendService, unblockFriendService, deleteFriendService
  } from '../services/friends.service';
 
-export async function getFirendsListController(request: FastifyRequest, reply: FastifyReply) {
+export async function getFirendsListController( request: FastifyRequest, reply: FastifyReply) {
     try {
         const userId = getUserIdFromHeader(request);
         const friendsList = await getFriendsListService(userId);
@@ -24,7 +24,7 @@ export async function sendFriendRequestsController(request: FastifyRequest<{Body
         const friendId = request.body.userId;
 
         const response = await sendFriendRequestService(userId, friendId);
-        reply.code(200).send(response);
+        reply.code(200).send({message: response});
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
     }

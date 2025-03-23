@@ -6,7 +6,7 @@ import { getFirendsListController, sendFriendRequestsController, getIncomingRequ
 
 export default async function friendsRoutes(fastify: FastifyInstance) {
 
-    fastify.get('/', getFirendsListController);
+    fastify.get('/', {websocket: true}, getFirendsListController);
     fastify.post('/requests', sendFriendRequestsController);
     fastify.get('/requests/incoming', getIncomingRequestsController);
     fastify.get('/requests/outgoing', getOutgoingRequestsController);

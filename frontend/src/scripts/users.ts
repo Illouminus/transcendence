@@ -110,6 +110,7 @@ function attachEventListeners(): void {
 async function fetchUsers(): Promise<void> {
     try {  
         const users: UserArray[] = UserState.getAllUsers(); 
+        const filteredUsers = users.filter(user => UserState.getUser()?.id !== user.id);
         const outcomeRequest = UserState.getUser()?.outgoingRequests;
         if(outcomeRequest)
         outcomeRequest.forEach(request => {
@@ -120,7 +121,7 @@ async function fetchUsers(): Promise<void> {
             console.error('Users list element not found');
             return;
         }
-        usersList.innerHTML = users.map(user => createUserRow(user)).join('');
+        usersList.innerHTML = filteredUsers.map(user => createUserRow(user)).join('');
         attachEventListeners();
     } catch (error) {
         console.error('Error fetching users:', error);
