@@ -57,7 +57,6 @@ export function connectWebSocket(token: string): WebSocket {
           showAlert(`${message}. Blocked by ${user.username}`, 'warning');
           await updateUser();
           loadFriends();
-          // ...
           break;
         }
     
@@ -66,13 +65,14 @@ export function connectWebSocket(token: string): WebSocket {
           showAlert(`${message}. Unblocked by ${user.username}`, 'info');
           await updateUser();
           loadFriends();
-          // ...
           break;
         }
     
         case 'friend_deleted': {
           const { message, user } = data.payload;
           showAlert(`${message}. Deleted by ${user.username}`, 'info');
+          await updateUser();
+          loadFriends();
           // ...
           break;
         }
