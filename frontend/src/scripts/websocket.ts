@@ -55,7 +55,8 @@ export function connectWebSocket(token: string): WebSocket {
         case 'friend_blocked': {
           const { message, user } = data.payload;
           showAlert(`${message}. Blocked by ${user.username}`, 'warning');
-          console.log(data)
+          await updateUser();
+          loadFriends();
           // ...
           break;
         }
@@ -63,6 +64,8 @@ export function connectWebSocket(token: string): WebSocket {
         case 'friend_unblocked': {
           const { message, user } = data.payload;
           showAlert(`${message}. Unblocked by ${user.username}`, 'info');
+          await updateUser();
+          loadFriends();
           // ...
           break;
         }
