@@ -26,8 +26,10 @@ export async function sendFriendRequestsController(request: FastifyRequest<{Body
         const friendId = request.body.userId;
 
         const response = await sendFriendRequestService(userId, friendId);
-        const user = getUserById(userId);
+        const user = await getUserById(userId);
+        console.log("USER", user);
         sendNotification(friendId, {type: 'incoming_request', payload: {message: 'You have a new friend request', user: user}});
+
         reply.code(200).send({message: response});
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});
