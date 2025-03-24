@@ -57,7 +57,6 @@ export function connectWebSocket(token: string): WebSocket {
             UserState.setAllUsers(allUsers);
           UserState.removeSentFriendRequest(user.id);
           fetchUsers();
-          // Можно обновить UserState
           break;
         }
     
@@ -83,14 +82,12 @@ export function connectWebSocket(token: string): WebSocket {
           await updateUser();
           loadFriends();
           fetchUsers();
-          // ...
           break;
         }
     
         case 'chat_message': {
           const { fromUserId, toUserId, text } = data.payload;
           console.log(`Chat message from ${fromUserId} to ${toUserId}: ${text}`);
-          // Возможно, вызвать какую-то chatStore.addMessage(...)
           break;
         }
     
@@ -99,6 +96,61 @@ export function connectWebSocket(token: string): WebSocket {
           showAlert(message, 'danger');
           break;
         }
+
+        case 'user_connected': {
+          const { user } = data.payload;
+
+          if(UserState.getUser()?.id === user.id){
+            return;
+          }
+          showAlert(`${user.username} connected`, 'info');
+          const friends = UserState.getUser()?.friends;
+          if(friends){
+            {
+              friends.map(friend => {
+                if(friend.friend_id === user.id  || friend.friend_email === user.email){
+                  friend.online = true;
+                }
+              })
+            }
+        }
+        loadFriends();
+          break;
+      }
+
+      case 'user_online': {
+        const { user } = data.payload;
+        showAlert(`${user.friend_username} is online`, 'info');
+        const friends = UserState.getUser()?.friends;
+        if(friends){
+          {
+            friends.map(friend => {
+              if(friend.friend_id === user.friend_id  || friend.friend_email === user.friend_email){
+                friend.online = true;
+              }
+            })
+          }
+      }
+      loadFriends();
+        break;
+    }
+
+    case 'user_disconnected': {
+      const { user } = data.payload;
+      showAlert(`${user.username} disconnected`, 'info');
+      const friends = UserState.getUser()?.friends;
+      if(friends){
+        {
+          friends.map(friend => {
+            if(friend.friend_id === user.id  || friend.friend_email === user.email){
+              friend.online = false;
+            }
+          })
+        }
+    }
+    loadFriends();
+      break;
+  }
     
         default:
           console.warn('Unknown WS message type:', data);

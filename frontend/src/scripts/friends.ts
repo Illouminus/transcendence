@@ -12,6 +12,7 @@ export interface Friend {
     friend_username: string;
     friend_avatar: string;
     status: string;
+    online?: boolean;
 }
 
 
@@ -48,6 +49,7 @@ export const loadFriends = async () => {
             friend.status === 'accepted' || friend.status === 'blocked'
         );
         
+        console.log('filteredFriends:', filteredFriends);
         filteredFriends.forEach(friend => {
             const card = createFriendCard(friend);
             friendsContainer?.appendChild(card);

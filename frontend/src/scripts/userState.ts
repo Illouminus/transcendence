@@ -13,6 +13,13 @@ export class UserState {
 
 	static setUser(user: User) {
 		this.user = user;
+		if(this.user.friends)
+		{
+			user.friends.forEach(friend => {
+				friend.online = false;
+			});
+		}
+		
 		renderAvatar(user.avatar);
 	}
 
@@ -36,6 +43,7 @@ export class UserState {
 		this.allUsers = [];
 		this.sentFriendRequests.clear();
 		renderAvatar(null);
+		this.socket?.close();
 	}
 
 	static setAllUsers(users: UserArray[]) {

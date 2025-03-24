@@ -6,7 +6,10 @@ export type WebSocketMessage =
   | { type: 'friend_unblocked'; payload: FriendUnblockedPayload }
   | { type: 'friend_deleted'; payload: FriendDeletedPayload }
   | { type: 'chat_message'; payload: ChatMessagePayload }
-  | { type: 'system_notification'; payload: SystemNotificationPayload };
+  | { type: 'system_notification'; payload: SystemNotificationPayload }
+  | { type: 'user_connected'; payload: {user : UserInfo} }
+  | { type: 'user_disconnected'; payload: {user: UserInfo} }
+  | { type: 'user_online'; payload: {user: FriendOnline} };
 
   export interface IncomingRequestPayload {
     message: string;
@@ -63,6 +66,18 @@ export type WebSocketMessage =
     username: string;
     email: string;
     avatar: string;
+    auth_user_id: number;
+
     // ...другие поля при желании
   }
   
+
+
+  export interface FriendOnline { 
+
+    friend_avatar: string;
+    friend_email: string;
+    friend_id: number;
+    friend_username: string;
+    status: string;
+  }

@@ -13,6 +13,8 @@ import { connectRabbit } from "./rabbit/rabbit";
 // Import the database connection - auto launches the connection
 import "./database";
 import { JwtPayload } from "./@types/user.types";
+import { getUserByAuthId, getUserById } from "./models/user.model";
+import { getFriendsListFromDB } from "./models/friends.model";
 connectRabbit();
 
 // Create an instance of Fastify server
@@ -27,33 +29,74 @@ server.register(FastifyWebsocket);
 const activeConnections = new Map<number, WebSocket>();
 
 server.register(async function (fastify: FastifyInstance) {
-	fastify.get('/ws', { websocket: true }, (connection: any, req: FastifyRequest<{ Querystring: { token: string } }>) => {
-		const token = req.query.token;  
-		const payload = server.jwt.verify(token) as JwtPayload;
-		
-		activeConnections.set(payload.userId, connection);
-		
+	fastify.get('/ws', { websocket: true }, async (connection: any, req: FastifyRequest<{ Querystring: { token: string } }>) => {
+	  const token = req.query.token;  
+	  const payload = server.jwt.verify(token) as JwtPayload;
+	  
+	  const userAuthId = await getUserByAuthId(Number(payload.userId));
 
-		// Handle connection close
-		connection.on('close', () => {
-			console.log(`User ${payload.userId} disconnected`);
-			activeConnections.delete(payload.userId);
-			console.log('Remaining connections:', Array.from(activeConnections.keys()));
-		});
+	  if (!userAuthId) {
+		connection.close(4000, 'User not found');
+		return;
+	  }
+	  activeConnections.set(userAuthId?.id, connection);
+	  
+	  // Получаем профиль нового пользователя
+	//   const userConnected = await getUserById(Number(payload.userId));
+	//   if (!userConnected) {
+	// 	connection.close(4000, 'User not found');
+	// 	return;
+	//   }
+	  
+	  // Рассылаем всем уведомление, что новый пользователь подключился
+	  sendNotificationToAll({
+		type: 'user_connected',
+		payload: { user: userAuthId },
+	  });
+	  
 
-		// Handle incoming messages
-		connection.on('message', (message: any) => {
-			console.log(`Received message from user ${payload.userId}:`, message.toString());
-			connection.send('hi from server yep');
-		});
+		const friendsList = await getFriendsListFromDB(Number(userAuthId.id));
+		console.log('friendsList:', friendsList);
+		for (const friend of friendsList) {
+		  // Если друг уже онлайн (его ID содержится в activeConnections)
+		  console.log('Friends list.:', friend);
 
-		// Handle errors
-		connection.on('error', (error: any) => {
-			console.error(`WebSocket error for user ${payload.userId}:`, error);
-			activeConnections.delete(payload.userId);
+		  if (activeConnections.has(friend.friend_id)) {
+			console.log(`User ${friend.friend_id} is already online`);
+			// Отправляем новое уведомление только новому пользователю
+			connection.send(JSON.stringify({
+			  type: 'user_online',
+			  payload: { user: friend }
+			}));
+		  }
+		}
+
+
+	  // Дополнительная логика: уведомляем нового пользователя о том, что его друзья уже онлайн
+	  
+	  // Обработка закрытия соединения
+	  connection.on('close', () => {
+		console.log(`User ${payload.userId} disconnected`);
+		activeConnections.delete(payload.userId);
+		sendNotificationToAll({
+		  type: 'user_disconnected',
+		  payload: { user: userAuthId },
 		});
+	  });
+	  
+	  // Обработка входящих сообщений
+	  connection.on('message', (message: any) => {
+		console.log(`Received message from user ${payload.userId}:`, message.toString());
+		connection.send('hi from server yep');
+	  });
+	  
+	  // Обработка ошибок
+	  connection.on('error', (error: any) => {
+		console.error(`WebSocket error for user ${payload.userId}:`, error);
+		activeConnections.delete(payload.userId);
+	  });
 	});
-});
+  });
 
 interface NotificationData {
 	type: string;
@@ -80,6 +123,21 @@ export function sendNotification(userId: number, data: NotificationData) {
 	} else {
 		console.log(`WebSocket for user ${userId} is not available or not open. ReadyState:`, ws?.readyState);
 	}
+}
+
+
+export function sendNotificationToAll(data: NotificationData) {
+
+	for (const ws of activeConnections.values()) {
+		if (ws.readyState === WebSocket.OPEN) {
+			try {
+				ws.send(JSON.stringify(data));
+			} catch (error) {
+				console.error('Error sending notification:', error);
+			}
+		}
+	}
+
 }
 
 // Register the Multipart plugin with our configuration for file uploads

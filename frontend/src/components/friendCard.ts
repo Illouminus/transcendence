@@ -2,22 +2,25 @@ import { Friend } from "../scripts/friends";
 
 
 export const friendCard = (friend: Friend) => {
-    const statusColor = friend.status === 'blocked' ? 'bg-red-500' : 'bg-green-500';
+    const statusColor = friend.status === 'blocked' ? 'bg-red-500' : 
+                       friend.online ? 'bg-green-500' : 'bg-gray-500';
     const userIsBlocked = friend.status === 'blocked';
-
+    console.log('User is online and not blocked:', friend.online, !userIsBlocked);
+    const userIsOffline = !friend.online && !userIsBlocked;
+    
 
     return `
-<div class="w-full max-w-sm bg-white/5 backdrop-blur-md border border-gray-200/10 rounded-xl shadow-lg dark:bg-gray-800/50 dark:border-gray-700/50 hover:bg-gray-800/70 transition-all duration-300 ${userIsBlocked ? 'opacity-80' : ''}" data-friend-id="${friend.friend_id}">
+<div class="w-full max-w-sm bg-white/5 backdrop-blur-md border border-gray-200/10 rounded-xl shadow-lg dark:bg-gray-800/50 dark:border-gray-700/50 hover:bg-gray-800/70 transition-all duration-300 ${userIsBlocked ? 'opacity-80' : ''} ${userIsOffline ? 'opacity-90' : ''}" data-friend-id="${friend.friend_id}">
     <div class="flex flex-col items-center justify-center p-4">
         <div class="relative group">
             <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-50 transition duration-500 blur"></div>
-            <img class="relative w-24 h-24 rounded-full shadow-lg object-cover ring-2 ring-gray-700/50 ${userIsBlocked ? 'grayscale' : ''}" src="http://localhost:8080/user${friend.friend_avatar}" alt="${friend.friend_username}'s avatar"/>
+            <img class="relative w-24 h-24 rounded-full shadow-lg object-cover ring-2 ring-gray-700/50 ${userIsBlocked ? 'grayscale' : ''} ${userIsOffline ? 'brightness-75' : ''}" src="http://localhost:8080/user${friend.friend_avatar}" alt="${friend.friend_username}'s avatar"/>
             <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full ${statusColor} border-2 border-gray-800 shadow-lg"></span>
         </div>
-        <h5 class="mt-4 text-xl font-medium text-white group-hover:text-blue-400 transition-colors ${userIsBlocked ? 'text-gray-400' : ''}">${friend.friend_username}</h5>
+        <h5 class="mt-4 text-xl font-medium text-white group-hover:text-blue-400 transition-colors ${userIsBlocked ? 'text-gray-400' : ''} ${userIsOffline ? 'text-gray-500' : ''}">${friend.friend_username}</h5>
         <div class="flex mt-6 space-x-2">
-
-            <div class="group/tooltip relative ${userIsBlocked ? 'hidden' : 'block'}">
+            ${!userIsBlocked && !userIsOffline ? `
+            <div class="group/tooltip relative">
                 <button class="game-button inline-flex items-center p-2 text-sm font-medium text-center text-white bg-gray-800/70 border border-gray-600/30 rounded-lg hover:bg-blue-500/30 hover:border-blue-500/50 focus:ring-2 focus:outline-none focus:ring-blue-500/50 transition-all duration-200 backdrop-blur-sm group">
                     <svg class="w-5 h-5 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 6l-8 8m0-8l8 8m2-4h3a2 2 0 012 2v6a2 2 0 01-2 2h-3M3 12h.01M7 12h.01M11 12h.01M15 12h.01"/>
@@ -28,6 +31,7 @@ export const friendCard = (friend: Friend) => {
                     <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
                 </div>
             </div>
+            ` : ''}
 
             <div class="group/tooltip relative">
                 <button class="${userIsBlocked ? 'unblock' : 'block'}-button inline-flex items-center p-2 text-sm font-medium text-center text-white bg-gray-800/70 border border-gray-600/30 rounded-lg hover:bg-yellow-500/30 hover:border-yellow-500/50 focus:ring-2 focus:outline-none focus:ring-yellow-500/50 transition-all duration-200 backdrop-blur-sm group">
@@ -57,6 +61,11 @@ export const friendCard = (friend: Friend) => {
                 </div>
             </div>
         </div>
+        ${userIsOffline ? `
+        <div class="mt-2 text-sm text-gray-500 italic">
+            Last seen: ${new Date().toLocaleString()}
+        </div>
+        ` : ''}
     </div>
 </div>
 `;

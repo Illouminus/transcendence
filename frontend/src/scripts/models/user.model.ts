@@ -9,7 +9,9 @@ interface FriendsList {
 	friend_id: number;
 	friend_username: string;
 	friend_avatar: string;
+	friend_email: string;
 	status: string;
+	online: boolean 
   }
 
   interface Requests {

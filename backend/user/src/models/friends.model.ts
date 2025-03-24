@@ -2,10 +2,9 @@ import { FriendsList } from "../@types/friends.types";
 import db from "../database";
 
 export async function getFriendsListFromDB(userId: number): Promise<FriendsList[]> {
-    return new Promise((resolve, reject) => {
-      // Используем db.all, так как ожидаем несколько строк (список друзей)
-      const query = `
-       SELECT 
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT 
         CASE
           WHEN f.user_profile_id = ? THEN u2.id
           ELSE u1.id
@@ -18,21 +17,26 @@ export async function getFriendsListFromDB(userId: number): Promise<FriendsList[
           WHEN f.user_profile_id = ? THEN u2.avatar_url
           ELSE u1.avatar_url
         END AS friend_avatar,
+        CASE
+          WHEN f.user_profile_id = ? THEN u2.email
+          ELSE u1.email
+        END AS friend_email,
         f.status
       FROM friends f
       JOIN user_profile u1 ON u1.id = f.user_profile_id
       JOIN user_profile u2 ON u2.id = f.friend_profile_id
       WHERE ? IN (f.user_profile_id, f.friend_profile_id)
-      `;
-      db.all(query, [userId, userId, userId, userId], (err: Error | null, rows: FriendsList[]) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
+    `;
+    // Обратите внимание, что теперь у нас 5 параметров
+    db.all(query, [userId, userId, userId, userId, userId], (err: Error | null, rows: FriendsList[]) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
     });
-  }
+  });
+}
 
 
 
