@@ -111,6 +111,13 @@ async function fetchUsers(): Promise<void> {
     try {  
         const users: UserArray[] = UserState.getAllUsers(); 
         const filteredUsers = users.filter(user => UserState.getUser()?.id !== user.id);
+        const filtredFriends = filteredUsers.filter(user => 
+            !UserState.getUser()?.friends
+            .filter(friend => friend.status === 'accepted')
+            .map(friend => friend.friend_id)
+            .includes(user.id)
+        );
+        
         const outcomeRequest = UserState.getUser()?.outgoingRequests;
         if(outcomeRequest)
         outcomeRequest.forEach(request => {
@@ -121,7 +128,7 @@ async function fetchUsers(): Promise<void> {
             console.error('Users list element not found');
             return;
         }
-        usersList.innerHTML = filteredUsers.map(user => createUserRow(user)).join('');
+        usersList.innerHTML = filtredFriends.map(user => createUserRow(user)).join('');
         attachEventListeners();
     } catch (error) {
         console.error('Error fetching users:', error);
