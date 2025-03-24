@@ -1,7 +1,9 @@
 import { loadFriendRequests, loadFriends } from "./friends";
-import { updateUser } from "./loaders/outils";
+import { fetchAllUsers, updateUser } from "./loaders/outils";
 import { WebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
+import { fetchUsers } from "./users";
+import { UserState } from "./userState";
 
 let socket : WebSocket | null = null;
 
@@ -40,6 +42,7 @@ export function connectWebSocket(token: string): WebSocket {
           showAlert(message, 'success');
           console.log('request_accepted from user:', user);
           await updateUser();
+          fetchUsers();
           loadFriends();
           break;
         }
@@ -48,6 +51,12 @@ export function connectWebSocket(token: string): WebSocket {
           const { message, user } = data.payload;
           showAlert(message, 'warning');
           console.log('request_rejected from user:', user);
+          await updateUser();
+          const allUsers = await fetchAllUsers();
+          if(allUsers)
+            UserState.setAllUsers(allUsers);
+          UserState.removeSentFriendRequest(user.id);
+          fetchUsers();
           // Можно обновить UserState
           break;
         }
@@ -73,6 +82,7 @@ export function connectWebSocket(token: string): WebSocket {
           showAlert(`${message}. Deleted by ${user.username}`, 'info');
           await updateUser();
           loadFriends();
+          fetchUsers();
           // ...
           break;
         }

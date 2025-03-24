@@ -50,13 +50,14 @@ export class UserState {
 		this.sentFriendRequests.add(userId);
 	}
 
+	static removeSentFriendRequest(userId: number) {
+		this.sentFriendRequests.delete(userId);
+	}
+
 	static hasSentFriendRequest(userId: number): boolean {
 		return this.sentFriendRequests.has(userId);
 	}
 
-	static removeSentFriendRequest(userId: number) {
-		this.sentFriendRequests.delete(userId);
-	}
 
 	static setTempEmail(email: string) {
 		this.tempEmail = email;
