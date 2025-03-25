@@ -32,7 +32,7 @@ function createUserRow(user: UserArray): string {
             <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 h-10 w-10">
-                        <img class="h-10 w-10 rounded-full" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
+                        <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
                     </div>
                     <div class="ml-4">
                         <div class="text-sm font-medium text-gray-900 dark:text-white">
