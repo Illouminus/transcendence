@@ -1,3 +1,4 @@
+import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 import { fetchUserProfile } from "./services/user.service";
 import { incrementWins } from "./services/user.service";
 
@@ -11,6 +12,44 @@ fetchUserProfile().then(user => {
     userId = user.id;
   }
 });
+
+
+function chat(): void {
+  const chatMessageInput = document.getElementById("chatMessage");
+  const sendButton = document.getElementById("sendButton");
+  const chatMenu = document.getElementById("chatScroll");
+
+  sendButton?.addEventListener("click", function () {
+    const messageText = chatMessageInput?.value; 
+    console.log(messageText);
+
+      if (messageText === "") return; // Ne rien faire si le message est vide
+
+      // Crée un nouvel élément de message
+      const messageContainer = document.createElement("div");
+      messageContainer.classList.add("flex", "items-start", "mb-5");
+
+      const messageHTML = `
+      <img class="w-8 h-8 rounded-full" src="https://img.freepik.com/vecteurs-libre/illustration-du-jeune-homme-souriant_1308-174669.jpg" alt="User image">
+      <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+          <div class="flex items-center space-x-2 rtl:space-x-reverse">
+              <span class="text-sm font-semibold text-gray-900 dark:text-white">Bonnie Green</span>
+              <span class="text-sm font-normal text-gray-500 dark:text-gray-400">11:46</span>
+          </div>
+          <p class="text-sm text-left  py-2.5 text-gray-900 dark:text-white">${messageText}</p>
+          <span class="text-sm text-right font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+      </div>
+      `;
+      messageContainer.innerHTML = messageHTML;
+      console.log(messageContainer.innerHTML);
+      chatMenu?.insertBefore(messageContainer, chatMenu.querySelector(".grow"));
+
+      // Réinitialise le champ d'entrée
+      if (chatMessageInput)
+        chatMessageInput.innerHTML = "";
+  });
+}
+
 
 function updateScoreDisplay(): void {
   const scoreDisplay = document.getElementById("scoreDisplay") as HTMLElement;
@@ -402,5 +441,6 @@ export function loadPongPageScript(): void {
 
   window.addEventListener("resize", () => {
     engine.resize();
+    chat();
   });
 }
