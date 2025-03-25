@@ -1,4 +1,4 @@
-<div  style="position: relative; width: 100%; height: 100%; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+<div  style="position: relative; width: 100%; height: 100%; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: red;">
     <div id="scoreDisplay"  style="width: 100%; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 20px; font-size: 40px; color: white;"></div>
     <canvas id="renderCanvas" style="width: 100%; height: 100%; z-index: 100;"></canvas>
     <div id="startMenu" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background-color: rgba(0, 0, 0, 0.8); color: white; padding: 20px; border-radius: 10px; text-align: center;">
@@ -10,6 +10,31 @@
         <button id="restartButton" style="margin: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Relancer</button>
         <button id="quitButton" style="margin: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Quitter</button>
     </div>
+    <div id="chatMenu" style="display:flex; height: 400px; flex-direction: column; width: 400px; position: absolute; bottom: 10px; right: 20px; z-index: 100; background-color: rgba(0, 0, 0, 0.9); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+        <h1>CHAT</h1>
+        <div class="flex items-start">
+            <div class="flex items-start gap-2.5">
+                <img class="w-8 h-8 rounded-full" src="/docs/images/people/profile-picture-3.jpg" alt="Jese image">
+                <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+                   <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                      <span class="text-sm font-semibold text-gray-900 dark:text-white">Bonnie Green</span>
+                      <span class="text-sm font-normal text-gray-500 dark:text-gray-400">11:46</span>
+                   </div>
+                   <p class="text-sm text-left  py-2.5 text-gray-900 dark:text-white">That's awesome. I think our users will really appreciate the improvements.</p>
+                   <span class="text-sm text-right font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+                </div>
+            </div>
+
+        </div>
+        <div class="flex grow items-end">
+            <div id="chatInput" class="flex flex-row h-full w-full items-end justify-center">
+                <input id="chatMessage" placeholder="Écrivez un message" type="text" style="color: black; background-color: white; width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; margin-top: 10px;">
+                <button id="sendButton" style="margin-left: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Envoyer</button>
+            </div>
+        </div>
+       
+    </div>
+
 </div>
 
 
