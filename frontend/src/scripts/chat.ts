@@ -58,9 +58,11 @@ function openChatWindow(userId: string): void {
     // Met à jour le bouton de fermeture
     const closeChatButton = document.getElementById("closeChat");
     const goBackButton = document.getElementById("goBack");
-    if (closeChatButton && goBackButton) {
+    const chatMessagesContainer = document.getElementById("chatMessages");
+    if (closeChatButton && goBackButton && chatMessagesContainer) {
         closeChatButton.classList.add("hidden");
         goBackButton.classList.remove("hidden");
+        chatMessagesContainer.classList.remove("hidden");
         goBackButton.onclick = () => {
             if (friendsListContainer) {
                 friendsListContainer.classList.remove("hidden");
@@ -70,6 +72,9 @@ function openChatWindow(userId: string): void {
             }
             if (chatTitle) {
                 chatTitle.innerHTML = "CHAT";
+            }
+            if (chatMessagesContainer) {
+                chatMessagesContainer.classList.add('hidden')
             }
             goBackButton.classList.add("hidden");
             closeChatButton.classList.remove("hidden");
