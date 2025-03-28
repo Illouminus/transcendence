@@ -1,4 +1,5 @@
 import { fetchUserProfile } from "./services/user.service";
+import { UserArray } from "./users";
 
 let userId: number | null = null;
 let username: string | null = null;
@@ -14,7 +15,6 @@ fetchUserProfile().then(user => {
 });
 
 export function openChat(user: UserArray): void {
-    console.log('Tried to open chat with user:', user);
     const chatScroll = document.getElementById('chatScroll');
     const chatInput = document.getElementById('chatInput');
 

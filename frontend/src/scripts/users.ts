@@ -1,6 +1,8 @@
 import { fetchAndRender } from "./loaders/outils";
 import { UserState } from "./userState";
 import { redirectTo } from "./router";
+import { openChat } from "./chat";
+import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 
 interface UserArray {
     id: number;
@@ -18,23 +20,19 @@ const API_URL_USER: string = "http://localhost:8080/user/getAllUsers";
 
 function createChatUserRow(user: UserArray): string {
     return `
-        <tr class="mb-20 hover:bg-gray-50 dark:hover:bg-gray-700" data-user-id="${user.id}">
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
-                    <div class="flex-shrink-0 h-10 w-10">
-                        <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
-                    </div>
-                    <div class="ml-4">
-                        <div class="text-left text-sm font-medium text-gray-900 dark:text-white">
-                            ${user.username}
-                        </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                            ${user.email}
-                        </div>
-                    </div>
+        <div class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer" data-user-id="${user.id}">
+            <div class="flex-shrink-0 h-10 w-10">
+                <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
+            </div>
+            <div class="ml-4">
+                <div class="text-left text-sm font-medium text-gray-900 dark:text-white">
+                    ${user.username}
                 </div>
-            </td>
-        </tr>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    ${user.email}
+                </div>
+            </div>
+        </div>
     `;
 }
 
@@ -258,8 +256,6 @@ function attachEventListeners(): void {
 }
 
 
-
-// Function to fetch and display users
 async function fetchUsers(isChat: boolean): Promise<void> {
     try {
         const users: UserArray[] = UserState.getAllUsers();
@@ -278,18 +274,35 @@ async function fetchUsers(isChat: boolean): Promise<void> {
         }
 
         usersLists.forEach(usersList => {
-            if (isChat) {
-                usersList.innerHTML = users.map(user => createChatUserRow(user)).join('');
-            } else {
-                usersList.innerHTML = users.map(user => createUserRow(user)).join('');
-            }
+            usersList.innerHTML = isChat
+                ? users.map(user => createChatUserRow(user)).join('')
+                : users.map(user => createUserRow(user)).join('');
         });
-        attachEventListeners();
 
+        attachEventListenersToRows(users);
+
+        attachEventListeners();
     } catch (error) {
         console.error('Error fetching users:', error);
     }
 }
+
+function attachEventListenersToRows(users: UserArray[]): void {
+    if (!users || users.length === 0) return;
+
+    document.querySelectorAll('.chatConv').forEach(user => {
+        // Gestion des clics sur "view-profile-btn"
+        const userId = user.getAttribute('data-user-id');
+        user.addEventListener('click', (event: Event) => {
+            const user = users.find(u => u.id === Number(userId));
+            if (user) {
+                openChat(user);
+            }
+        });
+    });
+
+}
+
 
 
 // Export necessary functions

@@ -1,4 +1,3 @@
-import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 import { fetchUserProfile } from "./services/user.service";
 import { incrementWins } from "./services/user.service";
 
@@ -12,9 +11,6 @@ fetchUserProfile().then(user => {
     userId = user.id;
   }
 });
-
-
-
 
 
 function updateScoreDisplay(): void {
