@@ -18,29 +18,29 @@
 		</svg>
 	</button>
 
-	<div id="chatMenu" style="display:none; height: 400px; flex-direction: column; width: 1000px; position: absolute; bottom: 10px; right: 20px; z-index: 100; background-color: rgba(0, 0, 0, 0.9); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+	<div id="chatMenu" class="hidden flex h-100 flex-col w-200 absolute bottom-5 right-10 z-100 p-5 rounded-md text-center" style="background-color: rgba(0, 0, 0, 0.9); color: white;">
         <div class="flex justify-between items-center mb-4">
-            <h1>CHAT</h1>
+            <h1 id="chatTitle">CHAT</h1>
             <button id="closeChat" class="text-white hover:text-gray-300">
                 <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
+        </div>
+		<div class="flex w-full flex-col grow items-end justify-end overflow-hidden">
+			<!-- Users List -->
+			<div id="chat-friends-list" class="flex flex-col scroll-y-auto overflow-y-auto max-h-96 w-full">
+			</div>
 			
-        </div>
-		<!-- Users List -->
-		<div class="users-list scroll-y-auto overflow-y-auto max-h-96"></div>
-
-		<!-- Chat Discussion -->
-        <div id="chatScroll" class="flex items-start flex-col" style="flex-grow: 1; overflow-y: auto;">
-          
-        </div>
-        <div class="hidden flex grow items-end">
-            <div id="chatInput" class="flex flex-row h-full w-full items-end justify-center">
-                <input id="chatMessage" placeholder="Écrivez un message" type="text" style="color: black; background-color: white; width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; margin-top: 10px;">
-                <button id="sendButton" style="margin-left: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Envoyer</button>
-            </div>
-        </div>
+			<!-- Conversation -->
+			
+			<div id="chatMessages" class="scroll-y-auto overflow-y-auto"></div>
+			<!-- Input -->
+			<div id="chatInput" class="hidden flex flex-row w-full items-end justify-center">
+				<input id="chatMessage" placeholder="Écrivez un message" type="text" style="color: black; background-color: white; width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; margin-top: 10px;">
+				<button id="sendButton" style="margin-left: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Envoyer</button>
+			</div>
+		</div>
     </div>
 	<nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
 		<div class="px-3 py-3 lg:px-5 lg:pl-3">
@@ -185,17 +185,6 @@
 	<div id="alert-container" class="fixed top-4 right-4 z-50"></div>
 	<div id="app" class="p-4 sm:ml-64 mt-20 flex items-center justify-center">
 	</div>
-	<script>
-		document.getElementById('chatButton').addEventListener('click', function() {
-			const chatMenu = document.getElementById('chatMenu');
-			chatMenu.style.display = chatMenu.style.display === 'none' ? 'flex' : 'none';
-		});
-
-		document.getElementById('closeChat').addEventListener('click', function() {
-			const chatMenu = document.getElementById('chatMenu');
-			chatMenu.style.display = 'none';
-		});
-	</script>
 	<script type="module" src="./src/scripts/main.ts"></script>
 	<script src="https://unpkg.com/flowbite@1.6.5/dist/flowbite.min.js"></script>
 </body>

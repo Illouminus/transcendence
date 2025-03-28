@@ -1,43 +1,102 @@
-import { fetchUserProfile } from "./services/user.service";
+import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 import { UserArray } from "./users";
+import { UserState } from "./userState";
 
-let userId: number | null = null;
-let username: string | null = null;
-let avatar: string | null = null;
+function createChatUserRow(user: UserArray): string {
 
-// Récupérer l'ID utilisateur au chargement
-fetchUserProfile().then(user => {
-  if (user) {
-    userId = user.id;
-    username = user.username;
-    avatar = user.avatar || null;
-  }
-});
-
-export function openChat(user: UserArray): void {
-    const chatScroll = document.getElementById('chatScroll');
-    const chatInput = document.getElementById('chatInput');
-
-    if (!chatScroll || !chatInput) {
-        console.error('Chat elements not found');
-        return;
-    }
-
-    // Met à jour l'en-tête ou d'autres éléments si nécessaire
-    console.log(`Chat with user: ${user.username}`);
-
-    // Montre la zone de chat
-    chatScroll.innerHTML = ''; // Réinitialise les messages précédents
-    chatInput.classList.remove('hidden');
+    return `
+        <div data-user-id="${user.id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
+            <div class="flex-shrink-0 h-10 w-10">
+                <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
+            </div>
+            <div class="ml-4">
+                <div class="text-left text-sm font-medium text-gray-900 dark:text-white">
+                    ${user.username}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    ${user.email}
+                </div>
+            </div>
+        </div>
+`;
 }
 
 
+function attachChatEventListeners(): void {
+    const chatConvs = document.querySelectorAll('.chatConv'); // Sélectionne toutes les divs générées
+    chatConvs.forEach(chatConv => {
+        chatConv.addEventListener('click', () => {
+            const userId = chatConv.getAttribute('data-user-id');
+            if (userId) {
+                openChatWindow(userId); // Appelez la fonction pour ouvrir le chat
+            }
+        });
+    });
+}
 
-function chat(): void {
-    console.log(username); 
+
+function openChatWindow(userId: string): void {
+    // Cache l'ancienne liste de users
+    const friendsListContainer = document.getElementById("chat-friends-list");
+    if (friendsListContainer) {
+        friendsListContainer.classList.add("hidden");
+    }
+
+    //Affiche l'input de message
+    const chatInput = document.getElementById("chatInput");
+    if (chatInput) {
+        chatInput.classList.remove("hidden");
+    }
+
+    // Remplace le titre chat par le username cliqué
+    const chatTitle = document.getElementById("chatTitle");
+    if (chatTitle) {
+        chatTitle.innerHTML = `${UserState.getAllUsers().find(u => u.id)?.username}`;
+    }
+
+}
+
+export function chat(): void {
+
+    const user = UserState.getUser();
+    const username = user?.username;
+    const avatar = user?.avatar;
+    const chatButton = document.getElementById('chatButton')
+    const closeChatButton = document.getElementById('closeChat');
+    if (chatButton) {
+        chatButton.addEventListener('click', function() {
+			const chatMenu = document.getElementById('chatMenu');
+            if (chatMenu) {
+			    chatMenu.classList.remove('hidden');
+            }
+		});
+    }
+    if (closeChatButton) {
+	    closeChatButton.addEventListener('click', function() {
+			const chatMenu = document.getElementById('chatMenu');
+            if (chatMenu) { 
+			    chatMenu.classList.add('hidden');
+            }
+        });
+    }
+
+    // Remplit le menu des users
+    const friendsListContainer = document.getElementById("chat-friends-list");
+    const friendsList = UserState.getAllUsers();
+    friendsList.forEach((user: UserArray) => {
+        if (user.id !== UserState.getUser()?.id) {
+            const userRow = createChatUserRow(user);
+            if (friendsListContainer) {
+                friendsListContainer.innerHTML += userRow;
+            }
+        }});
+
+    // Ajoute des evenys listeners sur les users
+    attachChatEventListeners();
+
+    const chatMessagesContainer = document.getElementById("chatMessages");
     const chatMessageInput = document.getElementById("chatMessage");
     const sendButton = document.getElementById("sendButton");
-    const chatMenu = document.getElementById("chatScroll");
   
     sendButton?.addEventListener("click", function () {
       const messageText = chatMessageInput?.value; 
@@ -62,10 +121,10 @@ function chat(): void {
         `;
         messageContainer.innerHTML = messageHTML;
         console.log(messageContainer.innerHTML);
-        chatMenu?.insertBefore(messageContainer, chatMenu.querySelector(".grow"));
+        chatMessagesContainer?.insertBefore(messageContainer, chatMessagesContainer.querySelector(".grow"));
   
         // Réinitialise le champ d'entrée
         if (chatMessageInput)
           chatMessageInput.innerHTML = "";
     });
-  }
+}

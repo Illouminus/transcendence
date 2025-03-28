@@ -1,8 +1,6 @@
 import { fetchAndRender } from "./loaders/outils";
 import { UserState } from "./userState";
 import { redirectTo } from "./router";
-import { openChat } from "./chat";
-import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 
 interface UserArray {
     id: number;
@@ -17,25 +15,6 @@ interface UserArray {
 }
 
 const API_URL_USER: string = "http://localhost:8080/user/getAllUsers";
-
-function createChatUserRow(user: UserArray): string {
-    return `
-        <div class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer" data-user-id="${user.id}">
-            <div class="flex-shrink-0 h-10 w-10">
-                <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
-            </div>
-            <div class="ml-4">
-                <div class="text-left text-sm font-medium text-gray-900 dark:text-white">
-                    ${user.username}
-                </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
-                    ${user.email}
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 
 function createUserRow(user: UserArray): string {
     const hasSentRequest = UserState.hasSentFriendRequest(user.id);
@@ -153,7 +132,7 @@ async function addFriend(userId: number): Promise<void> {
         UserState.addSentFriendRequest(userId);
         
         // Refresh the users list to update the button state
-        await fetchUsers(false);
+        await fetchUsers();
         
         alert('Friend request sent successfully!');
     } catch (error) {
@@ -222,88 +201,55 @@ export async function loadUserProfileData(): Promise<void> {
 }
 
 function attachEventListeners(): void {
-    const usersLists = document.querySelectorAll('.users-list'); // Sélectionne tous les éléments avec la classe `user-list`
-    if (!usersLists || usersLists.length === 0) return;
+    const usersList = document.getElementById('users-list');
+    if (!usersList) return;
 
-    usersLists.forEach(usersList => {
-        // Gestion des clics sur "view-profile-btn"
-        usersList.addEventListener('click', (event: Event) => {
-            const target = event.target as HTMLElement;
-            const viewProfileBtn = target.closest('.view-profile-btn');
-            if (viewProfileBtn) {
-                const row = viewProfileBtn.closest('tr');
-                const userId = row?.getAttribute('data-user-id');
-                if (userId) {
-                    console.log('View profile button clicked for user ID:', userId);
-                    redirectTo(`/user-profile?id=${userId}`);
-                }
+    usersList.addEventListener('click', (event: Event) => {
+        const target = event.target as HTMLElement;
+        const viewProfileBtn = target.closest('.view-profile-btn');
+        if (viewProfileBtn) {
+            const row = viewProfileBtn.closest('tr');
+            const userId = row?.getAttribute('data-user-id');
+            if (userId) {
+                redirectTo(`/user-profile?id=${userId}`);
             }
-        });
+        }
+    });
 
-        // Gestion des clics sur "add-friend-btn"
-        usersList.addEventListener('click', (event: Event) => {
-            const target = event.target as HTMLElement;
-            const addFriendBtn = target.closest('.add-friend-btn');
-            if (addFriendBtn) {
-                const row = addFriendBtn.closest('tr');
-                const userId = row?.getAttribute('data-user-id');
-                if (userId) {
-                    addFriend(parseInt(userId));
-                }
+    // Handle add friend clicks
+    usersList.addEventListener('click', (event: Event) => {
+        const target = event.target as HTMLElement;
+        const addFriendBtn = target.closest('.add-friend-btn');
+        if (addFriendBtn) {
+            const row = addFriendBtn.closest('tr');
+            const userId = row?.getAttribute('data-user-id');
+            if (userId) {
+                addFriend(parseInt(userId));
             }
-        });
+        }
     });
 }
 
-
-async function fetchUsers(isChat: boolean): Promise<void> {
-    try {
-        const users: UserArray[] = UserState.getAllUsers();
+// Function to fetch and display users
+async function fetchUsers(): Promise<void> {
+    try {  
+        const users: UserArray[] = UserState.getAllUsers(); 
         const outcomeRequest = UserState.getUser()?.outgoingRequests;
-
-        if (outcomeRequest) {
-            outcomeRequest.forEach(request => {
-                UserState.addSentFriendRequest(request.id);
-            });
-        }
-
-        const usersLists: NodeListOf<HTMLElement> = document.querySelectorAll('.users-list');
-        if (!usersLists || usersLists.length === 0) {
-            console.error('No elements with the class user-list found');
+        if(outcomeRequest)
+        outcomeRequest.forEach(request => {
+            UserState.addSentFriendRequest(request.id);
+        });
+        const usersList: HTMLElement | null = document.getElementById('users-list');
+        if (!usersList) {
+            console.error('Users list element not found');
             return;
         }
-
-        usersLists.forEach(usersList => {
-            usersList.innerHTML = isChat
-                ? users.map(user => createChatUserRow(user)).join('')
-                : users.map(user => createUserRow(user)).join('');
-        });
-
-        attachEventListenersToRows(users);
-
+        usersList.innerHTML = users.map(user => createUserRow(user)).join('');
         attachEventListeners();
     } catch (error) {
         console.error('Error fetching users:', error);
     }
 }
-
-function attachEventListenersToRows(users: UserArray[]): void {
-    if (!users || users.length === 0) return;
-
-    document.querySelectorAll('.chatConv').forEach(user => {
-        // Gestion des clics sur "view-profile-btn"
-        const userId = user.getAttribute('data-user-id');
-        user.addEventListener('click', (event: Event) => {
-            const user = users.find(u => u.id === Number(userId));
-            if (user) {
-                openChat(user);
-            }
-        });
-    });
-
-}
-
-
 
 // Export necessary functions
 export { fetchUsers, addFriend, UserArray }; 

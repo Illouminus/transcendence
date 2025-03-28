@@ -5,6 +5,7 @@ import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick
 import { UserState } from "./userState";
 import { fetchUserProfile } from "./services/user.service";
 import { fetchAllUsers } from "./loaders/outils";
+import { chat } from "./chat";
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -37,6 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 	}
 
 	await setupUI();
+	await chat();
 	handleRouting();
 });
 
