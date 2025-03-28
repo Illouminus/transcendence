@@ -26,15 +26,19 @@
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
+            <button id="goBack" class="hidden text-white hover:text-gray-300">
+				<svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+					<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+				</svg>
+            </button>
         </div>
 		<div class="flex w-full flex-col grow items-end justify-end overflow-hidden">
 			<!-- Users List -->
-			<div id="chat-friends-list" class="flex flex-col scroll-y-auto overflow-y-auto max-h-96 w-full">
-			</div>
+			<div id="chat-friends-list" class="flex flex-col scroll-y-auto overflow-y-auto max-h-96 w-full"></div>
 			
 			<!-- Conversation -->
-			
 			<div id="chatMessages" class="scroll-y-auto overflow-y-auto"></div>
+			
 			<!-- Input -->
 			<div id="chatInput" class="hidden flex flex-row w-full items-end justify-center">
 				<input id="chatMessage" placeholder="Écrivez un message" type="text" style="color: black; background-color: white; width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; margin-top: 10px;">

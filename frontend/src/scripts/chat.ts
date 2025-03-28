@@ -42,7 +42,7 @@ function openChatWindow(userId: string): void {
         friendsListContainer.classList.add("hidden");
     }
 
-    //Affiche l'input de message
+    // Affiche l'input de message
     const chatInput = document.getElementById("chatInput");
     if (chatInput) {
         chatInput.classList.remove("hidden");
@@ -51,10 +51,33 @@ function openChatWindow(userId: string): void {
     // Remplace le titre chat par le username cliqué
     const chatTitle = document.getElementById("chatTitle");
     if (chatTitle) {
-        chatTitle.innerHTML = `${UserState.getAllUsers().find(u => u.id)?.username}`;
+        const user = UserState.getAllUsers().find(u => u.id === parseInt(userId));
+        chatTitle.innerHTML = user ? user.username : "Chat";
     }
 
+    // Met à jour le bouton de fermeture
+    const closeChatButton = document.getElementById("closeChat");
+    const goBackButton = document.getElementById("goBack");
+    if (closeChatButton && goBackButton) {
+        closeChatButton.classList.add("hidden");
+        goBackButton.classList.remove("hidden");
+        goBackButton.onclick = () => {
+            if (friendsListContainer) {
+                friendsListContainer.classList.remove("hidden");
+            }
+            if (chatInput) {
+                chatInput.classList.add("hidden");
+            }
+            if (chatTitle) {
+                chatTitle.innerHTML = "CHAT";
+            }
+            goBackButton.classList.add("hidden");
+            closeChatButton.classList.remove("hidden");
+            closeChatButton.onclick = null; // Supprime l'événement personnalisé pour revenir à l'état par défaut
+        };
+    }
 }
+
 
 export function chat(): void {
 
