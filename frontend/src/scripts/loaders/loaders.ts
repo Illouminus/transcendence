@@ -10,6 +10,7 @@ import { initializeFriends } from "../friends";
 
 export async function loadHomePage() {
 	await fetchAndRender("dog");
+	await fetchUsers(true);
 }
 
 
@@ -172,7 +173,7 @@ export async function loadUsersPage(): Promise<void> {
         await fetchAndRender("users");
         // Ensure the DOM is updated before attaching event listeners
         await new Promise(resolve => setTimeout(resolve, 0));
-        await fetchUsers();
+        await fetchUsers(false);
     } catch (error) {
         console.error("Error loading users page:", error);
     }

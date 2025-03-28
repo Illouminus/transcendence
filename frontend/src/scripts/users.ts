@@ -16,6 +16,29 @@ interface UserArray {
 
 const API_URL_USER: string = "http://localhost:8080/user/getAllUsers";
 
+function createChatUserRow(user: UserArray): string {
+    return `
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-user-id="${user.id}">
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                        <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                            ${user.username}
+                        </div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            ${user.email}
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+
 function createUserRow(user: UserArray): string {
     const hasSentRequest = UserState.hasSentFriendRequest(user.id);
     const buttonClass = hasSentRequest 
@@ -229,27 +252,38 @@ function attachEventListeners(): void {
         }
     });
 }
-
 // Function to fetch and display users
-async function fetchUsers(): Promise<void> {
-    try {  
-        const users: UserArray[] = UserState.getAllUsers(); 
+async function fetchUsers(isChat: boolean): Promise<void> {
+    try {
+        const users: UserArray[] = UserState.getAllUsers();
         const outcomeRequest = UserState.getUser()?.outgoingRequests;
-        if(outcomeRequest)
-        outcomeRequest.forEach(request => {
-            UserState.addSentFriendRequest(request.id);
-        });
-        const usersList: HTMLElement | null = document.getElementById('users-list');
-        if (!usersList) {
-            console.error('Users list element not found');
+
+        if (outcomeRequest) {
+            outcomeRequest.forEach(request => {
+                UserState.addSentFriendRequest(request.id);
+            });
+        }
+
+        const usersLists: NodeListOf<HTMLElement> = document.querySelectorAll('.users-list');
+        if (!usersLists || usersLists.length === 0) {
+            console.error('No elements with the class user-list found');
             return;
         }
-        usersList.innerHTML = users.map(user => createUserRow(user)).join('');
+
+        usersLists.forEach(usersList => {
+            if (isChat) {
+                usersList.innerHTML = users.map(user => createChatUserRow(user)).join('');
+            } else {
+                usersList.innerHTML = users.map(user => createUserRow(user)).join('');
+            }
+        });
+
         attachEventListeners();
     } catch (error) {
         console.error('Error fetching users:', error);
     }
 }
+
 
 // Export necessary functions
 export { fetchUsers, addFriend, UserArray }; 

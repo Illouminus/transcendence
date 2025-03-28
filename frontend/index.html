@@ -16,7 +16,7 @@
 			<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
 		</svg>
 	</button>
-	<div id="chatMenu" style="display:none; height: 400px; flex-direction: column; width: 400px; position: absolute; bottom: 10px; right: 20px; z-index: 100; background-color: rgba(0, 0, 0, 0.9); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+	<div id="chatMenu" style="display:none; height: 400px; flex-direction: column; width: 1000px; position: absolute; bottom: 10px; right: 20px; z-index: 100; background-color: rgba(0, 0, 0, 0.9); color: white; padding: 20px; border-radius: 10px; text-align: center;">
         <div class="flex justify-between items-center mb-4">
             <h1>CHAT</h1>
             <button id="closeChat" class="text-white hover:text-gray-300">
@@ -24,11 +24,13 @@
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
+			
         </div>
+		<div class="users-list"></div>
         <div id="chatScroll" class="flex items-start flex-col" style="flex-grow: 1; overflow-y: auto;">
           
         </div>
-        <div class="flex grow items-end">
+        <div class="hidden flex grow items-end">
             <div id="chatInput" class="flex flex-row h-full w-full items-end justify-center">
                 <input id="chatMessage" placeholder="Écrivez un message" type="text" style="color: black; background-color: white; width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; margin-top: 10px;">
                 <button id="sendButton" style="margin-left: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Envoyer</button>
