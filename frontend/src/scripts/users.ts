@@ -18,14 +18,14 @@ const API_URL_USER: string = "http://localhost:8080/user/getAllUsers";
 
 function createChatUserRow(user: UserArray): string {
     return `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-user-id="${user.id}">
+        <tr class="mb-20 hover:bg-gray-50 dark:hover:bg-gray-700" data-user-id="${user.id}">
             <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
+                <div class="flex items-center mb-8">
                     <div class="flex-shrink-0 h-10 w-10">
                         <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
                     </div>
                     <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        <div class="text-left text-sm font-medium text-gray-900 dark:text-white">
                             ${user.username}
                         </div>
                         <div class="text-sm text-gray-500 dark:text-gray-400">
