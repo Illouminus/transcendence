@@ -20,7 +20,7 @@ function createChatUserRow(user: UserArray): string {
     return `
         <tr class="mb-20 hover:bg-gray-50 dark:hover:bg-gray-700" data-user-id="${user.id}">
             <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center mb-8">
+                <div class="flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
                     <div class="flex-shrink-0 h-10 w-10">
                         <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
                     </div>
@@ -155,7 +155,7 @@ async function addFriend(userId: number): Promise<void> {
         UserState.addSentFriendRequest(userId);
         
         // Refresh the users list to update the button state
-        await fetchUsers();
+        await fetchUsers(false);
         
         alert('Friend request sent successfully!');
     } catch (error) {
@@ -224,34 +224,41 @@ export async function loadUserProfileData(): Promise<void> {
 }
 
 function attachEventListeners(): void {
-    const usersList = document.getElementById('users-list');
-    if (!usersList) return;
+    const usersLists = document.querySelectorAll('.users-list'); // Sélectionne tous les éléments avec la classe `user-list`
+    if (!usersLists || usersLists.length === 0) return;
 
-    usersList.addEventListener('click', (event: Event) => {
-        const target = event.target as HTMLElement;
-        const viewProfileBtn = target.closest('.view-profile-btn');
-        if (viewProfileBtn) {
-            const row = viewProfileBtn.closest('tr');
-            const userId = row?.getAttribute('data-user-id');
-            if (userId) {
-                redirectTo(`/user-profile?id=${userId}`);
+    usersLists.forEach(usersList => {
+        // Gestion des clics sur "view-profile-btn"
+        usersList.addEventListener('click', (event: Event) => {
+            const target = event.target as HTMLElement;
+            const viewProfileBtn = target.closest('.view-profile-btn');
+            if (viewProfileBtn) {
+                const row = viewProfileBtn.closest('tr');
+                const userId = row?.getAttribute('data-user-id');
+                if (userId) {
+                    console.log('View profile button clicked for user ID:', userId);
+                    redirectTo(`/user-profile?id=${userId}`);
+                }
             }
-        }
-    });
+        });
 
-    // Handle add friend clicks
-    usersList.addEventListener('click', (event: Event) => {
-        const target = event.target as HTMLElement;
-        const addFriendBtn = target.closest('.add-friend-btn');
-        if (addFriendBtn) {
-            const row = addFriendBtn.closest('tr');
-            const userId = row?.getAttribute('data-user-id');
-            if (userId) {
-                addFriend(parseInt(userId));
+        // Gestion des clics sur "add-friend-btn"
+        usersList.addEventListener('click', (event: Event) => {
+            const target = event.target as HTMLElement;
+            const addFriendBtn = target.closest('.add-friend-btn');
+            if (addFriendBtn) {
+                const row = addFriendBtn.closest('tr');
+                const userId = row?.getAttribute('data-user-id');
+                if (userId) {
+                    addFriend(parseInt(userId));
+                }
             }
-        }
+        });
     });
 }
+
+
+
 // Function to fetch and display users
 async function fetchUsers(isChat: boolean): Promise<void> {
     try {
@@ -277,8 +284,8 @@ async function fetchUsers(isChat: boolean): Promise<void> {
                 usersList.innerHTML = users.map(user => createUserRow(user)).join('');
             }
         });
-
         attachEventListeners();
+
     } catch (error) {
         console.error('Error fetching users:', error);
     }
