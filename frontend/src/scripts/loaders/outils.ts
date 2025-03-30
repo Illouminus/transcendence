@@ -63,6 +63,7 @@ export const updateUser = async () => {
         const user = await fetchUserProfile();
         if (user) {
             UserState.updateUser(user);
+			console.log("USER STATE", UserState.getUser());
         }
     } catch (error) {
         console.error('Error updating user:', error);

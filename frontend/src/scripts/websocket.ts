@@ -40,8 +40,8 @@ export function connectWebSocket(token: string): WebSocket {
         case 'friend_request_accepted': {
           const { message, user } = data.payload;
           showAlert(message, 'success');
-          console.log('request_accepted from user:', user);
           await updateUser();
+          UserState.updateFriendStatus(user.id, true, user.email);
           fetchUsers();
           loadFriends();
           break;
@@ -50,7 +50,6 @@ export function connectWebSocket(token: string): WebSocket {
         case 'friend_request_rejected': {
           const { message, user } = data.payload;
           showAlert(message, 'warning');
-          console.log('request_rejected from user:', user);
           await updateUser();
           const allUsers = await fetchAllUsers();
           if(allUsers)
@@ -72,6 +71,7 @@ export function connectWebSocket(token: string): WebSocket {
           const { message, user } = data.payload;
           showAlert(`${message}. Unblocked by ${user.username}`, 'info');
           await updateUser();
+          UserState.updateFriendStatus(user.id, true, user.email);
           loadFriends();
           break;
         }
@@ -80,6 +80,7 @@ export function connectWebSocket(token: string): WebSocket {
           const { message, user } = data.payload;
           showAlert(`${message}. Deleted by ${user.username}`, 'info');
           await updateUser();
+          UserState.updateFriendStatus(user.id, false, user.email);
           loadFriends();
           fetchUsers();
           break;
@@ -104,53 +105,26 @@ export function connectWebSocket(token: string): WebSocket {
             return;
           }
           showAlert(`${user.username} connected`, 'info');
-          const friends = UserState.getUser()?.friends;
-          if(friends){
-            {
-              friends.map(friend => {
-                if(friend.friend_id === user.id  || friend.friend_email === user.email){
-                  friend.online = true;
-                }
-              })
-            }
-        }
-        loadFriends();
+          UserState.updateFriendStatus(user.id, true, user.email);
+          loadFriends();
           break;
       }
 
-      case 'user_online': {
-        const { user } = data.payload;
-        showAlert(`${user.friend_username} is online`, 'info');
-        const friends = UserState.getUser()?.friends;
-        if(friends){
-          {
-            friends.map(friend => {
-              if(friend.friend_id === user.friend_id  || friend.friend_email === user.friend_email){
-                friend.online = true;
-              }
-            })
-          }
+        case 'user_online': {
+          const { user } = data.payload;
+          showAlert(`${user.friend_username} is online`, 'info');
+          UserState.updateFriendStatus(user.friend_id, true, user.friend_email);
+          loadFriends();
+          break;
       }
-      loadFriends();
-        break;
-    }
 
-    case 'user_disconnected': {
-      const { user } = data.payload;
-      showAlert(`${user.username} disconnected`, 'info');
-      const friends = UserState.getUser()?.friends;
-      if(friends){
-        {
-          friends.map(friend => {
-            if(friend.friend_id === user.id  || friend.friend_email === user.email){
-              friend.online = false;
-            }
-          })
-        }
-    }
-    loadFriends();
-      break;
-  }
+        case 'user_disconnected': {
+          const { user } = data.payload;
+          showAlert(`${user.username} disconnected`, 'info');
+          UserState.updateFriendStatus(user.id, false, user.email);
+          loadFriends();
+          break;
+      }
     
         default:
           console.warn('Unknown WS message type:', data);

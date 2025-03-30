@@ -78,6 +78,15 @@ export class UserState {
 	static getSocket() {
 		return this.socket;
 	}
+
+	static updateFriendStatus(friendId: number, online: boolean, email?: string) {
+		if (this.user && this.user.friends) {
+			const friend = this.user.friends.find(f => f.friend_id === friendId || f.friend_email === email);
+			if (friend) {
+				friend.online = online;
+			}
+		}
+	}
 }
 
 

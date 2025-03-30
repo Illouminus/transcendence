@@ -58,16 +58,17 @@ server.register(async function (fastify: FastifyInstance) {
 		const friendsList = await getFriendsListFromDB(Number(userAuthId.id));
 		console.log('friendsList:', friendsList);
 		for (const friend of friendsList) {
-		  // Если друг уже онлайн (его ID содержится в activeConnections)
-		  console.log('Friends list.:', friend);
+		  console.log('Friends list:', friend);
 
 		  if (activeConnections.has(friend.friend_id)) {
 			console.log(`User ${friend.friend_id} is already online`);
-			// Отправляем новое уведомление только новому пользователю
-			connection.send(JSON.stringify({
-			  type: 'user_online',
-			  payload: { user: friend }
-			}));
+			// Отправляем новое уведомление только новому пользователю с небольшой задержкой
+			setTimeout(() => {
+			  connection.send(JSON.stringify({
+				type: 'user_online',
+				payload: { user: friend }
+			  }));
+			}, 1000); // Задержка в 1 секунду
 		  }
 		}
 
@@ -86,8 +87,18 @@ server.register(async function (fastify: FastifyInstance) {
 	  
 	  // Обработка входящих сообщений
 	  connection.on('message', (message: any) => {
-		console.log(`Received message from user ${payload.userId}:`, message.toString());
-		connection.send('hi from server yep');
+		const data = JSON.parse(message);
+		console.log('Received message:', data);
+		// switch (data.type) {
+		//   case 'friend_request_accepted':
+		// 	const { message, user } = data.payload;
+		// 	console.log('Friend request accepted:', message, user);
+		// 	sendNotification(user.id, {
+		// 	  type: 'friend_request_accepted',
+		// 	  payload: { message, user },
+		// 	});
+		// 	break;
+		// }
 	  });
 	  
 	  // Обработка ошибок
