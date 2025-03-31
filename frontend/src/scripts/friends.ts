@@ -193,25 +193,9 @@ const acceptFriendRequest = async (requestId: number, card: HTMLElement) => {
         if (!response.ok) throw new Error('Failed to accept friend request');
 
         await updateUser();
-        
+
         UserState.updateFriendStatus(requestId, true);
         
-
-        // const socket = UserState.getSocket();
-        // console.log('socket:', socket);
-        // if (socket) {
-        //     socket.send(JSON.stringify({
-        //         type: 'friend_request_accepted',
-        //         payload: {
-        //             message: 'Friend request accepted',
-        //             user: {
-        //                 id: requestId,
-        //                 username: UserState.getUser()?.username,
-        //                 email: UserState.getUser()?.email
-        //             }
-        //         }
-        //     }));
-        // }
         card.classList.add('opacity-0', 'scale-95');
 
         setTimeout(() => {
