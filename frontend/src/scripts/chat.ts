@@ -1,9 +1,49 @@
-import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 import { UserArray } from "./users";
 import { UserState } from "./userState";
 
-function createChatUserRow(user: UserArray): string {
 
+
+function sendMessage(userId: string)
+{
+    const user = UserState.getUser();
+    const username = user?.username;
+    const avatar = user?.avatar;
+
+    const chatMessagesContainer = document.getElementById("chatMessages");
+    const chatMessageInput = document.getElementById("chatMessage");
+    const messageText = chatMessageInput?.value; 
+
+    // Ne rien faire si le message est vide
+    if (messageText === "") return; 
+
+    // Crée un nouvel élément de message
+    const messageContainer = document.createElement("div");
+    messageContainer.classList.add("chatMessageList", "flex", "items-start", "mb-5", "w-full");
+    messageContainer.setAttribute("data-user-id", userId?.toString() || "");
+    console.log('Message has id: ' + messageContainer.getAttribute("data-user-id"));
+
+    const messageHTML = `
+    <img class="w-8 h-8 rounded-full" src="http://localhost:8080/user${avatar}" alt="User image">
+    <div class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+        <div class="flex items-center space-x-2 rtl:space-x-reverse">
+            <span class="text-sm font-semibold text-gray-900 dark:text-white">${username}</span>
+            <span class="text-sm font-normal text-gray-500 dark:text-gray-400">11:46</span>
+        </div>
+        <p class="text-sm text-left  py-2.5 text-gray-900 dark:text-white">${messageText}</p>
+        <span class="text-sm text-right font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+    </div>
+    `;
+
+    messageContainer.innerHTML = messageHTML;
+    chatMessagesContainer?.insertBefore(messageContainer, chatMessagesContainer.querySelector(".grow"));
+
+    // Réinitialise le champ d'entrée
+    if (chatMessageInput)
+        chatMessageInput.innerHTML = "";
+}
+
+
+function createChatUserRow(user: UserArray): string {
     return `
         <div data-user-id="${user.id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
             <div class="flex-shrink-0 h-10 w-10">
@@ -36,6 +76,7 @@ function attachChatEventListeners(): void {
 
 
 function openChatWindow(userId: string): void {
+
     // Cache l'ancienne liste de users
     const friendsListContainer = document.getElementById("chat-friends-list");
     if (friendsListContainer) {
@@ -58,7 +99,18 @@ function openChatWindow(userId: string): void {
     // Met à jour le bouton de fermeture
     const closeChatButton = document.getElementById("closeChat");
     const goBackButton = document.getElementById("goBack");
+
+    //Filtre les messages pour n'afficher que ceux de l'utilisateur sélectionné
     const chatMessagesContainer = document.getElementById("chatMessages");
+    const chatMessages = document.querySelectorAll(".chatMessageList");
+    chatMessages.forEach((message) => {
+        const messageUserId = message.getAttribute("data-user-id");
+        if (messageUserId !== userId) {
+            message.classList.add("hidden");
+        }
+    });
+
+
     if (closeChatButton && goBackButton && chatMessagesContainer) {
         closeChatButton.classList.add("hidden");
         goBackButton.classList.remove("hidden");
@@ -81,16 +133,23 @@ function openChatWindow(userId: string): void {
             closeChatButton.onclick = null; // Supprime l'événement personnalisé pour revenir à l'état par défaut
         };
     }
+
+    const sendButton = document.getElementById("sendButton");
+    sendButton?.replaceWith(sendButton.cloneNode(true)); // Supprime tous les anciens écouteurs
+    const newSendButton = document.getElementById("sendButton");
+
+    newSendButton?.addEventListener("click", function () {
+        console.log("sendButton clicked");
+        console.log('Send Message to userId:', userId);
+        sendMessage(userId);
+    });
 }
 
 
 export function chat(): void {
-
-    const user = UserState.getUser();
-    const username = user?.username;
-    const avatar = user?.avatar;
     const chatButton = document.getElementById('chatButton')
     const closeChatButton = document.getElementById('closeChat');
+    
     if (chatButton) {
         chatButton.addEventListener('click', function() {
 			const chatMenu = document.getElementById('chatMenu');
@@ -122,37 +181,4 @@ export function chat(): void {
     // Ajoute des evenys listeners sur les users
     attachChatEventListeners();
 
-    const chatMessagesContainer = document.getElementById("chatMessages");
-    const chatMessageInput = document.getElementById("chatMessage");
-    const sendButton = document.getElementById("sendButton");
-  
-    sendButton?.addEventListener("click", function () {
-      const messageText = chatMessageInput?.value; 
-      console.log(messageText);
-  
-        if (messageText === "") return; // Ne rien faire si le message est vide
-  
-        // Crée un nouvel élément de message
-        const messageContainer = document.createElement("div");
-        messageContainer.classList.add("flex", "items-start", "mb-5", "w-full");
-  
-        const messageHTML = `
-        <img class="w-8 h-8 rounded-full" src="http://localhost:8080/user${avatar}" alt="User image">
-        <div class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-            <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">${username}</span>
-                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">11:46</span>
-            </div>
-            <p class="text-sm text-left  py-2.5 text-gray-900 dark:text-white">${messageText}</p>
-            <span class="text-sm text-right font-normal text-gray-500 dark:text-gray-400">Delivered</span>
-        </div>
-        `;
-        messageContainer.innerHTML = messageHTML;
-        console.log(messageContainer.innerHTML);
-        chatMessagesContainer?.insertBefore(messageContainer, chatMessagesContainer.querySelector(".grow"));
-  
-        // Réinitialise le champ d'entrée
-        if (chatMessageInput)
-          chatMessageInput.innerHTML = "";
-    });
 }
