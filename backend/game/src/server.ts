@@ -9,7 +9,8 @@ import config from "./config";
 // Import the database connection - auto launches the connection
 import "./database";
 import { JwtPayload } from "./@types/user.types";
-import { startGameLoop } from "./controllers/game.controller";
+import { createAndStartGame, updatePlayerPosition } from "./services/game.service";
+import { insertMatchmakingQueue, startOrdinaryGame } from "./models/game.model";
 
 connectRabbit();
 
@@ -44,7 +45,7 @@ server.register(async function (fastify: FastifyInstance) {
 	// 	activeConnections.delete(payload.userId);
 	//   });
 	  
-	  connection.on('message', (message: any) => {
+	  connection.on('message', async (message: any) => {
 		const data = JSON.parse(message);
 		console.log('Received message:', data);
 		
@@ -52,8 +53,14 @@ server.register(async function (fastify: FastifyInstance) {
 
 		switch (data.type) {
 			case 'game_start':
-				startGameLoop();
-				connection.send(JSON.stringify({ type: 'game_start', message: 'Game is starting!' }));
+				const gameId = await createAndStartGame(data);
+				connection.send(JSON.stringify({ type: 'game_start', message: 'Game is starting!', gameId: gameId }));
+				break;
+			case 'player_move':
+				
+				updatePlayerPosition(data.gameId, data.userId, data.direction);
+				// Обработка движения игрока
+				connection.send(JSON.stringify({ type: 'player_move', message: `Player ${data.userId} moved to (${data.direction})` }));
 				break;
 			case 'game_end':
 				connection.send(JSON.stringify({ type: 'game_end', message: 'Game has ended!' }));
