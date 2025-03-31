@@ -27,3 +27,13 @@ export async function updateGameStatistics(request: FastifyRequest, reply: Fasti
     }
 
 }
+
+
+
+
+
+export async function startGameLoop() {
+    setInterval(() => {
+        
+    }, 200); 
+}

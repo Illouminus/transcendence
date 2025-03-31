@@ -14,6 +14,12 @@ const config = {
   database: {
     path: process.env.DB_PATH || path.resolve(__dirname, '../database.sqlite'),
   },
+  security: {
+    jwtSecret: process.env.JWT_SECRET || 'supersecret-change-in-production',
+    cookieSecret: process.env.COOKIE_SECRET || 'cookie-secret-change-in-production',
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1h',
+    cookieMaxAge: 60 * 60 * 1000, // 1 hour
+  },
 };
 
 

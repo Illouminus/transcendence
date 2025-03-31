@@ -1,4 +1,6 @@
-import fastify from "fastify";
+import fastify, { FastifyRequest, FastifyInstance } from "fastify";
+import FastifyWebsocket from '@fastify/websocket';
+import fastifyJwt from "fastify-jwt";
 import { gameRoutes } from "./routes/game.routes";
 import { logError } from "./utils/errorHandler";
 import { connectRabbit } from "./rabbit/rabbit";
@@ -6,8 +8,10 @@ import config from "./config";
 
 // Import the database connection - auto launches the connection
 import "./database";
+import { JwtPayload } from "./@types/user.types";
+import { startGameLoop } from "./controllers/game.controller";
 
-//connectRabbit();
+connectRabbit();
 
 // Create an instance of Fastify server
 const server = fastify({
@@ -15,13 +19,104 @@ const server = fastify({
 	disableRequestLogging: config.server.env === "production",
 });
 
-// Set error handler for the server to log errors
-// This will log the error and return a JSON response with the error message and status code
-// For example, if you throw a new Error("Something went wrong") in a route handler, the error handler will catch it and return a JSON response like this:
-// {
-//   "error": "Something went wrong",
-//   "statusCode": 500
-// }
+server.register(fastifyJwt, { secret: config.security.jwtSecret });
+server.register(FastifyWebsocket);
+
+
+const activeConnections = new Map<number, WebSocket>();
+
+server.register(async function (fastify: FastifyInstance) {
+	fastify.get('/ws', { websocket: true }, async (connection: any, req: FastifyRequest<{ Querystring: { token: string } }>) => {
+	//   const token = req.query.token;  
+	//   const payload = server.jwt.verify(token) as JwtPayload;
+	  
+	//   const {userId} = payload;
+
+	//   if (!userId) {
+	// 	connection.close(4000, 'User not found');
+	// 	return;
+	//   }
+
+	//   activeConnections.set(userId, connection);
+	  
+	//   connection.on('close', () => {
+	// 	console.log(`User ${payload.userId} disconnected`);
+	// 	activeConnections.delete(payload.userId);
+	//   });
+	  
+	  connection.on('message', (message: any) => {
+		const data = JSON.parse(message);
+		console.log('Received message:', data);
+		
+		//connection.send(JSON.stringify({ type: 'test', message: 'This is a test response' }));
+
+		switch (data.type) {
+			case 'game_start':
+				startGameLoop();
+				connection.send(JSON.stringify({ type: 'game_start', message: 'Game is starting!' }));
+				break;
+			case 'game_end':
+				connection.send(JSON.stringify({ type: 'game_end', message: 'Game has ended!' }));
+				break;
+			case 'game_update':
+				connection.send(JSON.stringify({ type: 'game_update', message: 'Game state updated!' }));
+				break;
+			case 'game_statistics':
+				connection.send(JSON.stringify({ type: 'game_statistics', message: 'Game statistics updated!' }));
+				break;
+			case 'game_error':
+				connection.send(JSON.stringify({ type: 'game_error', message: 'An error occurred in the game!' }));
+				break;
+			default:
+				break;
+		}
+
+	  });
+	  
+	  // Обработка ошибок
+	//   connection.on('error', (error: any) => {
+	// 	console.error(`WebSocket error for user ${payload.userId}:`, error);
+	// 	activeConnections.delete(payload.userId);
+	//   });
+	});
+  });
+
+interface NotificationData {
+	type: string;
+	payload: unknown;
+}
+
+export function sendNotification(userId: number, data: NotificationData) {
+	const ws = activeConnections.get(userId);
+	
+	if (ws && ws.readyState === WebSocket.OPEN) {
+		try {
+			ws.send(JSON.stringify(data));
+			console.log('Notification sent successfully to user', userId);
+		} catch (error) {
+			console.error('Error sending notification:', error);
+			activeConnections.delete(userId);
+		}
+	} else {
+		console.log(`WebSocket for user ${userId} is not available or not open. ReadyState:`, ws?.readyState);
+	}
+}
+
+
+export function sendNotificationToAll(data: NotificationData) {
+
+	for (const ws of activeConnections.values()) {
+		if (ws.readyState === WebSocket.OPEN) {
+			try {
+				ws.send(JSON.stringify(data));
+			} catch (error) {
+				console.error('Error sending notification:', error);
+			}
+		}
+	}
+
+}
+
 
 server.setErrorHandler((error, request, reply) => {
 	logError(error, 'Server');
@@ -47,7 +142,7 @@ const start = async () => {
 
 	  const address = server.server.address();
 	  if (address) {
-		console.log(`🚀 Server listening at ${address}`);
+		console.log(`🚀 Server listening at ${config.server.port} on ${config.server.host}`);
 	  } else {
 		console.error("Failed to get server address");
 	  }
