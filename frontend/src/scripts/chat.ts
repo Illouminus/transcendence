@@ -18,7 +18,7 @@ function sendMessage(userId: string)
 
     // Crée un nouvel élément de message
     const messageContainer = document.createElement("div");
-    messageContainer.classList.add("chatMessageList", "flex", "items-start", "mb-5", "w-full");
+    messageContainer.classList.add("chatMessageSingle", "flex", "items-start", "mb-5", "w-full");
     messageContainer.setAttribute("data-user-id", userId?.toString() || "");
     console.log('Message has id: ' + messageContainer.getAttribute("data-user-id"));
 
@@ -102,7 +102,14 @@ function openChatWindow(userId: string): void {
 
     //Filtre les messages pour n'afficher que ceux de l'utilisateur sélectionné
     const chatMessagesContainer = document.getElementById("chatMessages");
-    const chatMessages = document.querySelectorAll(".chatMessageList");
+    if (chatMessagesContainer) {
+        chatMessagesContainer.classList.remove("hidden");
+    }
+    const chatMessages = document.querySelectorAll(".chatMessageSingle");
+    // Réaffiche tous les messages avant de filtrer
+    chatMessages.forEach((message) => {
+        message.classList.remove("hidden");
+    });
     chatMessages.forEach((message) => {
         const messageUserId = message.getAttribute("data-user-id");
         if (messageUserId !== userId) {
