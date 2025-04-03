@@ -3,43 +3,97 @@ import { UserState } from "./userState";
 
 
 
-function sendMessage(userId: string)
-{
+// function sendMessage(userId: string)
+// {
+//     const user = UserState.getUser();
+//     const username = user?.username;
+//     const avatar = user?.avatar;
+
+//     const chatMessagesContainer = document.getElementById("chatMessages");
+//     const chatMessageInput = document.getElementById("chatMessage");
+//     const messageText = chatMessageInput?.value; 
+
+//     // Ne rien faire si le message est vide
+//     if (messageText === "") return; 
+
+//     // Crée un nouvel élément de message
+//     const messageContainer = document.createElement("div");
+//     messageContainer.classList.add("chatMessageSingle", "flex", "items-start", "mb-5", "w-full");
+//     messageContainer.setAttribute("data-user-id", userId?.toString() || "");
+//     console.log('Message has id: ' + messageContainer.getAttribute("data-user-id"));
+
+//     const messageHTML = `
+//     <img class="w-8 h-8 rounded-full" src="http://localhost:8080/user${avatar}" alt="User image">
+//     <div class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+//         <div class="flex items-center space-x-2 rtl:space-x-reverse">
+//             <span class="text-sm font-semibold text-gray-900 dark:text-white">${username}</span>
+//             <span class="text-sm font-normal text-gray-500 dark:text-gray-400">11:46</span>
+//         </div>
+//         <p class="text-sm text-left  py-2.5 text-gray-900 dark:text-white">${messageText}</p>
+//         <span class="text-sm text-right font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+//     </div>
+//     `;
+
+//     messageContainer.innerHTML = messageHTML;
+//     chatMessagesContainer?.insertBefore(messageContainer, chatMessagesContainer.querySelector(".grow"));
+
+//     // Réinitialise le champ d'entrée
+//     if (chatMessageInput)
+//         chatMessageInput.innerHTML = "";
+// }
+
+async function sendMessage(userId: string) {
     const user = UserState.getUser();
     const username = user?.username;
     const avatar = user?.avatar;
+    const chatMessageInput = document.getElementById("chatMessage") as HTMLInputElement;
+    const messageText = chatMessageInput?.value;
 
+    if (!messageText || messageText.trim() === "") return;
+
+    try {
+        const response = await fetch(`http://localhost:8084/messages`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                senderId: user?.id,
+                receiverId: userId,
+                content: messageText,
+            }),
+        });
+
+        if (!response.ok) throw new Error("Erreur lors de l'envoi du message");
+
+        displayMessage(user?.id.toString(), username, avatar, messageText, "11:46");
+        chatMessageInput.value = "";
+    } catch (error) {
+        console.error("Erreur d'envoi du message :", error);
+    }
+}
+
+
+
+function displayMessage(userId: string, username: string, avatar: string, content: string, time: string) {
     const chatMessagesContainer = document.getElementById("chatMessages");
-    const chatMessageInput = document.getElementById("chatMessage");
-    const messageText = chatMessageInput?.value; 
 
-    // Ne rien faire si le message est vide
-    if (messageText === "") return; 
-
-    // Crée un nouvel élément de message
     const messageContainer = document.createElement("div");
     messageContainer.classList.add("chatMessageSingle", "flex", "items-start", "mb-5", "w-full");
-    messageContainer.setAttribute("data-user-id", userId?.toString() || "");
-    console.log('Message has id: ' + messageContainer.getAttribute("data-user-id"));
+    messageContainer.setAttribute("data-user-id", userId);
 
     const messageHTML = `
     <img class="w-8 h-8 rounded-full" src="http://localhost:8080/user${avatar}" alt="User image">
     <div class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
         <div class="flex items-center space-x-2 rtl:space-x-reverse">
             <span class="text-sm font-semibold text-gray-900 dark:text-white">${username}</span>
-            <span class="text-sm font-normal text-gray-500 dark:text-gray-400">11:46</span>
+            <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${time}</span>
         </div>
-        <p class="text-sm text-left  py-2.5 text-gray-900 dark:text-white">${messageText}</p>
+        <p class="text-sm text-left py-2.5 text-gray-900 dark:text-white">${content}</p>
         <span class="text-sm text-right font-normal text-gray-500 dark:text-gray-400">Delivered</span>
     </div>
     `;
 
     messageContainer.innerHTML = messageHTML;
-    chatMessagesContainer?.insertBefore(messageContainer, chatMessagesContainer.querySelector(".grow"));
-
-    // Réinitialise le champ d'entrée
-    if (chatMessageInput)
-        chatMessageInput.innerHTML = "";
+    chatMessagesContainer?.appendChild(messageContainer);
 }
 
 
@@ -63,94 +117,83 @@ function createChatUserRow(user: UserArray): string {
 
 
 function attachChatEventListeners(): void {
-    const chatConvs = document.querySelectorAll('.chatConv'); // Sélectionne toutes les divs générées
+    const chatConvs = document.querySelectorAll('.chatConv');
     chatConvs.forEach(chatConv => {
         chatConv.addEventListener('click', () => {
             const userId = chatConv.getAttribute('data-user-id');
-            if (userId) {
-                openChatWindow(userId); // Appelez la fonction pour ouvrir le chat
-            }
+            if (userId) openChatWindow(userId);
         });
     });
 }
 
 
-function openChatWindow(userId: string): void {
-
-    // Cache l'ancienne liste de users
+async function openChatWindow(userId: string) {
     const friendsListContainer = document.getElementById("chat-friends-list");
-    if (friendsListContainer) {
-        friendsListContainer.classList.add("hidden");
-    }
+    if (friendsListContainer) friendsListContainer.classList.add("hidden");
 
-    // Affiche l'input de message
     const chatInput = document.getElementById("chatInput");
-    if (chatInput) {
-        chatInput.classList.remove("hidden");
-    }
+    if (chatInput) chatInput.classList.remove("hidden");
 
-    // Remplace le titre chat par le username cliqué
     const chatTitle = document.getElementById("chatTitle");
     if (chatTitle) {
         const user = UserState.getAllUsers().find(u => u.id === parseInt(userId));
         chatTitle.innerHTML = user ? user.username : "Chat";
     }
 
-    // Met à jour le bouton de fermeture
-    const closeChatButton = document.getElementById("closeChat");
-    const goBackButton = document.getElementById("goBack");
-
-    //Filtre les messages pour n'afficher que ceux de l'utilisateur sélectionné
     const chatMessagesContainer = document.getElementById("chatMessages");
     if (chatMessagesContainer) {
+        chatMessagesContainer.innerHTML = "";
         chatMessagesContainer.classList.remove("hidden");
     }
-    const chatMessages = document.querySelectorAll(".chatMessageSingle");
-    // Réaffiche tous les messages avant de filtrer
-    chatMessages.forEach((message) => {
-        message.classList.remove("hidden");
-    });
-    chatMessages.forEach((message) => {
-        const messageUserId = message.getAttribute("data-user-id");
-        if (messageUserId !== userId) {
-            message.classList.add("hidden");
-        }
-    });
 
+    // Récupérer les anciens messages
+    try {
+        const response = await fetch(`http://localhost:8084/chat/messages/${2}/${1}`);
+        if (!response.ok) throw new Error("Erreur lors de la récupération des messages");
 
-    if (closeChatButton && goBackButton && chatMessagesContainer) {
+        const messages = await response.json();
+        messages.forEach((msg: any) => {
+            displayMessage(
+                msg.senderId.toString(),
+                msg.senderId === UserState.getUser()?.id ? "Moi" : chatTitle?.innerHTML || "Utilisateur",
+                "",
+                msg.content,
+                "11:46"
+            );
+        });
+    } catch (error) {
+        console.error("Erreur de chargement des messages :", error);
+    }
+
+    // Gestion du bouton retour
+    const goBackButton = document.getElementById("goBack");
+    const closeChatButton = document.getElementById("closeChat");
+
+    if (closeChatButton && goBackButton) {
         closeChatButton.classList.add("hidden");
         goBackButton.classList.remove("hidden");
-        chatMessagesContainer.classList.remove("hidden");
+
         goBackButton.onclick = () => {
-            if (friendsListContainer) {
-                friendsListContainer.classList.remove("hidden");
-            }
-            if (chatInput) {
-                chatInput.classList.add("hidden");
-            }
-            if (chatTitle) {
-                chatTitle.innerHTML = "CHAT";
-            }
-            if (chatMessagesContainer) {
-                chatMessagesContainer.classList.add('hidden')
-            }
+            if (friendsListContainer) friendsListContainer.classList.remove("hidden");
+            if (chatInput) chatInput.classList.add("hidden");
+            if (chatTitle) chatTitle.innerHTML = "CHAT";
+            if (chatMessagesContainer) chatMessagesContainer.classList.add("hidden");
+
             goBackButton.classList.add("hidden");
             closeChatButton.classList.remove("hidden");
-            closeChatButton.onclick = null; // Supprime l'événement personnalisé pour revenir à l'état par défaut
         };
     }
 
+    // Associer le bouton d'envoi
     const sendButton = document.getElementById("sendButton");
-    sendButton?.replaceWith(sendButton.cloneNode(true)); // Supprime tous les anciens écouteurs
+    sendButton?.replaceWith(sendButton.cloneNode(true));
     const newSendButton = document.getElementById("sendButton");
 
     newSendButton?.addEventListener("click", function () {
-        console.log("sendButton clicked");
-        console.log('Send Message to userId:', userId);
         sendMessage(userId);
     });
 }
+
 
 
 export function chat(): void {
@@ -173,7 +216,7 @@ export function chat(): void {
             }
         });
     }
-
+ 
     // Remplit le menu des users
     const friendsListContainer = document.getElementById("chat-friends-list");
     const friendsList = UserState.getAllUsers();

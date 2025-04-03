@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 	}
 
 	await setupUI();
-	await chat();
+	chat();
 	handleRouting();
 });
 
