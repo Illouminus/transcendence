@@ -5,13 +5,9 @@ import { logError } from "../utils/errorHandler";
 export async function getMessagesBetweenUsers(user1: number, user2: number) {
   return new Promise((resolve, reject) => {
     const query = `
-      SELECT * FROM messages 
-      WHERE (sender_id = ? AND receiver_id = ?) 
-      OR (sender_id = ? AND receiver_id = ?)
-      ORDER BY timestamp ASC
+      SELECT * FROM messages WHERE (sender_id = ? or sender_id = ?)
     `;
-    
-    db.all(query, [user1, user2, user2, user1], (err, rows) => {
+    db.all(query, [user1, user2], (err, rows) => {
       if (err) {
         logError(err, "getMessagesBetweenUsers");
         return reject(err);

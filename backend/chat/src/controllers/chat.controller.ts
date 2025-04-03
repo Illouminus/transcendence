@@ -11,13 +11,22 @@ import { getErrorMessage, getErrorStatusCode, logError } from "../utils/errorHan
 export async function getMessagesController(req: FastifyRequest<{ Params: { user1: string, user2: string } }>, reply: FastifyReply) {
   try {
     const { user1, user2 } = req.params;
-    const messages = await getMessagesService(parseInt(user1), parseInt(user2));
+    // Vérification que les paramètres sont bien convertis en number
+    const user1Id = parseInt(user1);
+    const user2Id = parseInt(user2);
+    
+    if (isNaN(user1Id) || isNaN(user2Id)) {
+      return reply.status(400).send({ error: "Invalid user IDs" });
+    }
+
+    const messages = await getMessagesService(user1Id, user2Id);
     return messages;
   } catch (error) {
     logError(error, "getMessagesController");
     return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
   }
 }
+
 
 // Envoyer un message
 export async function sendMessageController(req: FastifyRequest<{ Body: { senderId: number, receiverId: number, content: string } }>, reply: FastifyReply) {

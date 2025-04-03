@@ -73,18 +73,24 @@ async function sendMessage(userId: string) {
 
 
 
-function displayMessage(userId: string, username: string, avatar: string, content: string, time: string) {
+function displayMessage(senderId: number, content: string, time: string) {
     const chatMessagesContainer = document.getElementById("chatMessages");
 
     const messageContainer = document.createElement("div");
     messageContainer.classList.add("chatMessageSingle", "flex", "items-start", "mb-5", "w-full");
-    messageContainer.setAttribute("data-user-id", userId);
+    messageContainer.setAttribute("data-user-id", senderId?.toString());
+
+    console.log(senderId); 
+    if (senderId === 1) 
+        messageContainer.classList.add("justify-end");
+    else 
+        messageContainer.classList.add("justify-start");
+        
 
     const messageHTML = `
-    <img class="w-8 h-8 rounded-full" src="http://localhost:8080/user${avatar}" alt="User image">
-    <div class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+    <div style="width: 70%"  class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
         <div class="flex items-center space-x-2 rtl:space-x-reverse">
-            <span class="text-sm font-semibold text-gray-900 dark:text-white">${username}</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white">${senderId}</span>
             <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${time}</span>
         </div>
         <p class="text-sm text-left py-2.5 text-gray-900 dark:text-white">${content}</p>
@@ -148,17 +154,16 @@ async function openChatWindow(userId: string) {
 
     // Récupérer les anciens messages
     try {
-        const response = await fetch(`http://localhost:8084/chat/messages/${2}/${1}`);
+        const response = await fetch(`http://localhost:8084/chat/messages/${1}/${2}`);
         if (!response.ok) throw new Error("Erreur lors de la récupération des messages");
 
         const messages = await response.json();
-        messages.forEach((msg: any) => {
+        messages.forEach((message: any) => {
+            console.log(message);
             displayMessage(
-                msg.senderId.toString(),
-                msg.senderId === UserState.getUser()?.id ? "Moi" : chatTitle?.innerHTML || "Utilisateur",
-                "",
-                msg.content,
-                "11:46"
+                message.sender_id,
+                message.content,
+                message.sent_at,
             );
         });
     } catch (error) {
