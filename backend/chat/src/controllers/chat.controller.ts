@@ -32,6 +32,9 @@ export async function getMessagesController(req: FastifyRequest<{ Params: { user
 export async function sendMessageController(req: FastifyRequest<{ Body: { senderId: number, receiverId: number, content: string } }>, reply: FastifyReply) {
   try {
     const { senderId, receiverId, content } = req.body;
+    console.log("Sender ID:", senderId);
+    console.log("Receiver ID:", receiverId);
+    console.log("Content:", content);
     const newMessage = await sendMessageService(senderId, receiverId, content);
     return reply.status(201).send(newMessage);
   } catch (error) {
