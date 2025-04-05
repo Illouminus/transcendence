@@ -5,9 +5,13 @@ import { logError } from "../utils/errorHandler";
 export async function getMessagesBetweenUsers(user1: number, user2: number) {
   return new Promise((resolve, reject) => {
     const query = `
-      SELECT * FROM messages WHERE (sender_id = ? or sender_id = ?)
+      SELECT * FROM messages 
+      WHERE (sender_id = ? AND receiver_id = ?) 
+         OR (sender_id = ? AND receiver_id = ?) 
+      ORDER BY sent_at ASC
     `;
-    db.all(query, [user1, user2], (err, rows) => {
+
+    db.all(query, [user1, user2, user2, user1], (err, rows) => {
       if (err) {
         logError(err, "getMessagesBetweenUsers");
         return reject(err);
@@ -17,23 +21,65 @@ export async function getMessagesBetweenUsers(user1: number, user2: number) {
   });
 }
 
-// Fonction pour enregistrer un message dans la base de données
-export async function saveMessage(senderId: number, receiverId: number, content: string) {
+export async function getConversationId(user1: number, user2: number): Promise<number | null> {
   return new Promise((resolve, reject) => {
     const query = `
-      INSERT INTO messages (sender_id, receiver_id, content, timestamp) 
-      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      SELECT id FROM conversations 
+      WHERE (user1_id = ? AND user2_id = ?) 
+         OR (user1_id = ? AND user2_id = ?)
     `;
+    db.get(query, [user1, user2, user2, user1], (err, row: { id: number } | undefined) => {
+      if (err) {
+        logError(err, "getConversationId");
+        return reject(err);
+      }
+      // Gestion de la valeur de row qui peut être undefined
+      resolve(row ? row.id : null);
+    });
+  });
+}
 
-    db.run(query, [senderId, receiverId, content], function (err) {
+
+
+export async function createConversation(user1: number, user2: number) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      INSERT INTO conversations (user1_id, user2_id) 
+      VALUES (?, ?)`;
+
+    db.run(query, [user1, user2], function (err) {
+      if (err) {
+        logError(err, "createConversation");
+        return reject(err);
+      }
+      resolve(this.lastID);
+    });
+  });
+}
+
+// Fonction pour enregistrer un message dans la base de données
+export async function saveMessage(
+  conversation_id: number,
+  sender_id: number,
+  receiver_id: number,
+  content: string,
+  sent_at: string
+) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      INSERT INTO messages (conversation_id, sender_id, receiver_id, content, sent_at)
+      VALUES (?, ?, ?, ?, ?)`;
+
+    db.run(query, [conversation_id, sender_id, receiver_id, content, sent_at], function (err) {
       if (err) {
         logError(err, "saveMessage");
         return reject(err);
       }
-      resolve({ id: this.lastID, senderId, receiverId, content, timestamp: new Date() });
+      resolve({ id: this.lastID, conversation_id, sender_id, receiver_id, content, sent_at });
     });
   });
 }
+
 
 // Fonction pour récupérer toutes les conversations d'un utilisateur
 export async function getUserConversations(userId: number) {

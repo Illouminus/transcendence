@@ -29,19 +29,24 @@ export async function getMessagesController(req: FastifyRequest<{ Params: { user
 
 
 // Envoyer un message
-export async function sendMessageController(req: FastifyRequest<{ Body: { senderId: number, receiverId: number, content: string } }>, reply: FastifyReply) {
+export async function sendMessageController(req: FastifyRequest<{ Body: { sender_id: number, receiver_id: number, content: string } }>, reply: FastifyReply) {
   try {
-    const { senderId, receiverId, content } = req.body;
-    console.log("Sender ID:", senderId);
-    console.log("Receiver ID:", receiverId);
-    console.log("Content:", content);
-    const newMessage = await sendMessageService(senderId, receiverId, content);
+    const { sender_id, receiver_id, content } = req.body;
+
+    if (!sender_id || !receiver_id || !content) {
+      // Si l'un des champs est manquant, renvoyer une erreur
+      return reply.status(400).send({ error: "All fields are required" });
+    }
+
+    const newMessage = await sendMessageService(sender_id, receiver_id, content);
     return reply.status(201).send(newMessage);
   } catch (error) {
     logError(error, "sendMessageController");
     return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
   }
 }
+
+
 
 // Récupérer toutes les conversations d'un utilisateur
 export async function getConversationsController(req: FastifyRequest<{ Params: { userId: string } }>, reply: FastifyReply) {

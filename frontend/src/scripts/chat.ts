@@ -1,10 +1,7 @@
 import { UserArray } from "./users";
 import { UserState } from "./userState";
 
-async function sendMessage(userId: string) {
-    const user = UserState.getUser();
-    const username = user?.username;
-    const avatar = user?.avatar;
+async function sendMessage(meId:number, himID: number) {
     const chatMessageInput = document.getElementById("chatMessage") as HTMLInputElement;
     const messageText = chatMessageInput?.value;
 
@@ -17,8 +14,8 @@ async function sendMessage(userId: string) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                senderId: user?.id,
-                receiverId: userId,
+                sender_id: meId,
+                receiver_id: himID,
                 content: messageText,
             }),
         });
@@ -41,8 +38,6 @@ function displayMessage(himUsername: string, meUsername: string, himId: number, 
     const messageContainer = document.createElement("div");
     messageContainer.classList.add("chatMessageSingle", "flex", "items-start", "mb-5", "w-full");
     messageContainer.setAttribute("data-user-id", senderId?.toString());
-
-    console.log("Sender ID:", senderId);
 
     // Déterminer le bon nom d'utilisateur en fonction de l'expéditeur
     const username = senderId === himId ? himUsername : meUsername;
@@ -140,11 +135,11 @@ async function openChatWindow(userId: string) {
     // Récupérer les anciens messages
     try {
         const response = await fetch(`http://localhost:8084/chat/messages/${himId}/${meId}`);
+        console.log('Réponse du serveur :' + response);
         if (!response.ok) throw new Error("Erreur lors de la récupération des messages");
 
         const messages = await response.json();
         messages.forEach((message: any) => {
-            console.log(message);
             displayMessage(
                 himUsername, 
                 meUsername, 
@@ -183,7 +178,7 @@ async function openChatWindow(userId: string) {
     const newSendButton = document.getElementById("sendButton");
 
     newSendButton?.addEventListener("click", function () {
-        sendMessage(userId);
+        sendMessage(meId, himId, userId);
     });
 }
 

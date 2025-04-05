@@ -1,4 +1,4 @@
-import { getMessagesBetweenUsers,  saveMessage,  getUserConversations, removeMessageById } from "../models/chat.model";
+import { getConversationId, createConversation, getMessagesBetweenUsers,  saveMessage,  getUserConversations, removeMessageById } from "../models/chat.model";
   
   import { createNotFoundError, createDatabaseError, logError } from "../utils/errorHandler";
   
@@ -17,19 +17,35 @@ import { getMessagesBetweenUsers,  saveMessage,  getUserConversations, removeMes
   }
   
   // Service pour envoyer un message
-  export async function sendMessageService(senderId: number, receiverId: number, content: string) {
+  export async function sendMessageService(sender_id: number, receiver_id: number, content: string) {
     try {
-      if (!senderId || !receiverId || !content) {
-        throw createDatabaseError("All fields are required", { senderId, receiverId, content });
+      if (!sender_id || !receiver_id || !content) {
+        throw createDatabaseError("All fields are required", { sender_id, receiver_id, content });
       }
   
-      const newMessage = await saveMessage(senderId, receiverId, content);
+      let conversation_id = await getConversationId(sender_id, receiver_id);
+      console.log('Conversation ID' + conversation_id);
+  
+      if (conversation_id === null) {
+        // Créer une nouvelle conversation si elle n'existe pas
+        conversation_id = await createConversation(sender_id, receiver_id) as number;
+      }
+  
+      if (!conversation_id) {
+        throw createDatabaseError("Failed to create or retrieve conversation", { sender_id, receiver_id });
+      }
+  
+      const sent_at = new Date().toISOString();
+      const newMessage = await saveMessage(conversation_id, sender_id, receiver_id, content, sent_at);
+  
       return newMessage;
     } catch (error) {
       logError(error, "sendMessageService");
-      throw createDatabaseError("Failed to send message", { senderId, receiverId });
+      throw createDatabaseError("Failed to send message", { sender_id, receiver_id });
     }
   }
+  
+  
   
   // Service pour récupérer toutes les conversations d'un utilisateur
   export async function getConversationsService(userId: number) {
