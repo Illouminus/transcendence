@@ -40,7 +40,7 @@
 	"devDependencies": {
 		"@eslint/js": "^9.20.0",
 		"@fastify/cors": "^10.0.2",
-		"@fastify/jwt": "^9.0.4",
+		"@fastify/jwt": "^9.1.0",
 		"@types/amqplib": "^0.10.6",
 		"@types/bcrypt": "^5.0.2",
 		"@types/fastify-multipart": "^0.5.0",

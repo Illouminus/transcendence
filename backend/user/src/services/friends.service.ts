@@ -1,8 +1,10 @@
 import { FriendsList } from "../@types/friends.types";
 import { getFriendsListFromDB, sendFriendRequestDB, getIncomingRequestsDb,
     getOutgoingRequestsDb, acceptFriendRequestDB, rejectFriendRequestDB, blockFriendDB,
-    unblockFriendDb, deleteFriendDb
+    unblockFriendDb, deleteFriendDb,
+    getFriendshipRecord
  } from "../models/friends.model";
+import { AppError, ErrorType } from "../utils/errorHandler";
 
 
 
@@ -22,14 +24,21 @@ export async function getFriendsListService(userId: number) : Promise<Array<Frie
 // This function should send a friend request from the user with the given userId to the user with the given friendId.
 // // If the friend request is successfully sent, return a success message.
 // If the friend request is not successfully sent, return an error message.
-export async function sendFriendRequestService(userId: number, friendId: number) : Promise<string> {
-    try {
-     const response = await sendFriendRequestDB(userId, friendId);
-     return response;
-    } catch (error) {
-        throw error;
-    } 
-}
+export async function sendFriendRequestService(userId: number, friendId: number): Promise<string> {
+    // Проверяем, существует ли уже запись о дружбе
+    const friendship = await getFriendshipRecord(userId, friendId);
+    if (friendship) {
+      if (friendship.status === 'pending') {
+        throw new AppError("Friend request already sent.", ErrorType.FRIEND_REQUEST_PENDING, 400);
+      } else if (friendship.status === 'accepted') {
+        throw new AppError("You are already friends.", ErrorType.ALREADY_FRIENDS, 400);
+      } else if (friendship.status === 'blocked') {
+        throw new AppError("Cannot send friend request – user is blocked.", ErrorType.USER_BLOCKED, 400);
+      }
+    }
+    const response = await sendFriendRequestDB(userId, friendId);
+    return response;
+  }
 
 // This function should return a list of incoming friend requests for the user with the given userId.
 export async function getIncomingRequestsService(userId: number) : Promise<Array<FriendsList>> {

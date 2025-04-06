@@ -27,3 +27,5 @@ export async function updateGameStatistics(request: FastifyRequest, reply: Fasti
     }
 
 }
+
+

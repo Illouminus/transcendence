@@ -12,3 +12,46 @@
     box-shadow: inset 11px 11px 20px #0d0c0b, inset -11px -11px 20px #2b2723;
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Modal Backdrop Animation */
+#gameInvitationModal > div:first-child {
+    transition: opacity 0.3s ease-out;
+}
+
+#gameInvitationModal.hidden > div:first-child {
+    opacity: 0;
+}
+
+/* Button Hover Effects */
+#acceptInvitation:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+#declineInvitation:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Close Button Animation */
+#closeInvitationModal {
+    transition: transform 0.2s ease-out;
+}
+
+#closeInvitationModal:hover {
+    transform: rotate(90deg);
+} 

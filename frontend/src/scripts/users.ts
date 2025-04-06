@@ -28,11 +28,13 @@ async function addFriend(userId: number): Promise<void> {
                 'Content-Type': 'application/json',
             },
         });
-
         if (!response.ok) {
-            throw new Error('Failed to add friend');
+            const data = await response.json();
+            throw new Error(data.error);
         }
-        showAlert('Friend request sent successfully!', 'success');
+
+        const data = await response.json();
+        showAlert(data.message, 'success');
         const user = await fetchUserProfile();
         if(user)
             UserState.updateUser(user);
@@ -41,9 +43,9 @@ async function addFriend(userId: number): Promise<void> {
         
         // Refresh the users list to update the button state
         await fetchUsers();
-    } catch (error) {
+    } catch (error: any ) {
         console.error('Error adding friend:', error);
-        showAlert('Failed to send friend request', 'danger');
+        showAlert(error, 'danger');
     }
 }
 
@@ -104,21 +106,41 @@ function attachEventListeners(): void {
     });
 }
 
-// Function to fetch and display users
 async function fetchUsers(): Promise<void> {
-    try {  
-        const users: UserArray[] = UserState.getAllUsers(); 
-        const outcomeRequest = UserState.getUser()?.outgoingRequests;
-        if(outcomeRequest)
+    try {
+        const users: UserArray[] = UserState.getAllUsers();
+        if (!users || users.length === 0) return;
+
+        const currentUser = UserState.getUser();
+        if (!currentUser) {
+            console.error('Current user not found');
+            return;
+        }
+
+        // Исключаем текущего пользователя
+        const filteredUsers = users.filter(user => currentUser.id !== user.id);
+
+        // Исключаем пользователей, которые уже являются друзьями
+        const acceptedFriendIds = currentUser.friends
+            ?.filter(friend => friend.status === 'accepted')
+            .map(friend => friend.friend_id) || [];
+
+        const filtredFriends = filteredUsers.filter(user => !acceptedFriendIds.includes(user.id));
+
+        // Обрабатываем исходящие запросы
+        const outcomeRequest = currentUser.outgoingRequests || [];
         outcomeRequest.forEach(request => {
             UserState.addSentFriendRequest(request.id);
         });
+
+        // Рендерим список пользователей
         const usersList: HTMLElement | null = document.getElementById('users-list');
         if (!usersList) {
             console.error('Users list element not found');
             return;
         }
-        usersList.innerHTML = users.map(user => createUserRow(user)).join('');
+
+        usersList.innerHTML = filtredFriends.map(user => createUserRow(user)).join('');
         attachEventListeners();
     } catch (error) {
         console.error('Error fetching users:', error);

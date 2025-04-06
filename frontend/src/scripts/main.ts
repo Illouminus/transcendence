@@ -5,7 +5,9 @@ import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick
 import { UserState } from "./userState";
 import { fetchUserProfile } from "./services/user.service";
 import { fetchAllUsers } from "./loaders/outils";
-import { connectWebSocket } from "./websocket";
+import { connectUserWebSocket } from "./userWebsocket";
+import { connectGameWebSocket } from "./gameWebsocket";
+import { createGameInvitationModal } from "./gameInvitationModal";
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -26,7 +28,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 	{
 		const user = await fetchUserProfile();
 		const allUsers = await fetchAllUsers();
-		UserState.setSocket(connectWebSocket(token));
+		UserState.setUserSocket(connectUserWebSocket(token));
+		UserState.setGameSocket(connectGameWebSocket(token));
 
 		if(allUsers)
 			UserState.setAllUsers(allUsers);

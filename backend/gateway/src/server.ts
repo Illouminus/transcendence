@@ -108,8 +108,8 @@ async function verifyJWT(req: FastifyRequest, reply: FastifyReply) {
         req.headers['x-user-id'] = decoded.userId.toString();
       }
     }
-    // else
-    //   reply.status(404).send("Acces refused");
+    else
+      reply.status(404).send("Acces refused");
   } catch (error) {
       reply.status(401).send("Acces refused");
   }

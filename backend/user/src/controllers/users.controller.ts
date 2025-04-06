@@ -3,6 +3,7 @@ import { registerUserService, updateAvatarService, updateUsernameService, getUse
 import { getErrorMessage, getErrorStatusCode, logError, createValidationError, createAuthenticationError } from "../utils/errorHandler";
 import { getUserById } from "../models/user.model";
 import { getUserIdFromHeader } from "../utils/outils";
+import { sendNotification } from "../server";
 
 
 interface UpdateProfileFileds {
@@ -21,6 +22,7 @@ export async function updateAvatarController(req: FastifyRequest<{Body: UpdatePr
 		return reply.status(401).send({ error: "User not found" });
 	  }
 	  const response = await updateAvatarService(user.id, avatar);
+	  sendNotification(userId, { type: "profile-view", payload: { userId } });
 	  return reply.status(200).send(response);
 	} catch (error) {
 	  logError(error, "updateProfile");
@@ -39,6 +41,8 @@ export async function updateAvatarController(req: FastifyRequest<{Body: UpdatePr
 	}
   }
 
+  
+
 
 export async function updateUsernameController(userId: number, username: string, email: string) {
 	try {
@@ -53,6 +57,7 @@ export async function updateUsernameController(userId: number, username: string,
 	try {
 		const userId = getUserIdFromHeader(req);
 		const user = await getUserProfileService(userId);
+		
 		if (!user) {
 			return reply.status(401).send({ error: "User not found" });
 		}

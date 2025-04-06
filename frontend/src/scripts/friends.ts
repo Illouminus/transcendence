@@ -1,281 +1,283 @@
 import { friendCard } from "../components/friendCard";
 import { requestComponent } from "../components/requestList";
+import { updateUser } from "./loaders/outils";
+import { showAlert } from "./services/alert.service";
+import { fetchUserProfile } from "./services/user.service";
 import { UserState } from "./userState";
 
 
-interface Friend {
-    id: number;
-    username: string;
-    avatar: string;
+
+export interface Friend {
+    friend_id: number;
+    friend_username: string;
+    friend_avatar: string;
+    status: string;
+    online?: boolean;
 }
 
-class FriendsManager {
-    private friendsContainer: HTMLElement | null;
-    private requestsContainer: HTMLElement | null;
 
-    constructor() {
-        this.friendsContainer = null;
-        this.requestsContainer = null;
+// DOM Elements
+let friendsContainer: HTMLElement | null = null;
+let requestsContainer: HTMLElement | null = null;
+
+// Initialize DOM elements
+const initializeContainers = () => {
+    friendsContainer = document.querySelector('.friends-section .grid');
+    requestsContainer = document.querySelector('.friend-requests-section .grid');
+
+    if (!friendsContainer || !requestsContainer) {
+        console.error('Required containers not found');
+        return false;
     }
+    return true;
+};
 
-    async initialize() {
-        this.friendsContainer = document.querySelector('.friends-section .grid');
-        this.requestsContainer = document.querySelector('.friend-requests-section .grid');
-
-
-        // socket.addEventListener("open", (event) => {
-        //     socket.send("Hello Server!");
-        //   });
-
-
-        // socket.onopen = () => {
-        //     console.log('WebSocket connection established');
-        // };
-
-        // socket.onmessage = (event) => {
-        //     console.log('WebSocket message received:', event.data);
-        // };
-
-        if (!this.friendsContainer || !this.requestsContainer) {
-            console.error('Required containers not found');
+// Load and display friends
+export const loadFriends = async () => {
+    if (!friendsContainer) return;
+    
+    try {
+        const user = UserState.getUser();
+        if (!user?.friends) {
+            friendsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friends yet</p>';
             return;
         }
-        try {
-            await this.loadFriends();
-            await this.loadFriendRequests();
-            this.attachEventListeners();
-        } catch (error) {
-            console.error('Error initializing friends manager:', error);
-        }
-    }
-
-    private async loadFriends() {
-        if (!this.friendsContainer) return;
-
-        try {
-            const user = UserState.getUser();
-            if (!user?.friends) {
-                this.friendsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friends yet</p>';
-                return;
-            }
-            
-            this.friendsContainer.innerHTML = '';
-            user.friends.forEach(friend => {
-                const card = this.createFriendCard(friend);
-                this.friendsContainer?.appendChild(card);
-            });
-
-            if (user.friends.length === 0) {
-                this.friendsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friends yet</p>';
-            }
-        } catch (error) {
-            console.error('Error loading friends:', error);
-            this.showNotification('Failed to load friends', 'error');
-        }
-    }
-
-    private async loadFriendRequests() {
-        if (!this.requestsContainer) return;
-
-        try {
-            const user = UserState.getUser();
-            if (!user?.incomingRequests) {
-                this.requestsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friend requests</p>';
-                return;
-            }
-
-            // Используем новый компонент requestList
-            this.requestsContainer.innerHTML = requestComponent(user.incomingRequests);
-
-            if (user.incomingRequests.length === 0) {
-                this.requestsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friend requests</p>';
-            }
-        } catch (error) {
-            console.error('Error loading friend requests:', error);
-            this.showNotification('Failed to load friend requests', 'error');
-        }
-    }
-
-    private createFriendCard(friend: Friend): HTMLElement {
-        const card = document.createElement('div');
-        card.innerHTML = friendCard(friend);
-        return card;
-    }
-
-    private attachEventListeners() {
-        if (!this.friendsContainer || !this.requestsContainer) return;
-
-        // Friend card event listeners
-        this.friendsContainer.addEventListener('click', async (e) => {
-            const target = e.target as HTMLElement;
-            const card = target.closest('[data-friend-id]');
-            if (!card) return;
-
-            const friendId = card.getAttribute('data-friend-id');
-            if (!friendId) return;
-
-            if (target.closest('.game-button')) {
-                await this.inviteToGame(parseInt(friendId), card as HTMLElement);
-            } else if (target.closest('.block-button') || target.closest('.unblock-button')) {
-                await this.blockFriend(parseInt(friendId), card as HTMLElement);
-            } else if (target.closest('.remove-button')) {
-                await this.removeFriend(parseInt(friendId), card as HTMLElement);
-            }
+        
+        friendsContainer.innerHTML = '';
+        
+        const filteredFriends = user.friends.filter(friend => 
+            friend.status === 'accepted' || friend.status === 'blocked'
+        );
+        
+        filteredFriends.forEach(friend => {
+            const card = createFriendCard(friend);
+            friendsContainer?.appendChild(card);
         });
 
-        // Friend request event listeners
-        this.requestsContainer.addEventListener('click', async (e) => {
-            const target = e.target as HTMLElement;
-            const card = target.closest('[data-request-id]');
-            if (!card) return;
+        if (filteredFriends.length === 0) {
+            friendsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friends yet</p>';
+        }
+    } catch (error) {
+        console.error('Error loading friends:', error);
+        showAlert('Failed to load friends', 'danger');
+    }
+};
 
-            const requestId = card.getAttribute('data-request-id');
-            if (!requestId) return;
 
-            if (target.closest('.accept-button')) {
-                await this.acceptFriendRequest(parseInt(requestId), card as HTMLElement);
-            } else if (target.closest('.reject-button')) {
-                await this.rejectFriendRequest(parseInt(requestId), card as HTMLElement);
-            }
+export const loadFriendRequests = async () => {
+    if (!requestsContainer) return;
+
+    try {
+        const user = UserState.getUser();
+        if (!user?.incomingRequests) {
+            requestsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friend requests</p>';
+            return;
+        }
+        requestsContainer.innerHTML = requestComponent(user.incomingRequests);
+
+        if (user.incomingRequests.length === 0) {
+            requestsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friend requests</p>';
+        }
+    } catch (error) {
+        console.error('Error loading friend requests:', error);
+        showAlert('Failed to load friend requests', 'danger');
+    }
+};
+
+// Create friend card element
+const createFriendCard = (friend: Friend): HTMLElement => {
+    const card = document.createElement('div');
+    card.innerHTML = friendCard(friend);
+    return card;
+};
+
+// Event handlers
+const handleFriendCardClick = async (e: Event) => {
+    const target = e.target as HTMLElement;
+    const card = target.closest('[data-friend-id]');
+    if (!card) return;
+
+    const friendId = card.getAttribute('data-friend-id');
+    if (!friendId) return;
+
+    if (target.closest('.game-button')) {
+        await inviteToGame(parseInt(friendId), card as HTMLElement);
+    } else if (target.closest('.block-button') || target.closest('.unblock-button')) {
+        await blockFriend(parseInt(friendId), card as HTMLElement);
+    } else if (target.closest('.remove-button')) {
+        await removeFriend(parseInt(friendId), card as HTMLElement);
+    }
+};
+
+const handleFriendRequestClick = async (e: Event) => {
+    const target = e.target as HTMLElement;
+    const card = target.closest('[data-request-id]');
+    if (!card) return;
+
+    const requestId = card.getAttribute('data-request-id');
+    if (!requestId) return;
+
+    if (target.closest('.accept-button')) {
+        await acceptFriendRequest(parseInt(requestId), card as HTMLElement);
+    } else if (target.closest('.reject-button')) {
+        await rejectFriendRequest(parseInt(requestId), card as HTMLElement);
+    }
+};
+
+// Friend actions
+const inviteToGame = async (friendId: number, card: HTMLElement) => {
+    try {
+        const gameSocket = UserState.getGameSocket();
+        if (!gameSocket) {
+            console.error('Game socket not available');
+            showAlert('Game socket not available', 'danger');
+            return;
+        }
+        gameSocket.send(JSON.stringify({ type: 'game_invite', payload: {friendId: friendId}}));
+        // const response = await fetch('http://localhost:8080/game/invite', {
+        //     method: 'POST',
+        //     headers: { 
+        //         'Content-Type': 'application/json',
+        //         'authorization': `Bearer ${localStorage.getItem('token')}`
+        //     },
+        //     body: JSON.stringify({ friendId }),
+        //     credentials: 'include'
+        // });
+
+        //if (!response.ok) throw new Error('Failed to send game invitation');
+
+        const button = card.querySelector('.invite-button');
+        if (button) {
+            button.textContent = 'Invited!';
+            button.classList.add('bg-gray-600', 'cursor-not-allowed');
+            button.setAttribute('disabled', 'true');
+        }
+
+        showAlert('Game invitation sent!', 'success');
+    } catch (error) {
+        console.error('Error inviting to game:', error);
+        showAlert('Failed to send game invitation', 'danger');
+    }
+};
+
+const blockFriend = async (friendId: number, card: HTMLElement) => {
+    try {
+        const isBlocked = card.querySelector('.block-button');
+        const url = isBlocked 
+            ? `http://localhost:8080/user/friends/${friendId}/block`
+            : `http://localhost:8080/user/friends/${friendId}/unblock`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ friendId }),
+            credentials: 'include'
         });
+
+        if (!response.ok) throw new Error('Failed to block friend');
+        
+        await updateUser();
+        UserState.updateFriendStatus(friendId, !isBlocked);
+        await loadFriends();
+        showAlert('Friend blocked successfully', 'success');
+    } catch (error) {
+        console.error('Error blocking friend:', error);
+        showAlert('Failed to block friend', 'danger');
     }
+};
 
-    private async inviteToGame(friendId: number, card: HTMLElement) {
-        try {
-            const response = await fetch('http://localhost:8080/game/invite', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' ,
-                    'authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ friendId }),
-                credentials: 'include'
-            });
+const acceptFriendRequest = async (requestId: number, card: HTMLElement) => {
+    try {
+        const response = await fetch(`http://localhost:8080/user/friends/requests/${requestId}/accept`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requestId }),
+            credentials: 'include'
+        });
 
-            if (!response.ok) throw new Error('Failed to send game invitation');
+        if (!response.ok) throw new Error('Failed to accept friend request');
 
-            const button = card.querySelector('.invite-button');
-            if (button) {
-                button.textContent = 'Invited!';
-                button.classList.add('bg-gray-600', 'cursor-not-allowed');
-                button.setAttribute('disabled', 'true');
-            }
+        await updateUser();
 
-            this.showNotification('Game invitation sent!', 'success');
-        } catch (error) {
-            console.error('Error inviting to game:', error);
-            this.showNotification('Failed to send game invitation', 'error');
-        }
-    }
-
-    private async blockFriend(friendId: number, card: HTMLElement) {
-        try {
-            const response = await fetch('http://localhost:8080/friends/block', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ friendId }),
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Failed to block friend');
-
-            card.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => card.remove(), 300);
-
-            this.showNotification('Friend blocked successfully', 'success');
-        } catch (error) {
-            console.error('Error blocking friend:', error);
-            this.showNotification('Failed to block friend', 'error');
-        }
-    }
-
-    private async acceptFriendRequest(requestId: number, card: HTMLElement) {
-
-        try {
-            const response = await fetch(`http://localhost:8080/user/friends/requests/${requestId}/accept`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requestId }),
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Failed to accept friend request');
-
-            card.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => {
-                card.remove();
-                this.loadFriends();
-            }, 300);
-
-            this.showNotification('Friend request accepted!', 'success');
-        } catch (error) {
-            console.error('Error accepting friend request:', error);
-            this.showNotification('Failed to accept friend request', 'error');
-        }
-    }
-
-    private async rejectFriendRequest(requestId: number, card: HTMLElement) {
-        try {
-            const response = await fetch('http://localhost:8080/friends/reject', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requestId }),
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Failed to reject friend request');
-
-            card.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => card.remove(), 300);
-
-            this.showNotification('Friend request rejected', 'success');
-        } catch (error) {
-            console.error('Error rejecting friend request:', error);
-            this.showNotification('Failed to reject friend request', 'error');
-        }
-    }
-
-    private async removeFriend(friendId: number, card: HTMLElement) {
-        try {
-            const response = await fetch(`http://localhost:8080/user/friends/${friendId}/delete`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ friendId }),
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Failed to remove friend');
-
-            card.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => card.remove(), 300);
-
-            this.showNotification('Friend removed successfully', 'success');
-        } catch (error) {
-            console.error('Error removing friend:', error);
-            this.showNotification('Failed to remove friend', 'error');
-        }
-    }
-
-    private showNotification(message: string, type: 'success' | 'error') {
-        const container = document.getElementById('alert-container');
-        if (!container) return;
-
-        const alert = document.createElement('div');
-        alert.className = `p-4 mb-4 rounded-lg ${
-            type === 'success' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'
-        } transition-all transform translate-y-0 opacity-100`;
-        alert.textContent = message;
-
-        container.appendChild(alert);
+        UserState.updateFriendStatus(requestId, true);
+        
+        card.classList.add('opacity-0', 'scale-95');
 
         setTimeout(() => {
-            alert.classList.add('opacity-0', 'translate-y-2');
-            setTimeout(() => alert.remove(), 300);
-        }, 3000);
-    }
-}
+            card.remove();
+            loadFriends();
+        }, 300);
 
-// Initialize the friends manager when the page content is loaded
-export function initializeFriends() {
-    const friendsManager = new FriendsManager();
-    friendsManager.initialize();
-} 
+        showAlert('Friend request accepted', 'success');
+    } catch (error) {
+        console.error('Error accepting friend request:', error);
+        showAlert('Failed to accept friend request', 'danger');
+    }
+};
+
+const rejectFriendRequest = async (requestId: number, card: HTMLElement) => {
+    try {
+        const response = await fetch(`http://localhost:8080/user/friends/requests/${requestId}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requestId }),
+            credentials: 'include'
+        });
+
+        if (!response.ok) throw new Error('Failed to reject friend request');
+        
+        await updateUser();
+        card.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => card.remove(), 300);
+
+        showAlert('Friend request rejected', 'success');
+    } catch (error) {
+        console.error('Error rejecting friend request:', error);
+        showAlert('Failed to reject friend request', 'danger');
+    }
+};
+
+const removeFriend = async (friendId: number, card: HTMLElement) => {
+    try {
+        const response = await fetch(`http://localhost:8080/user/friends/${friendId}/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ friendId }),
+            credentials: 'include'
+        });
+
+        if (!response.ok) throw new Error('Failed to remove friend');
+        
+        await updateUser();
+        card.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => card.remove(), 300);
+        
+        showAlert('Friend removed successfully', 'success');
+    } catch (error) {
+        console.error('Error removing friend:', error);
+        showAlert('Failed to remove friend', 'danger');
+    }
+};
+
+
+
+// Attach event listeners
+const attachEventListeners = () => {
+    if (!friendsContainer || !requestsContainer) return;
+
+    friendsContainer.addEventListener('click', handleFriendCardClick);
+    requestsContainer.addEventListener('click', handleFriendRequestClick);
+};
+
+// Main initialization function
+export const initializeFriends = async () => {
+    if (!initializeContainers()) return;
+    
+    try {
+        await loadFriends();
+        await loadFriendRequests();
+        attachEventListeners();
+    } catch (error) {
+        console.error('Error initializing friends manager:', error);
+    }
+}; 
