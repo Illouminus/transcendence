@@ -141,3 +141,30 @@ export async function getAllUsers(): Promise<User[]> {
 		});
 	});
 }
+
+export async function incrementWins(userId: number): Promise<void> {
+	return new Promise((resolve, reject) => {
+		db.run(
+			"UPDATE user_profile SET wins = wins + 1 WHERE auth_user_id = ?",
+			[userId],
+			function (err: Error | null) {
+				if (err) reject(err);
+				else resolve();
+			}
+		);
+	});
+}
+
+export async function incrementLosses(userId: number): Promise<void> {
+	return new Promise((resolve, reject) => {
+	  db.run(
+		"UPDATE user_profile SET losses = losses + 1 WHERE auth_user_id = ?",
+		[userId],
+		function (err: Error | null) {
+		  if (err) reject(err);
+		  else resolve();
+		}
+	  );
+	});
+  }
+  

@@ -1,3 +1,4 @@
+import { loadPongPageScript} from "../pong";
 import { fetchAndRender, setUpdateAvatar } from "./outils";
 import { loginHandler, renderGoogleButton, login2FA, registerHandler } from "../services/auth.service";
 import {UserState} from "../userState";
@@ -161,6 +162,10 @@ export async function load2FAPage() {
 	});
 }
 
+export async function loadPongPage() {
+	await fetchAndRender("pong");
+	loadPongPageScript();
+}
 
 export async function loadUsersPage(): Promise<void> {
     try {

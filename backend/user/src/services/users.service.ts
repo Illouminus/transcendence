@@ -1,4 +1,4 @@
-import { createUser, getUserById, getUserAchievements,updateAvatar, getAllUsers, updateUserData } from "../models/user.model";
+import { createUser, getUserById, getUserAchievements,updateAvatar, getAllUsers, updateUserData, incrementWins, incrementLosses } from "../models/user.model";
 import { UserProfile, PublicUserProfile, User } from "../@types/user.types";
 import * as fileService from "./file.service";
 import { createNotFoundError,createValidationError,createDatabaseError,logError } from "../utils/errorHandler";
@@ -117,3 +117,20 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 	  });
 	}
   }
+
+  export async function incrementWinsService(userId: number, type: 'win' | 'loss'): Promise<void> {
+	try {
+	  if (type === 'win') {
+		await incrementWins(userId);
+	  } else if (type === 'loss') {
+		await incrementLosses(userId);
+	  }
+	} catch (error) {
+	  logError(error, "incrementWinsService");
+	  throw createDatabaseError(`Failed to increment ${type}`, {
+		userId,
+		error: error instanceof Error ? error.message : "Unknown error",
+	  });
+	}
+  }
+  

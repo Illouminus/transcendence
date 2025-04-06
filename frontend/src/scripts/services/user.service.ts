@@ -198,3 +198,23 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
       showAlert("Error disabling 2FA: " + error.message, "danger");
     }
   }
+  
+  export async function incrementWins(userId: number, type: 'win' | 'loss'): Promise<void> {
+    try {
+      const res = await fetch(`${API_URL_USER}/incrementWins`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, type }),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to increment ${type}`);
+      }
+    } catch (error: any) {
+      console.error(`Error incrementing ${type}:`, error);
+      showAlert(`Error incrementing ${type}: ` + error.message, 'danger');
+    }
+  }
+  

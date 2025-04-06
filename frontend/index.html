@@ -5,11 +5,43 @@
 	<meta charset="UTF-8" />
 	<title>Our Transcendence App</title>
 	<script src="https://accounts.google.com/gsi/client"></script>
+	<script src="https://cdn.babylonjs.com/babylon.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<link rel="stylesheet" href="./src/styles/style.css" />
 </head>
 
 <body class="bg-stone-900">
+	<!-- Chat Button -->
+	<button id="chatButton" style="position: absolute; right: 2%; bottom: 2%;" class="p-2 text-gray-900 rounded-xl dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+		<svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+			<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+		</svg>
+	</button>
+
+	<div id="chatMenu" class="hidden flex h-100 flex-col w-200 absolute bottom-5 right-10 z-100 p-5 rounded-md text-center" style="background-color: rgba(0, 0, 0, 0.9); color: white;">
+        <div class="flex justify-between items-center mb-4">
+            <h1 id="chatTitle">CHAT</h1>
+            <button id="closeChat" class="text-white hover:text-gray-300">
+                <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+		<div class="flex w-full flex-col grow items-end justify-end overflow-hidden">
+			<!-- Users List -->
+			<div id="chat-friends-list" class="flex flex-col scroll-y-auto overflow-y-auto max-h-96 w-full">
+			</div>
+			
+			<!-- Conversation -->
+			
+			<div id="chatMessages" class="scroll-y-auto overflow-y-auto"></div>
+			<!-- Input -->
+			<div id="chatInput" class="hidden flex flex-row w-full items-end justify-center">
+				<input id="chatMessage" placeholder="Écrivez un message" type="text" style="color: black; background-color: white; width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; margin-top: 10px;">
+				<button id="sendButton" style="margin-left: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Envoyer</button>
+			</div>
+		</div>
+    </div>
 	<nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
 		<div class="px-3 py-3 lg:px-5 lg:pl-3">
 			<div class="flex items-center justify-between">
@@ -26,7 +58,7 @@
 							<button type="button" id="user-photo-button"
 								class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
 								aria-expanded="false">
-								<img class="w-11 h-8 rounded-full" id="user-photo" src="" alt="user photo">
+								<img style="object-fit: cover;" class="w-11 h-11 rounded-full" id="user-photo" src="" alt="user photo">
 							</button>
 						</div>
 					</div>
@@ -40,6 +72,18 @@
 		aria-label="Sidebar">
 		<div class="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
 			<ul class="space-y-2 font-medium">
+				<li>
+					<button id="pong-button"
+						class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+						<svg
+							class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+							aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+							viewBox="0 0 24 24">
+							<path d="M8 5v14l11-7L8 5z" />
+						</svg>
+						<span class="ms-3">Pong</span>
+					</button>
+				</li>
 				<li>
 					<button id="profile-button"
 						class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
@@ -92,18 +136,6 @@
 								d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z" />
 						</svg>
 						<span class="flex-1 ms-3 whitespace-nowrap">Users</span>
-					</button>
-				</li>
-				<li>
-					<button id="game-button"
-						class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-						<svg
-							class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-							aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-							<path fill-rule="evenodd" d="M8.6 5.2A1 1 0 0 0 7 6v12a1 1 0 0 0 1.6.8l8-6a1 1 0 0 0 0-1.6l-8-6Z"
-								clip-rule="evenodd" />
-						</svg>
-						<span class="flex-1 ms-3 whitespace-nowrap">Pong</span>
 					</button>
 				</li>
 				<li>
