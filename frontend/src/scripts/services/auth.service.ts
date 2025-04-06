@@ -34,7 +34,7 @@ export async function login2FA(email: string, code: string) {
 		showAlert("2FA successful", "success");
 		const user = await fetchUserProfile();
 		const allUsers = await fetchAllUsers();
-		UserState.setUserSocket(connectWebSocket(response.token));
+		UserState.setUserSocket(connectUserWebSocket(response.token));
 		if (allUsers)
 			UserState.setAllUsers(allUsers);
 		if (user)

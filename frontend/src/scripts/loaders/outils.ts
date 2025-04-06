@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 import { fetchUserProfile } from "../services/user.service";
-=======
 import { redirectTo } from "../router";
 import { loadPongPage } from "./loaders";
->>>>>>> adrien
 import {UserState} from "../userState";
 
 
@@ -64,7 +61,6 @@ export async function fetchAllUsers() {
 	if (!response.ok) throw new Error("Error loading users");
 	return response.json();
 }
-<<<<<<< HEAD
 
 
 export const updateUser = async () => {
@@ -78,5 +74,3 @@ export const updateUser = async () => {
         console.error('Error updating user:', error);
     }
 };
-=======
->>>>>>> adrien

@@ -26,6 +26,7 @@ const config = {
     googleClientId: process.env.GOOGLE_CLIENT_ID,
     twoFactorCodeTTL: 5 * 60 * 1000, // 5 minutes
   },
+
   
   // Settings for uploaded files
   files: {
