@@ -141,6 +141,30 @@ services:
       timeout: 30s
       retries: 3
 
+  chat: 
+    build:
+      context: ./backend/chat
+      dockerfile: Dockerfile
+    container_name: transcendence_chat
+    restart: always
+    working_dir: /app
+    volumes:
+      - /app/node_modules
+      - ./backend/chat:/app
+      - db-data:/db
+    ports:
+      - "8084:8084"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - transcendance-network
+    depends_on:
+     rabbitmq:
+        condition: service_healthy
+
 volumes:
   db-data:
     driver: local
