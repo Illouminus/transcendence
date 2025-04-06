@@ -15,6 +15,7 @@ export function connectGameWebSocket(token: string): WebSocket {
       return socket;
     } 
     socket = new WebSocket(`ws://localhost:8083/ws?token=${token}`);
+
     socket.onopen = () => {
       console.log("WebSocket connection established");
     };
@@ -29,21 +30,24 @@ export function connectGameWebSocket(token: string): WebSocket {
       const data: GameWebSocketMessage = JSON.parse(event.data);
     
       console.log('WebSocket message:', data);
-      // switch (data.type) {
-      //   case 'incoming_request': {
-      //     showAlert(`You have a new friend request from ${data.payload.user.username}`);
-      //     await updateUser();
-      //     loadFriendRequests();
-      //     break;
-      //   }
+      showAlert(data.type);
+      switch (data.type) {
+        case 'game_invitation_income': {
+          showAlert(`You have a new game request from ${UserState.getUser()?.friends?.find(friend => friend.friend_id === data.payload.fromUserId)?.friend_username}`);
+          await updateUser();
+          loadFriendRequests();
+          break;
+        }
     
     
       //   default:
       //     console.warn('Unknown WS message type:', data);
       // }
     };
-    return socket;
+
   }
+  return socket;
+}
   
   export function getWebSocket(): WebSocket | null {
     return socket;

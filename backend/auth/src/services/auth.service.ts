@@ -148,7 +148,7 @@ export async function updateUserService(userId: number, username: string, email:
 		throw createNotFoundError("User not found");
 	  }
 
-	  let hashedPassword: string | null = null;
+	  let hashedPassword: string | undefined;
 
 	  if (password && password.trim() !== "") {
 		hashedPassword = await bcrypt.hash(password, 10);

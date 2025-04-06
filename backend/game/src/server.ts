@@ -2,6 +2,7 @@ import fastify, { FastifyRequest, FastifyInstance } from "fastify";
 import FastifyWebsocket from '@fastify/websocket';
 import fastifyJwt from "fastify-jwt";
 import { gameRoutes } from "./routes/game.routes";
+import { WebSocket } from 'ws';
 import { logError } from "./utils/errorHandler";
 import { connectRabbit } from "./rabbit/rabbit";
 import config from "./config";
@@ -12,7 +13,7 @@ import { JwtPayload } from "./@types/user.types";
 import { createAndStartGame, updatePlayerPosition } from "./services/game.service";
 import { insertMatchmakingQueue, startOrdinaryGame } from "./models/game.model";
 
-connectRabbit();
+//connectRabbit();
 
 // Create an instance of Fastify server
 const server = fastify({
@@ -28,36 +29,41 @@ const activeConnections = new Map<number, WebSocket>();
 
 server.register(async function (fastify: FastifyInstance) {
 	fastify.get('/ws', { websocket: true }, async (connection: any, req: FastifyRequest<{ Querystring: { token: string } }>) => {
-	//   const token = req.query.token;  
-	//   const payload = server.jwt.verify(token) as JwtPayload;
+	  const token = req.query.token;  
+	  const payload = server.jwt.verify(token) as JwtPayload;
 	  
-	//   const {userId} = payload;
+	  const {userId} = payload;
+	  console.log('User ID from token:', userId);
 
-	//   if (!userId) {
-	// 	connection.close(4000, 'User not found');
-	// 	return;
-	//   }
+	  if (!userId) {
+		connection.close(4000, 'User not found');
+		return;
+	  }
 
-	//   activeConnections.set(userId, connection);
+	  activeConnections.set(userId, connection);
 	  
-	//   connection.on('close', () => {
-	// 	console.log(`User ${payload.userId} disconnected`);
-	// 	activeConnections.delete(payload.userId);
-	//   });
+	  connection.on('close', () => {
+		console.log(`User ${payload.userId} disconnected`);
+		activeConnections.delete(payload.userId);
+	  });
 	  
 	  connection.on('message', async (message: any) => {
 		const data = JSON.parse(message);
 		console.log('Received message:', data);
-		
-		//connection.send(JSON.stringify({ type: 'test', message: 'This is a test response' }));
+	
 
 		switch (data.type) {
+			case 'game_invite': 
+				
+			sendNotification(data.friendId, {
+				type: 'game_invitation_income',
+				payload: { fromUserId : userId}});
+				break;
 			case 'game_start':
 				const gameId = await createAndStartGame(data);
 				connection.send(JSON.stringify({ type: 'game_start', message: 'Game is starting!', gameId: gameId }));
 				break;
 			case 'player_move':
-				
 				updatePlayerPosition(data.gameId, data.userId, data.direction);
 				// Обработка движения игрока
 				connection.send(JSON.stringify({ type: 'player_move', message: `Player ${data.userId} moved to (${data.direction})` }));
@@ -79,12 +85,11 @@ server.register(async function (fastify: FastifyInstance) {
 		}
 
 	  });
-	  
-	  // Обработка ошибок
-	//   connection.on('error', (error: any) => {
-	// 	console.error(`WebSocket error for user ${payload.userId}:`, error);
-	// 	activeConnections.delete(payload.userId);
-	//   });
+
+	  connection.on('error', (error: any) => {
+		console.error(`WebSocket error for user ${payload.userId}:`, error);
+		//activeConnections.delete(payload.userId);
+	  });
 	});
   });
 
@@ -94,6 +99,11 @@ interface NotificationData {
 }
 
 export function sendNotification(userId: number, data: NotificationData) {
+
+	activeConnections.forEach((ws, id) => {
+		console.log(`User ID: ${id}, WebSocket: ${ws.readyState}`);
+	})
+
 	const ws = activeConnections.get(userId);
 	
 	if (ws && ws.readyState === WebSocket.OPEN) {

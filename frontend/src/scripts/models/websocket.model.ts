@@ -93,7 +93,7 @@ export type GameWebSocketMessage =
 export interface GameInvitationIncomePayload {
   fromUserId: number;
   gameType: string;
-  message: string;
+  message?: string;
 }
 export interface GameInvitationAcceptedPayload {
   fromUserId: number;

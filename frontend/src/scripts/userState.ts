@@ -20,7 +20,6 @@ export class UserState {
 				friend.online = false;
 			});
 		}
-		
 		renderAvatar(user.avatar);
 	}
 
@@ -44,7 +43,11 @@ export class UserState {
 		this.allUsers = [];
 		this.sentFriendRequests.clear();
 		renderAvatar(null);
-		this.socket?.close();
+		this.userSocket?.close();
+		this.gameSocket?.close();
+		this.userSocket = null;
+		this.gameSocket = null;
+		localStorage.removeItem("token");
 	}
 
 	static setAllUsers(users: UserArray[]) {

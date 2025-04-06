@@ -52,7 +52,10 @@ export async function setUpdateAvatar() {
 
 
 export async function fetchAllUsers() {
-	const response = await fetch("http://localhost:8080/user/getAllUsers");
+	const response = await fetch("http://localhost:8080/user/getAllUsers", {
+		credentials: "include",
+	});
+	console.log("Response from fetchAllUsers", response);
 	if (!response.ok) throw new Error("Error loading users");
 	return response.json();
 }

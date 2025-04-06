@@ -49,7 +49,6 @@ export const loadFriends = async () => {
             friend.status === 'accepted' || friend.status === 'blocked'
         );
         
-        console.log('filteredFriends:', filteredFriends);
         filteredFriends.forEach(friend => {
             const card = createFriendCard(friend);
             friendsContainer?.appendChild(card);
@@ -74,7 +73,6 @@ export const loadFriendRequests = async () => {
             requestsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friend requests</p>';
             return;
         }
-
         requestsContainer.innerHTML = requestComponent(user.incomingRequests);
 
         if (user.incomingRequests.length === 0) {
@@ -129,17 +127,24 @@ const handleFriendRequestClick = async (e: Event) => {
 // Friend actions
 const inviteToGame = async (friendId: number, card: HTMLElement) => {
     try {
-        const response = await fetch('http://localhost:8080/game/invite', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ friendId }),
-            credentials: 'include'
-        });
+        const gameSocket = UserState.getGameSocket();
+        if (!gameSocket) {
+            console.error('Game socket not available');
+            showAlert('Game socket not available', 'danger');
+            return;
+        }
+        gameSocket.send(JSON.stringify({ type: 'game_invite', friendId }));
+        // const response = await fetch('http://localhost:8080/game/invite', {
+        //     method: 'POST',
+        //     headers: { 
+        //         'Content-Type': 'application/json',
+        //         'authorization': `Bearer ${localStorage.getItem('token')}`
+        //     },
+        //     body: JSON.stringify({ friendId }),
+        //     credentials: 'include'
+        // });
 
-        if (!response.ok) throw new Error('Failed to send game invitation');
+        //if (!response.ok) throw new Error('Failed to send game invitation');
 
         const button = card.querySelector('.invite-button');
         if (button) {

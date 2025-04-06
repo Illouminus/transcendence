@@ -106,28 +106,40 @@ function attachEventListeners(): void {
     });
 }
 
-// Function to fetch and display users
 async function fetchUsers(): Promise<void> {
-    try {  
-        const users: UserArray[] = UserState.getAllUsers(); 
-        const filteredUsers = users.filter(user => UserState.getUser()?.id !== user.id);
-        const filtredFriends = filteredUsers.filter(user => 
-            !UserState.getUser()?.friends
-            .filter(friend => friend.status === 'accepted')
-            .map(friend => friend.friend_id)
-            .includes(user.id)
-        );
-        
-        const outcomeRequest = UserState.getUser()?.outgoingRequests;
-        if(outcomeRequest)
+    try {
+        const users: UserArray[] = UserState.getAllUsers();
+        if (!users || users.length === 0) return;
+
+        const currentUser = UserState.getUser();
+        if (!currentUser) {
+            console.error('Current user not found');
+            return;
+        }
+
+        // Исключаем текущего пользователя
+        const filteredUsers = users.filter(user => currentUser.id !== user.id);
+
+        // Исключаем пользователей, которые уже являются друзьями
+        const acceptedFriendIds = currentUser.friends
+            ?.filter(friend => friend.status === 'accepted')
+            .map(friend => friend.friend_id) || [];
+
+        const filtredFriends = filteredUsers.filter(user => !acceptedFriendIds.includes(user.id));
+
+        // Обрабатываем исходящие запросы
+        const outcomeRequest = currentUser.outgoingRequests || [];
         outcomeRequest.forEach(request => {
             UserState.addSentFriendRequest(request.id);
         });
+
+        // Рендерим список пользователей
         const usersList: HTMLElement | null = document.getElementById('users-list');
         if (!usersList) {
             console.error('Users list element not found');
             return;
         }
+
         usersList.innerHTML = filtredFriends.map(user => createUserRow(user)).join('');
         attachEventListeners();
     } catch (error) {
