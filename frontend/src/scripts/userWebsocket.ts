@@ -1,6 +1,6 @@
 import { loadFriendRequests, loadFriends } from "./friends";
 import { fetchAllUsers, updateUser } from "./loaders/outils";
-import { WebSocketMessage } from "./models/websocket.model";
+import { UserWebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
@@ -9,7 +9,7 @@ let socket : WebSocket | null = null;
 
 
 
-export function connectWebSocket(token: string): WebSocket {
+export function connectUserWebSocket(token: string): WebSocket {
   
     if (socket && socket.readyState === WebSocket.OPEN) {
       return socket;
@@ -26,7 +26,7 @@ export function connectWebSocket(token: string): WebSocket {
       console.error("WebSocket error:", err);
     };
     socket.onmessage = async (event) => {
-      const data: WebSocketMessage = JSON.parse(event.data);
+      const data: UserWebSocketMessage = JSON.parse(event.data);
     
       console.log('WebSocket message:', data);
       switch (data.type) {

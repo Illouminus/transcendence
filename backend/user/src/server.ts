@@ -56,9 +56,7 @@ server.register(async function (fastify: FastifyInstance) {
 	  
 
 		const friendsList = await getFriendsListFromDB(Number(userAuthId.id));
-		console.log('friendsList:', friendsList);
 		for (const friend of friendsList) {
-		  console.log('Friends list:', friend);
 
 		  if (activeConnections.has(friend.friend_id)) {
 			console.log(`User ${friend.friend_id} is already online`);
@@ -115,13 +113,7 @@ interface NotificationData {
 }
 
 export function sendNotification(userId: number, data: NotificationData) {
-	console.log('sendNotification to', userId, ' => activeConnections has keys:', [...activeConnections.keys()]);
 	const ws = activeConnections.get(userId);
-	console.log("All active connections", activeConnections);
-	console.log('the ws object is', ws);
-	console.log('sending notification to user', userId);
-	console.log('Active connections:', Array.from(activeConnections.keys()));
-	console.log('WS connection exists:', !!ws);
 	
 	if (ws && ws.readyState === WebSocket.OPEN) {
 		try {
