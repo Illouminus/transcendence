@@ -1,4 +1,5 @@
 import { loadFriendRequests, loadFriends } from "./friends";
+import { createGameInvitationModal } from "./gameInvitationModal";
 import { fetchAllUsers, updateUser } from "./loaders/outils";
 import { GameWebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
@@ -33,7 +34,18 @@ export function connectGameWebSocket(token: string): WebSocket {
       showAlert(data.type);
       switch (data.type) {
         case 'game_invitation_income': {
-          showAlert(`You have a new game request from ${UserState.getUser()?.friends?.find(friend => friend.friend_id === data.payload.fromUserId)?.friend_username}`);
+          const gameInvitationModal = createGameInvitationModal();
+          const friend = UserState.getUser()?.friends?.find(friend => friend.friend_id === data.payload.fromUserId);
+          console.log('friend ivited to game', friend);
+          if (friend) {
+            showAlert(`You have a new game invitation from ${friend.friend_username}`);
+            gameInvitationModal.show(friend, () => {
+              socket?.send(JSON.stringify({ type: 'game_invitation_accept', payload: { toUserId: data.payload.fromUserId } }));
+            }, () => {
+              socket?.send(JSON.stringify({ type: 'game_invitation_decline', payload: { toUserId: data.payload.fromUserId } }));
+            });
+          }
+         
           await updateUser();
           loadFriendRequests();
           break;

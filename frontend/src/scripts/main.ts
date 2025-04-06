@@ -7,6 +7,7 @@ import { fetchUserProfile } from "./services/user.service";
 import { fetchAllUsers } from "./loaders/outils";
 import { connectUserWebSocket } from "./userWebsocket";
 import { connectGameWebSocket } from "./gameWebsocket";
+import { createGameInvitationModal } from "./gameInvitationModal";
 
 
 document.addEventListener("DOMContentLoaded", async () => {

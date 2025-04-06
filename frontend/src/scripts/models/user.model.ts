@@ -5,7 +5,7 @@ export interface Achievement {
 	dateEarned: string;
 }
 
-interface FriendsList {
+export interface FriendsList {
 	friend_id: number;
 	friend_username: string;
 	friend_avatar: string;

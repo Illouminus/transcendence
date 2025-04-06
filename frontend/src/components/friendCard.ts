@@ -22,8 +22,9 @@ export const friendCard = (friend: Friend) => {
             ${!userIsBlocked && !userIsOffline ? `
             <div class="group/tooltip relative">
                 <button class="game-button inline-flex items-center p-2 text-sm font-medium text-center text-white bg-gray-800/70 border border-gray-600/30 rounded-lg hover:bg-blue-500/30 hover:border-blue-500/50 focus:ring-2 focus:outline-none focus:ring-blue-500/50 transition-all duration-200 backdrop-blur-sm group">
-                    <svg class="w-5 h-5 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 6l-8 8m0-8l8 8m2-4h3a2 2 0 012 2v6a2 2 0 01-2 2h-3M3 12h.01M7 12h.01M11 12h.01M15 12h.01"/>
+                    <svg class="w-5 h-5 group-hover:text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+                        <path fill="currentColor" d="M512 0C229.2 0 0 229.2 0 512s229.2 512 512 512 512-229.2 512-512S794.8 0 512 0zM512 960C264.6 960 64 759.4 64 512S264.6 64 512 64s448 200.6 448 448-200.6 448-448 448z"/>
+                        <path fill="currentColor" d="M704 320c-17.7 0-32 14.3-32 32v288c0 17.7 14.3 32 32 32s32-14.3 32-32V352c0-17.7-14.3-32-32-32zM320 320c-17.7 0-32 14.3-32 32v288c0 17.7 14.3 32 32 32s32-14.3 32-32V352c0-17.7-14.3-32-32-32z"/>
                     </svg>
                 </button>
                 <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200">
