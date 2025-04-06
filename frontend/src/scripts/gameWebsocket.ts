@@ -40,16 +40,21 @@ export function connectGameWebSocket(token: string): WebSocket {
           if (friend) {
             showAlert(`You have a new game invitation from ${friend.friend_username}`);
             gameInvitationModal.show(friend, () => {
-              socket?.send(JSON.stringify({ type: 'game_invitation_accept', payload: { toUserId: data.payload.fromUserId } }));
+              socket?.send(JSON.stringify({ type: 'game_invitation_accepted', payload: { friendId: data.payload.fromUserId } }));
             }, () => {
-              socket?.send(JSON.stringify({ type: 'game_invitation_decline', payload: { toUserId: data.payload.fromUserId } }));
+              socket?.send(JSON.stringify({ type: 'game_invitation_rejected', payload: { friendId: data.payload.fromUserId } }));
             });
           }
-         
           await updateUser();
           loadFriendRequests();
           break;
         }
+        case 'game_invitation_accepted':
+          showAlert(`Game invitation accepted by ${data.payload.fromUserId}`);
+          break;
+        case 'game_invitation_rejected':
+          showAlert(`Game invitation rejected by ${data.payload.fromUserId}`);
+          break;
     
     
       //   default:

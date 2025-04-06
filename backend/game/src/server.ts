@@ -54,10 +54,19 @@ server.register(async function (fastify: FastifyInstance) {
 
 		switch (data.type) {
 			case 'game_invite': 
-				
-			sendNotification(data.friendId, {
+			sendNotification(data.payload.friendId, {
 				type: 'game_invitation_income',
 				payload: { fromUserId : userId}});
+				break;
+			case 'game_invitation_accepted':
+				sendNotification(data.payload.friendId, {
+					type: 'game_invitation_accepted',
+					payload: { fromUserId : userId}});
+				break;
+			case 'game_invitation_rejected':
+				sendNotification(data.payload.friendId, {
+					type: 'game_invitation_rejected',
+					payload: { fromUserId : userId}});
 				break;
 			case 'game_start':
 				const gameId = await createAndStartGame(data);

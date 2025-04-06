@@ -133,7 +133,7 @@ const inviteToGame = async (friendId: number, card: HTMLElement) => {
             showAlert('Game socket not available', 'danger');
             return;
         }
-        gameSocket.send(JSON.stringify({ type: 'game_invite', friendId }));
+        gameSocket.send(JSON.stringify({ type: 'game_invite', payload: {friendId: friendId}}));
         // const response = await fetch('http://localhost:8080/game/invite', {
         //     method: 'POST',
         //     headers: { 
