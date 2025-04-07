@@ -64,7 +64,6 @@ export async function fetchAllUsers() {
 	if (!response.ok) throw new Error("Error loading users");
 	return response.json();
 }
-<<<<<<< HEAD
 
 
 export const updateUser = async () => {
@@ -78,5 +77,3 @@ export const updateUser = async () => {
         console.error('Error updating user:', error);
     }
 };
-=======
->>>>>>> adrien
