@@ -1,6 +1,7 @@
 import { getTotalGamesPlayed, getTotalTournaments, getTournamentWins, startOrdinaryGame } from "../models/game.model";
 import db from "../database";
 import { BallState, GameState, initGameState, PlayerState } from "../@types/game.types";
+import { sendNotification } from "../server";
 
 
 const gameIntervals: Record<number, NodeJS.Timeout> = {};
@@ -25,16 +26,17 @@ export async function getGameStatisticsByIdService(id: number) {
 }
 
 
-export function updatePlayerPosition(gameId: number, userId: number, direction: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN') {
+export function updatePlayerPosition(gameId: number, userId: number, direction: 'LEFT' | 'RIGHT') {
 	const state = activeGames[gameId];
-	if (!state) return;  // На случай, если игра не найдена
+	if (!state) return;  
   
 	// Допустим, скорость движения
 	const speed = 0.5;
   
-	// Определяем, какой из игроков управляется этим userId
 	const isPlayer1 = (state.player1.userId === userId);
 	const player = isPlayer1 ? state.player1 : state.player2;
+
+	console.log("Player ID:", player.userId);
   
 	switch (direction) {
 	  case 'LEFT':
@@ -42,12 +44,6 @@ export function updatePlayerPosition(gameId: number, userId: number, direction: 
 		break;
 	  case 'RIGHT':
 		player.x += speed;
-		break;
-	  case 'UP':
-		player.y += speed;
-		break;
-	  case 'DOWN':
-		player.y -= speed;
 		break;
 	}
   
@@ -116,7 +112,7 @@ function updateGame(gameId: number) {
 	ball.y += ball.velY;
   
 	// 2. Проверка "стен" по X (пример – если x > 10 или x < -10, меняем направление)
-	if (Math.abs(ball.x) > 10) {
+	if (Math.abs(ball.x) > 6) {
 	  ball.velX *= -1;
 	}
   
@@ -148,8 +144,7 @@ function updateGame(gameId: number) {
 	  return;
 	}
   
-	// 6. Рассылаем обновлённое состояние по WebSocket
-	//broadcastGameState(state);
+	broadcastGameState(state);
   }
   
   // Пример простой проверки коллизии
@@ -171,31 +166,27 @@ function updateGame(gameId: number) {
 	ball.velY = (Math.random() > 0.5) ? 0.2 : -0.2;
   }
   
-//   function broadcastGameState(state: GameState) {
-// 	// Находим WebSocket’ы двух игроков.
-// 	// Допустим, у нас есть activeConnections: Map<number, WebSocket>
-// 	const p1Socket = activeConnections.get(state.player1.userId);
-// 	const p2Socket = activeConnections.get(state.player2.userId);
+  function broadcastGameState(state: GameState) {
+	const payload = {
+	type: "game_update",
+		payload: {
+			gameId: state.gameId,
+			players: {
+			  p1: { x: state.player1.x, y: state.player1.y, score: state.player1.score },
+			  p2: { x: state.player2.x, y: state.player2.y, score: state.player2.score }
+			},
+			ball: {
+			  x: state.ball.x,
+			  y: state.ball.y
+			}
+		}
+	};
+
+	console.log("Broadcasting game state:", payload);
+	sendNotification(state.player1.userId, payload);
+	sendNotification(state.player2.userId, payload);
   
-// 	// Рассылаем обоим
-// 	const payload = {
-// 	  type: "GAME_UPDATE",
-// 	  gameId: state.gameId,
-// 	  players: {
-// 		p1: { x: state.player1.x, y: state.player1.y, score: state.player1.score },
-// 		p2: { x: state.player2.x, y: state.player2.y, score: state.player2.score }
-// 	  },
-// 	  ball: {
-// 		x: state.ball.x,
-// 		y: state.ball.y
-// 	  }
-// 	};
-  
-// 	const json = JSON.stringify(payload);
-  
-// 	p1Socket?.send(json);
-// 	p2Socket?.send(json);
-//   }
+  }
 
 function startGameLoop(gameId: number) {
 	if (gameIntervals[gameId]) return;
@@ -210,8 +201,8 @@ function startGameLoop(gameId: number) {
   
 export async function createAndStartGame(data: { player_1_id: number; player_2_id: number }) {
 
-  const gameId  = await startOrdinaryGame(data.player_1_id, data.player_2_id);
-
+  const gameId  = await startOrdinaryGame(data.player_1_id , data.player_2_id);
+  console.log("Game started with ID:", gameId);
   const state = initGameState(gameId, data.player_1_id, data.player_2_id);
   console.log("Game state initialized:", state);
   // Сохраняем состояние игры в базе данных или в памяти
@@ -219,5 +210,6 @@ export async function createAndStartGame(data: { player_1_id: number; player_2_i
   // Запускаем игровой цикл
 
   startGameLoop(gameId);
-  return gameId;
+
+  return gameId
 }

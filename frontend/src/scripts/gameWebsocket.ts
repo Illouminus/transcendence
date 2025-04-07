@@ -2,6 +2,8 @@ import { loadFriendRequests, loadFriends } from "./friends";
 import { createGameInvitationModal } from "./gameInvitationModal";
 import { fetchAllUsers, updateUser } from "./loaders/outils";
 import { GameWebSocketMessage } from "./models/websocket.model";
+import { clientGameState } from "./pong";
+import { redirectTo } from "./router";
 import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
@@ -29,8 +31,6 @@ export function connectGameWebSocket(token: string): WebSocket {
     };
     socket.onmessage = async (event) => {
       const data: GameWebSocketMessage = JSON.parse(event.data);
-    
-      console.log('WebSocket message:', data);
       showAlert(data.type);
       switch (data.type) {
         case 'game_invitation_income': {
@@ -41,6 +41,7 @@ export function connectGameWebSocket(token: string): WebSocket {
             showAlert(`You have a new game invitation from ${friend.friend_username}`);
             gameInvitationModal.show(friend, () => {
               socket?.send(JSON.stringify({ type: 'game_invitation_accepted', payload: { friendId: data.payload.fromUserId } }));
+              redirectTo('/pong');
             }, () => {
               socket?.send(JSON.stringify({ type: 'game_invitation_rejected', payload: { friendId: data.payload.fromUserId } }));
             });
@@ -51,9 +52,24 @@ export function connectGameWebSocket(token: string): WebSocket {
         }
         case 'game_invitation_accepted':
           showAlert(`Game invitation accepted by ${data.payload.fromUserId}`);
+          
+          redirectTo('/pong');
           break;
         case 'game_invitation_rejected':
           showAlert(`Game invitation rejected by ${data.payload.fromUserId}`);
+          break;
+
+        case 'game_update':
+          //console.log('Game update:', data);
+          clientGameState.gameId = data.payload.gameId;
+          clientGameState.player1.x = data.payload.players.p1.x;
+          clientGameState.player1.y = data.payload.players.p1.y;
+          clientGameState.player1.score = data.payload.players.p1.score;
+          clientGameState.player2.x = data.payload.players.p2.x;
+          clientGameState.player2.y = data.payload.players.p2.y;
+          clientGameState.player2.score = data.payload.players.p2.score;
+          clientGameState.ball.x = data.payload.ball.x;
+          clientGameState.ball.y = data.payload.ball.y;
           break;
     
     

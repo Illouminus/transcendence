@@ -99,6 +99,7 @@ export interface GameInvitationAcceptedPayload {
   fromUserId: number;
   gameType: string;
   message: string;
+  gameId: number;
 }
 
 export interface GameInvitationRejectedPayload {
@@ -122,8 +123,14 @@ export interface GameErrorPayload {
 
 export interface GameUpdatePayload {
   gameId: number;
-  gameType: string;
-  updateData: any; // данные обновления, могут быть разные в зависимости от игры
+    players: {
+      p1: { x: number; y: number; score: number };
+      p2: { x: number; y: number; score: number };
+    };
+    ball: {
+      x: number;
+      y: number;
+    };
 }
 
 export interface GameResultPayload {
