@@ -5,12 +5,22 @@ export interface Achievement {
 	dateEarned: string;
 }
 
-interface FriendsList {
+export interface FriendsList {
+	friend_id: number;
+	friend_username: string;
+	friend_avatar: string;
+	friend_email: string;
+	status: string;
+	online: boolean 
+  }
+
+  interface Requests {
 	id: number;
 	username: string;
 	avatar: string;
 	status: string;
   }
+  
   
 export interface User {
 	id: number;
@@ -25,8 +35,8 @@ export interface User {
 	wins: number;
 	losses: number;
 	friends: FriendsList[];
-	incomingRequests: FriendsList[];
-	outgoingRequests: FriendsList[];
+	incomingRequests: Requests[];
+	outgoingRequests: Requests[];
 	// totalGames?: number;
 	// totalTournaments?: number;
 	// tournamentWins?: number;

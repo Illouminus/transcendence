@@ -1,73 +1,5 @@
 import db from "../database";
-import { User, CountRow } from "../@types/user.types";
-
-
-export async function updateUserData(
-	userId: number,
-	data: {
-	  username?: string;
-	  email?: string;
-	  password_hash?: string | null;
-	  avatar_url?: string | null;
-	  is_verified?: boolean;
-	  wins?: number;
-	  losses?: number;
-	}
-  ): Promise<void> {
-	const updateFields: string[] = [];
-	const params: any[] = [];
-  
-	Object.entries(data).forEach(([key, value]) => {
-	  if (value !== undefined) {
-		updateFields.push(`${key} = ?`);
-		params.push(value);
-	  }
-	});
-  
-	updateFields.push("updated_at = datetime('now')");
-	
-	params.push(userId);
-  
-	const query = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
-  
-	return new Promise((resolve, reject) => {
-	  db.run(query, params, function (err: Error | null) {
-		if (err) {
-		  reject(err);
-		} else {
-		  resolve();
-		}
-	  });
-	});
-  }
-  
-
-
-export async function getUserById(id: number): Promise<User | null> {
-	return new Promise((resolve, reject) => {
-		db.get(
-			"SELECT * FROM user_profile WHERE auth_user_id = ?",
-			[id],
-			(err: Error | null, user: User | undefined) => {
-				if (err) reject(err);
-				else resolve(user || null);
-			}
-		);
-	});
-}
-
-export async function createUser( userId: number, username: string, avatar_url: string ): Promise<void> {
-	return new Promise((resolve, reject) => {
-		db.run(
-			"INSERT INTO user_profile (auth_user_id, username, avatar_url) VALUES (?, ?, ?)",
-			[userId, username, avatar_url],
-			function (err: Error | null) {
-				if (err) reject(err);
-				else resolve();
-			}
-		);
-	});
-}
+import { CountRow } from "../@types/user.types";
 
 
 
@@ -116,6 +48,72 @@ export async function getTournamentWins(userId: number): Promise<number> {
 				} else {
 					const countRow = row as CountRow;
 					resolve(countRow.tournamentWins || 0);
+				}
+			}
+		);
+	});
+}
+
+
+export async function insertMatchmakingQueue(userId: number) : Promise<number> {
+	return new Promise((resolve, reject) => {
+		db.run(
+			`
+			INSERT INTO matchmaking_queue (user_id, status, joined_at)
+			VALUES (?, 'waiting', datetime('now'))
+		`,
+			[userId],
+			function (this: { lastID: number }, err: Error | null) {
+				if (err) {
+					reject(err);
+				} else {
+					const newId = this.lastID;
+					console.log(`User ${userId} added to matchmaking queue with ID ${newId}`);
+					resolve(newId);
+				}
+			}
+		);
+	}
+	);
+}
+
+
+export async function startOrdinaryGame(player1_id: number, player2_id: number) : Promise<number> {
+	return new Promise((resolve, reject) => {
+		db.run(
+			`
+			INSERT INTO games (player1_id, player2_id, game_type, started_at)
+			VALUES (?, ?, 'casual', datetime('now'))
+		`,
+			[player1_id, player2_id],
+			function (this: { lastID: number }, err: Error | null) {
+				if (err) {
+					reject(err);
+				} else {
+					const newId = this.lastID;
+					console.log(`Ordinary game created with ID ${newId}`);
+					resolve(newId);
+				}
+			}
+		);
+	});
+}
+
+export async function updateGame(gameId: number, player1Score: number, player2Score: number) : Promise<void> {
+	return new Promise((resolve, reject) => {
+		db.run(
+			`
+			UPDATE games
+			SET score_player1 = ?, score_player2 = ? end_at = datetime('now') winner_id = ?
+			WHERE id = ?
+		`,
+			[player1Score, player2Score, player1Score > player2Score ? 1 : 2, gameId],
+			function (this: { changes: number }, err: Error | null) {
+				if (err) {
+					reject(err);
+				} else {
+					console.log(`Game with ID ${gameId} updated`);
+					resolve();
 				}
 			}
 		);

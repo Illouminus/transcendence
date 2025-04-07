@@ -9,9 +9,17 @@ export class UserState {
 	private static allUsers: UserArray[] = [];
 	private static sentFriendRequests: Set<number> = new Set();
 	private static tempEmail: string = "";
+	private static userSocket: WebSocket | null = null;
+	private static gameSocket: WebSocket | null = null;
 
 	static setUser(user: User) {
 		this.user = user;
+		if(this.user.friends)
+		{
+			user.friends.forEach(friend => {
+				friend.online = false;
+			});
+		}
 		renderAvatar(user.avatar);
 	}
 
@@ -35,6 +43,11 @@ export class UserState {
 		this.allUsers = [];
 		this.sentFriendRequests.clear();
 		renderAvatar(null);
+		this.userSocket?.close();
+		this.gameSocket?.close();
+		this.userSocket = null;
+		this.gameSocket = null;
+		localStorage.removeItem("token");
 	}
 
 	static setAllUsers(users: UserArray[]) {
@@ -49,16 +62,40 @@ export class UserState {
 		this.sentFriendRequests.add(userId);
 	}
 
-	static hasSentFriendRequest(userId: number): boolean {
-		return this.sentFriendRequests.has(userId);
-	}
-
 	static removeSentFriendRequest(userId: number) {
 		this.sentFriendRequests.delete(userId);
 	}
 
+	static hasSentFriendRequest(userId: number): boolean {
+		return this.sentFriendRequests.has(userId);
+	}
+
+
 	static setTempEmail(email: string) {
 		this.tempEmail = email;
+	}
+	
+	static setGameSocket(socket: WebSocket) {
+		this.gameSocket = socket;
+	}
+	static getGameSocket() {
+		return this.gameSocket;
+	}
+	static setUserSocket(socket: WebSocket) {
+		this.userSocket = socket;
+	}
+
+	static getUserSocket() {
+		return this.userSocket;
+	}
+
+	static updateFriendStatus(friendId: number, online: boolean, email?: string) {
+		if (this.user && this.user.friends) {
+			const friend = this.user.friends.find(f => f.friend_id === friendId || f.friend_email === email);
+			if (friend) {
+				friend.online = online;
+			}
+		}
 	}
 }
 

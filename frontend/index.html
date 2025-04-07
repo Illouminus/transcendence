@@ -5,11 +5,49 @@
 	<meta charset="UTF-8" />
 	<title>Our Transcendence App</title>
 	<script src="https://accounts.google.com/gsi/client"></script>
+	<script src="https://cdn.babylonjs.com/babylon.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<link rel="stylesheet" href="./src/styles/style.css" />
 </head>
 
 <body class="bg-stone-900">
+	<!-- Chat SECTION -->
+	<button id="chatButton" style="position: absolute; right: 2%; bottom: 2%;" class="z-400 p-2 text-gray-900 rounded-xl dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+		<svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+			<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+		</svg>
+	</button>
+
+	<div id="chatMenu" class=" hidden flex h-100 flex-col w-200 absolute bottom-5 right-10 z-400 p-5 rounded-md text-center" style="background-color: rgba(0, 0, 0, 0.9); color: white;">
+        <div class="flex justify-between items-center mb-4">
+            <h1 id="chatTitle">CHAT</h1>
+            <button id="closeChat" class="text-white hover:text-gray-300">
+                <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <button id="goBack" class="hidden text-white hover:text-gray-300">
+				<svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+					<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+				</svg>
+            </button>
+        </div>
+		<div class="flex w-full flex-col grow items-end justify-end overflow-hidden">
+			<!-- Users List -->
+			<div id="chat-friends-list" class="flex flex-col scroll-y-auto overflow-y-auto max-h-96 w-full"></div>
+			
+			<!-- Conversation -->
+			<div id="chatMessages" class="w-full scroll-y-auto overflow-y-auto"></div>
+			
+			<!-- Input -->
+			<div id="chatInput" class="hidden flex flex-row w-full items-end justify-center">
+				<input id="chatMessage" placeholder="Écrivez un message" type="text" style="color: black; background-color: white; width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; margin-top: 10px;">
+				<button id="sendButton" style="margin-left: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Envoyer</button>
+			</div>
+		</div>
+    </div>
+
+
 	<nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
 		<div class="px-3 py-3 lg:px-5 lg:pl-3">
 			<div class="flex items-center justify-between">
@@ -26,7 +64,7 @@
 							<button type="button" id="user-photo-button"
 								class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
 								aria-expanded="false">
-								<img class="w-11 h-8 rounded-full" id="user-photo" src="" alt="user photo">
+								<img style="object-fit: cover;" class="w-11 h-11 rounded-full" id="user-photo" src="" alt="user photo">
 							</button>
 						</div>
 					</div>
@@ -40,6 +78,18 @@
 		aria-label="Sidebar">
 		<div class="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
 			<ul class="space-y-2 font-medium">
+				<li>
+					<button id="pong-button"
+						class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+						<svg
+							class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+							aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+							viewBox="0 0 24 24">
+							<path d="M8 5v14l11-7L8 5z" />
+						</svg>
+						<span class="ms-3">Pong</span>
+					</button>
+				</li>
 				<li>
 					<button id="profile-button"
 						class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
@@ -95,18 +145,6 @@
 					</button>
 				</li>
 				<li>
-					<button id="game-button"
-						class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-						<svg
-							class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-							aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-							<path fill-rule="evenodd" d="M8.6 5.2A1 1 0 0 0 7 6v12a1 1 0 0 0 1.6.8l8-6a1 1 0 0 0 0-1.6l-8-6Z"
-								clip-rule="evenodd" />
-						</svg>
-						<span class="flex-1 ms-3 whitespace-nowrap">Pong</span>
-					</button>
-				</li>
-				<li>
 					<button id="login-button"
 						class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
 						<svg
@@ -153,7 +191,36 @@
 	<div id="alert-container" class="fixed top-4 right-4 z-50"></div>
 	<div id="app" class="p-4 sm:ml-64 mt-20 flex items-center justify-center">
 	</div>
+	<div id="gameInvitationModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all animate-fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                        Game Invitation
+                    </h3>
+                    <button id="closeInvitationModal" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="invitationContent" class="mt-2">
+                    <!-- Content will be dynamically inserted here -->
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button id="declineInvitation" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                        Decline
+                    </button>
+                    <button id="acceptInvitation" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors">
+                        Accept
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 	<script type="module" src="./src/scripts/main.ts" defer></script>
+	<script type="module" src="./src/scripts/gameInvitationModal.ts" defer></script>
 	<script src="https://unpkg.com/flowbite@1.6.5/dist/flowbite.min.js"></script>
 </body>
 

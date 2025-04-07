@@ -13,8 +13,8 @@ export async function loginController( req: FastifyRequest<{ Body: LoginBody }>,
 		const response = await loginUser(req.body.email, req.body.password);
 		if(response.user)
 		{
-			await issueAndSetToken(res.server, res, response.user.id);
-			return res.status(200).send({message: "Login successful"});
+			const token = await issueAndSetToken(res.server, res, response.user.id);
+			return res.status(200).send({message: "Login successful", token: token});
 		}
 		else
 		{
@@ -83,8 +83,8 @@ export async function googleAuthLogin( req: FastifyRequest<{ Body: { idToken: st
 		if (!user) {
 			return res.status(400).send({ error: "Login failed" });
 		}
-		await issueAndSetToken(res.server, res, user.id);
-		return res.status(200).send("Login successful!");
+		const token = await issueAndSetToken(res.server, res, user.id);
+		return res.status(200).send({message: "Login successful!", token : token});
 		
 	} catch (error) {
 		return res.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });

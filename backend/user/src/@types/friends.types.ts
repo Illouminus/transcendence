@@ -1,8 +1,9 @@
 
 
 export interface FriendsList {
-    id: number;
-    username: string;
-    avatar: string;
-    status: string;
+    friend_id: number;
+    friend_username: string;
+    friend_avatar: string;
+    friend_status: string;
+    friend_email: string;
 }

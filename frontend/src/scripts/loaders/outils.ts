@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+import { fetchUserProfile } from "../services/user.service";
+=======
+import { redirectTo } from "../router";
+import { loadPongPage } from "./loaders";
+>>>>>>> adrien
 import {UserState} from "../userState";
 
 
@@ -51,7 +57,26 @@ export async function setUpdateAvatar() {
 
 
 export async function fetchAllUsers() {
-	const response = await fetch("http://localhost:8080/user/getAllUsers");
+	const response = await fetch("http://localhost:8080/user/getAllUsers", {
+		credentials: "include",
+	});
+	console.log("Response from fetchAllUsers", response);
 	if (!response.ok) throw new Error("Error loading users");
 	return response.json();
 }
+<<<<<<< HEAD
+
+
+export const updateUser = async () => {
+    try {
+        const user = await fetchUserProfile();
+        if (user) {
+            UserState.updateUser(user);
+			console.log("USER STATE", UserState.getUser());
+        }
+    } catch (error) {
+        console.error('Error updating user:', error);
+    }
+};
+=======
+>>>>>>> adrien
