@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 import { fetchUserProfile } from "../services/user.service";
-=======
 import { redirectTo } from "../router";
 import { loadPongPage } from "./loaders";
->>>>>>> adrien
 import {UserState} from "../userState";
 
 
