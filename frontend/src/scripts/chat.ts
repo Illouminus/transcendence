@@ -56,7 +56,13 @@ function displayMessage(himUsername: string, meUsername: string, himId: number, 
 
     messageContainer.innerHTML = messageHTML;
     chatMessagesContainer?.appendChild(messageContainer);
+
+    // ✅ SCROLL AUTOMATIQUE EN BAS
+    if (chatMessagesContainer) {
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
 }
+
 
 // Fonction pour créer la ligne de chat d'un utilisateur
 function createChatUserRow(user: UserArray): string {
