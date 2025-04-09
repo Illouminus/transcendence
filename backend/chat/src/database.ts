@@ -36,7 +36,7 @@ function seedDatabase() {
             [1, 2],
             function (err) {
                 if (err) console.error(err);
-                else console.log("✅ Seeded conversation between Alice and Bob with id:", this.lastID);
+                else console.log("✅ Seeded conversation between A user and Another with id:", this.lastID);
             }
         );
 
@@ -44,20 +44,20 @@ function seedDatabase() {
         db.run(
             `INSERT INTO messages (conversation_id, sender_id, receiver_id, content)
             VALUES (?, ?, ?, ?)`,
-            [1, 1, 2, "Salut Bob, comment ça va ?"],
+            [1, 1, 2, "Salut, comment ça va ?"],
             function (err) {
                 if (err) console.error(err);
-                else console.log("✅ Seeded message from Alice to Bob with id:", this.lastID);
+                else console.log("✅ Seeded message from a User to Another with id:", this.lastID);
             }
         );
 
         db.run(
             `INSERT INTO messages (conversation_id, sender_id, receiver_id, content)
             VALUES (?, ?, ?, ?)`,
-            [1, 2, 1, "Salut Alice ! Ça va bien, et toi ?"],
+            [1, 2, 1, "Salut chef ! Ça va bien, et toi ?"],
             function (err) {
                 if (err) console.error(err);
-                else console.log("✅ Seeded message from Bob to Alice with id:", this.lastID);
+                else console.log("✅ Seeded message from a User to another with id:", this.lastID);
             }
         );
 

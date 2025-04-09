@@ -107,7 +107,7 @@ async function openChatWindow(userId: string) {
     try {
         const response = await fetch(`http://localhost:8084/chat/messages/${himId}/${meId}`);
         if (!response.ok) throw new Error("Erreur lors de la récupération des messages");
-
+        
         const messages = await response.json();
         messages.forEach((message: any) => {
             displayMessage(himUsername, meUsername, himId, message.sender_id, message.content, message.sent_at);
