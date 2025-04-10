@@ -5,6 +5,7 @@ import {
   getConversationsService, 
   deleteMessageService 
 } from "../services/chat.service";
+import { sendNotification } from "../server";
 import { getErrorMessage, getErrorStatusCode, logError } from "../utils/errorHandler";
 
 // Récupérer les messages entre deux utilisateurs
@@ -30,6 +31,7 @@ export async function getMessagesController(req: FastifyRequest<{ Params: { user
 
 // Envoyer un message
 export async function sendMessageController(req: FastifyRequest<{ Body: { sender_id: number, receiver_id: number, content: string } }>, reply: FastifyReply) {
+  console.log("🚀 sendMessageController called - body:", req.body);
   try {
     const { sender_id, receiver_id, content } = req.body;
 
@@ -39,6 +41,10 @@ export async function sendMessageController(req: FastifyRequest<{ Body: { sender
     }
 
     const newMessage = await sendMessageService(sender_id, receiver_id, content);
+    sendNotification(receiver_id, {
+      type: "new_message",
+      payload: { message: content, sender_id },
+    });
     return reply.status(201).send(newMessage);
   } catch (error) {
     logError(error, "sendMessageController");

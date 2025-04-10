@@ -38,6 +38,10 @@ console.log("✅ JWT registered");
 server.register(FastifyWebsocket);
 console.log("✅ WebSocket plugin registered");
 
+// Enregistrement des routes HTTP du chat
+server.register(chatRoutes, { prefix: "/chat" });
+console.log("✅ Chat routes registered");
+
 // Map pour stocker les connexions WebSocket actives
 const activeConnections = new Map<number, WebSocket>();
 
@@ -68,11 +72,6 @@ server.register(async function (fastify) {
 			activeConnections.set(userId, connection.socket);
 			console.log(`✅ User ${userId} connected via WebSocket`);
 
-			// Notification de connexion
-			broadcastNotification({
-				type: 'user_connected',
-				payload: { userId },
-			});
 
 			// Gestion des messages reçus
 			connection.socket.on('message', (message: string) => {
@@ -98,11 +97,6 @@ server.register(async function (fastify) {
 				console.log(`❌ User ${userId} disconnected`);
 				activeConnections.delete(userId);
 
-				// Notification de déconnexion
-				broadcastNotification({
-					type: 'user_disconnected',
-					payload: { userId },
-				});
 			});
 
 			// Gestion des erreurs
@@ -117,43 +111,30 @@ server.register(async function (fastify) {
 	});
 });
 
-// Fonction pour envoyer une notification à un utilisateur spécifique
-function sendNotification(userId: number, data: Record<string, any>) {
-	console.log(`📤 Tentative d'envoi de notification à ${userId}`);
+
+interface NotificationData {
+	type: string;
+	payload: unknown;
+}
+
+export function sendNotification(userId: number, data: NotificationData) {
+	console.log('Coucuou'); 
 	const ws = activeConnections.get(userId);
+	
 	if (ws && ws.readyState === WebSocket.OPEN) {
 		try {
 			ws.send(JSON.stringify(data));
-			console.log(`✅ Notification envoyée à ${userId}`);
-		} catch (err) {
-			console.error(`❌ Erreur d'envoi de notification à ${userId}:`, err);
+			console.log('Notification sent successfully to user', userId);
+		} catch (error) {
+			console.error('Error sending notification:', error);
 			activeConnections.delete(userId);
 		}
 	} else {
-		console.log(`⚠️ Connexion WebSocket pour ${userId} indisponible`);
+		console.log(`WebSocket for user ${userId} is not available or not open. ReadyState:`, ws?.readyState);
 	}
 }
 
-// Fonction pour envoyer une notification à tous les utilisateurs
-function broadcastNotification(data: Record<string, any>) {
-	console.log("📢 Broadcast notification en cours...");
-	for (const [userId, ws] of activeConnections.entries()) {
-		if (ws.readyState === WebSocket.OPEN) {
-			try {
-				ws.send(JSON.stringify(data));
-				console.log(`✅ Notification broadcast envoyée à ${userId}`);
-			} catch (err) {
-				console.error("❌ Erreur d'envoi de broadcast:", err);
-			}
-		} else {
-			console.log(`⚠️ Connexion pour ${userId} fermée pendant le broadcast`);
-		}
-	}
-}
 
-// Enregistrement des routes HTTP du chat
-server.register(chatRoutes, { prefix: "/chat" });
-console.log("✅ Chat routes registered");
 
 // Gestion centralisée des erreurs
 server.setErrorHandler((error, request, reply) => {
