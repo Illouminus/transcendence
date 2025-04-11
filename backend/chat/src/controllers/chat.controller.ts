@@ -31,9 +31,11 @@ export async function getMessagesController(req: FastifyRequest<{ Params: { user
 
 // Envoyer un message
 export async function sendMessageController(req: FastifyRequest<{ Body: { sender_id: number, receiver_id: number, content: string } }>, reply: FastifyReply) {
-  console.log("🚀 sendMessageController called - body:", req.body);
   try {
     const { sender_id, receiver_id, content } = req.body;
+    console.log("Sender ID:" + sender_id);
+    console.log("Receiver ID:" + receiver_id);
+    console.log("Content:" + content);
 
     if (!sender_id || !receiver_id || !content) {
       // Si l'un des champs est manquant, renvoyer une erreur
@@ -43,7 +45,7 @@ export async function sendMessageController(req: FastifyRequest<{ Body: { sender
     const newMessage = await sendMessageService(sender_id, receiver_id, content);
     sendNotification(receiver_id, {
       type: "new_message",
-      payload: { message: content, sender_id },
+      payload: { content: content },
     });
     return reply.status(201).send(newMessage);
   } catch (error) {

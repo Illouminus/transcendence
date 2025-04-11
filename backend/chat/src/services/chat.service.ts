@@ -35,7 +35,6 @@ import { getConversationId, createConversation, getMessagesBetweenUsers,  saveMe
       }
   
       let conversation_id = await getConversationId(sender_id, receiver_id);
-      console.log('Conversation ID' + conversation_id);
   
       if (conversation_id === null) {
         // Créer une nouvelle conversation si elle n'existe pas
@@ -58,7 +57,7 @@ import { getConversationId, createConversation, getMessagesBetweenUsers,  saveMe
       throw createDatabaseError("Failed to send message", { sender_id, receiver_id });
     }
   }
-  
+
   
   
   // Service pour récupérer toutes les conversations d'un utilisateur

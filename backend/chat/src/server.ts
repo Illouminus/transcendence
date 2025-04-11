@@ -11,6 +11,7 @@ import { JwtPayload } from "./@types/chat.types";
 
 // Importation de la base de données
 import "./database";
+import { userInfo } from "os";
 
 // Connexion à RabbitMQ
 connectRabbit();
@@ -117,22 +118,33 @@ interface NotificationData {
 	payload: unknown;
 }
 
-export function sendNotification(userId: number, data: NotificationData) {
-	console.log('Coucuou'); 
-	const ws = activeConnections.get(userId);
-	
-	if (ws && ws.readyState === WebSocket.OPEN) {
-		try {
-			ws.send(JSON.stringify(data));
-			console.log('Notification sent successfully to user', userId);
-		} catch (error) {
-			console.error('Error sending notification:', error);
-			activeConnections.delete(userId);
-		}
-	} else {
-		console.log(`WebSocket for user ${userId} is not available or not open. ReadyState:`, ws?.readyState);
-	}
+export function sendNotification(receiverId: number, data: NotificationData) {
+    console.log('Send Notification Called');
+    const ws = activeConnections.get(receiverId); // Utiliser receiverId ici
+
+    // Vérifie si la connexion WebSocket pour le destinataire est présente
+    if (!ws) {
+        console.log(`WebSocket for user ${receiverId} not found in active connections`);
+        return;
+    }
+
+    // Vérifie si le WebSocket est ouvert pour le destinataire
+    if (ws.readyState !== WebSocket.OPEN) {
+        console.log(`WebSocket for user ${receiverId} is not available or not open. ReadyState:`, ws.readyState);
+        return;
+    }
+
+    try {
+        // Envoie la notification
+        ws.send(JSON.stringify(data));
+        console.log('Notification sent successfully to user', receiverId);
+    } catch (error) {
+        console.error('Error sending notification:', error);
+        activeConnections.delete(receiverId);  // Nettoyer la connexion en cas d'erreur
+    }
 }
+
+
 
 
 

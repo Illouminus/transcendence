@@ -36,7 +36,6 @@ export function connectUserWebSocket(token: string): WebSocket {
           loadFriendRequests();
           break;
         }
-    
         case 'friend_request_accepted': {
           const { message, user } = data.payload;
           showAlert(message, 'success');

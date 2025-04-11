@@ -11,7 +11,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
     } else {
         console.log("✅ Connected to SQLite database");
         initializeDatabase();
-        seedDatabase();
+        // seedDatabase();
     }
 });
 
