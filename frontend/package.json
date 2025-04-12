@@ -12,11 +12,12 @@
 		"build": "vite build"
 	},
 	"dependencies": {
+		"@babylonjs/loaders": "^8.1.1",
 		"@tailwindcss/postcss": "^4.0.7",
 		"@tailwindcss/vite": "^4.0.7",
+		"@types/cannon": "^0.1.13",
 		"autoprefixer": "^10.4.20",
-		"babylonjs": "^7.50.0",
-		"babylonjs-loaders": "^7.50.0",
+		"cannon": "^0.6.2",
 		"chart.js": "^4.4.8",
 		"install": "^0.13.0",
 		"npm": "^11.1.0",
@@ -25,5 +26,9 @@
 		"typescript": "^5.7.3",
 		"vite": "^6.1.1",
 		"ws": "^8.18.1"
+	},
+	"devDependencies": {
+		"@babylonjs/core": "^8.1.1",
+		"@babylonjs/inspector": "^8.1.1"
 	}
 }

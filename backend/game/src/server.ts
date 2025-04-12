@@ -70,7 +70,6 @@ server.register(async function (fastify: FastifyInstance) {
 					payload: { fromUserId : userId}});
 				break;
 			case 'player_move':
-				console.log('Player move data:', data);
 				updatePlayerPosition(data.gameId, data.userId, data.direction);
 				// Обработка движения игрока
 				//connection.send(JSON.stringify({ type: 'player_move', message: `Player ${data.userId} moved to (${data.direction})` }));
@@ -120,7 +119,15 @@ interface GameNotificationData {
 	}
 }
 
-export function sendNotification(userId: number, data: NotificationData | GameNotificationData) {
+interface GameResultPayload {
+	type: string,
+	gameId: number,
+	winnerId: number,
+	score1: number,
+	score2: number,
+}
+
+export function sendNotification(userId: number, data: NotificationData | GameNotificationData | GameResultPayload) {
 
 	// activeConnections.forEach((ws, id) => {
 	// 	console.log(`User ID: ${id}, WebSocket: ${ws.readyState}`);

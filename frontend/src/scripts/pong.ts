@@ -1,70 +1,31 @@
-/**
- * This file sets up and renders a Pong scene using BabylonJS.
- * The actual game logic (ball movement, scoring, collisions) is handled on the backend.
- * We maintain a `clientGameState` object locally (imported from userState or a global store)
- * to keep track of the player's positions and the ball's position, updated via WebSocket.
- * 
- * The code below focuses on:
- * - Creating BabylonJS scene and meshes (player paddles, ball, court).
- * - Subscribing to user input (keyboard) to send 'player_move' events to the server.
- * - Rendering the scene each frame based on `clientGameState`.
- */
-
-import { incrementWins } from "./services/user.service";
+import { 
+  Scene, Engine, ArcRotateCamera, Tools, Vector3, Animation,
+  CubeTexture, Mesh, AssetContainer, ActionManager, SetValueAction,
+  Quaternion, CannonJSPlugin, PhysicsImpostor, LoadAssetContainerAsync, 
+  MeshBuilder, Color3 
+} from "@babylonjs/core";
+import * as CANNON from "cannon";
+import "@babylonjs/loaders";
 import { UserState } from "./userState";
 
-/**
- * A shared or global clientGameState that mirrors the server state.
- * The server will periodically send updates (positions, scores, etc.)
- * which we store here. Then we use these coordinates for rendering.
- */
+// Global game state synced with server updates
 export const clientGameState = {
   gameId: 0,
-  player1: {
-    x: 0,
-    y: 0,
-    score: 0
-  },
-  player2: {
-    x: 0,
-    y: 0,
-    score: 0
-  },
-  ball: {
-    x: 0,
-    y: 0
-  }
+  player1: { x: 0, y: 0, score: 0 },
+  player2: { x: 0, y: 0, score: 0 },
+  ball: { x: 0, y: 0, velX: 0, velY: 0 },
 };
 
-/**
- * Get user's own ID (for reference when sending 'player_move' to the server).
- * If not found, will remain null.
- */
 let userId: number | null = UserState.getUser()?.id || null;
 
-
-/**
- * updateScoreDisplay() - updates the DOM score element.
- * Currently, it uses local scorePlayer1 and scorePlayer2,
- * but ideally you'd read from `clientGameState.player1.score` and `clientGameState.player2.score`.
- */
+// Update scoreboard in the DOM
 function updateScoreDisplay(): void {
   const scoreDisplay = document.getElementById("scoreDisplay") as HTMLElement;
   scoreDisplay.innerHTML = `${clientGameState.player1.score} : ${clientGameState.player2.score}`;
 }
 
-/**
- * Helper to retrieve essential DOM elements for the Pong UI.
- */
-function getElements(): {
-  canvas: HTMLCanvasElement;
-  scoreDisplay: HTMLElement;
-  startMenu: HTMLElement;
-  gameOverMenu: HTMLElement;
-  startButton: HTMLButtonElement;
-  restartButton: HTMLButtonElement;
-  quitButton: HTMLButtonElement;
-} {
+// Get essential UI elements
+function getElements() {
   return {
     canvas: document.getElementById("renderCanvas") as HTMLCanvasElement,
     scoreDisplay: document.getElementById("scoreDisplay") as HTMLElement,
@@ -76,235 +37,204 @@ function getElements(): {
   };
 }
 
-/**
- * Creates the BabylonJS engine for the given canvas.
- */
-function createEngine(canvas: HTMLCanvasElement): BABYLON.Engine {
-  return new BABYLON.Engine(canvas, true, {
-    disableWebGL2Support: false,
-    preserveDrawingBuffer: true,
-    stencil: true,
-    powerPreference: "high-performance"
-  });
+// Create Babylon engine
+function createEngine(canvas: HTMLCanvasElement): Engine {
+  return new Engine(canvas, true);
 }
 
-/**
- * Sets up the camera with a simple animation.
- */
-function createCamera(scene: BABYLON.Scene): BABYLON.ArcRotateCamera {
-  const camera = new BABYLON.ArcRotateCamera(
+// Create and animate camera
+function createCamera(scene: Scene): ArcRotateCamera {
+  const camera = new ArcRotateCamera(
     "camera",
-    BABYLON.Tools.ToRadians(60),
-    BABYLON.Tools.ToRadians(55),
+    Tools.ToRadians(60),
+    Tools.ToRadians(55),
     20,
-    BABYLON.Vector3.Zero(),
+    Vector3.Zero(),
     scene
   );
-  camera.setTarget(BABYLON.Vector3.Zero());
+  camera.setTarget(Vector3.Zero());
 
-  const cameraAlphaAnim = new BABYLON.Animation(
-    "cameraAlphaAnim",
-    "alpha",
-    40,
-    BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-    BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-  );
-  cameraAlphaAnim.setKeys([
-    { frame: 0, value: BABYLON.Tools.ToRadians(30) },
-    { frame: 100, value: BABYLON.Tools.ToRadians(0) }
+  // Camera alpha animation
+  const alphaAnim = new Animation("cameraAlphaAnim", "alpha", 40, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
+  alphaAnim.setKeys([
+    { frame: 0, value: Tools.ToRadians(30) },
+    { frame: 100, value: Tools.ToRadians(0) }
   ]);
-  camera.animations.push(cameraAlphaAnim);
+  camera.animations.push(alphaAnim);
 
-  const cameraBetaAnim = new BABYLON.Animation(
-    "cameraBetaAnim",
-    "beta",
-    30,
-    BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-    BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-  );
-  cameraBetaAnim.setKeys([
-    { frame: 0, value: BABYLON.Tools.ToRadians(55) },
-    { frame: 100, value: BABYLON.Tools.ToRadians(30) }
+  // Camera beta animation
+  const betaAnim = new Animation("cameraBetaAnim", "beta", 30, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
+  betaAnim.setKeys([
+    { frame: 0, value: Tools.ToRadians(55) },
+    { frame: 100, value: Tools.ToRadians(30) }
   ]);
-  camera.animations.push(cameraBetaAnim);
+  camera.animations.push(betaAnim);
 
+  camera.lowerRadiusLimit = 5;
+  camera.upperRadiusLimit = 20;
+  camera.panningSensibility = 0;
+  camera.attachControl(getElements().canvas, true);
+  camera.checkCollisions = true;
   return camera;
 }
 
-/**
- * Creates a basic HemisphericLight in the scene.
- */
-function createLights(scene: BABYLON.Scene): void {
-  const hemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
-  hemisphericLight.intensity = 5;
+// Setup lights and environment (using a skybox)
+function createLights(scene: Scene): void {
+  // Enable basic physics with zero gravity (2D-like behavior)
+  scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
+
+  const envTex = CubeTexture.CreateFromPrefilteredData("environment/night.env", scene);
+  envTex.gammaSpace = false;
+  envTex.rotationY = Math.PI;
+  scene.createDefaultSkybox(envTex, true, 1000, 0.3);
+
+  scene.environmentIntensity = 1.5;
+  scene.environmentTexture = envTex;
 }
 
-/**
- * Creates the ground (court) with a custom texture.
- */
-function createGround(scene: BABYLON.Scene): BABYLON.Mesh {
-  const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10.97, height: 23.77 }, scene);
-  const clayMaterial = new BABYLON.StandardMaterial("clayMaterial", scene);
-  clayMaterial.diffuseTexture = new BABYLON.Texture(
-    "https://media.istockphoto.com/id/520420178/fr/photo/abstrait-rouge-texture-de-mur-de-ciment.jpg?s=612x612&w=0&k=20&c=wq5Y1JHKIQTPywXnLnJTcK3DLjYP_Wa6uQWbNNvz39Y=",
-    scene
-  );
-  clayMaterial.specularColor = BABYLON.Color3.Black();
-  ground.material = clayMaterial;
-  return ground;
+// Load a model asset and optionally merge its meshes; assign a physics impostor if specified.
+async function loadModel(
+  scene: Scene,
+  url: string,
+  merge: boolean = true,
+  physicsImpostorType?: number,
+  physicsOptions?: any
+): Promise<Mesh> {
+  const container: AssetContainer = await LoadAssetContainerAsync(url, scene);
+  container.meshes.forEach((mesh, index) => {
+    console.log(`Mesh ${index} from ${url}: ${mesh.name}, vertices: ${mesh.getTotalVertices()}`);
+  });
+  container.addAllToScene();
+  let modelMesh: Mesh;
+  if (merge) {
+    const meshesToMerge = container.meshes.filter(m => m.getTotalVertices() > 0) as Mesh[];
+    const mergedMesh = Mesh.MergeMeshes(meshesToMerge, true, true, undefined, false, true);
+    if (!mergedMesh) throw new Error(`Failed to merge meshes from ${url}`);
+    modelMesh = mergedMesh;
+  } else {
+    const validMesh = container.meshes.find(m => m.getTotalVertices() > 0) as Mesh;
+    if (!validMesh) throw new Error(`No valid mesh found in ${url}`);
+    modelMesh = validMesh;
+  }
+  if (physicsImpostorType && physicsOptions) {
+    modelMesh.physicsImpostor = new PhysicsImpostor(modelMesh, physicsImpostorType, physicsOptions, scene);
+  }
+  return modelMesh;
 }
 
-/**
- * Creates the net in the center of the court.
- */
-function createNet(scene: BABYLON.Scene): void {
-  const netWidth = 10.97;
-  const netHeight = 1.07;
-
-  // Upper white band
-  const whiteBand = BABYLON.MeshBuilder.CreateBox("whiteBand", { width: netWidth, height: 0.1, depth: 0.01 }, scene);
-  whiteBand.position = new BABYLON.Vector3(0, netHeight - 0.05, 0);
-  const whiteBandMaterial = new BABYLON.StandardMaterial("whiteBandMaterial", scene);
-  whiteBandMaterial.emissiveColor = BABYLON.Color3.White();
-  whiteBand.material = whiteBandMaterial;
-
-  // Actual net part
-  const netMesh = BABYLON.MeshBuilder.CreateBox("netMesh", { width: netWidth, height: netHeight, depth: 0.01 }, scene);
-  netMesh.position = new BABYLON.Vector3(0, netHeight / 2 - 0.05, 0);
+// Create the ground (court)
+async function createGround(scene: Scene): Promise<Mesh> {
+  const groundContainer = await LoadAssetContainerAsync("models/court.glb", scene);
+  const groundMesh = groundContainer.meshes[0] as Mesh;
+  groundMesh.scaling = new Vector3(10.97, 1, 23.77);
+  groundMesh.position = new Vector3(0, 0, 0);
+  groundContainer.addAllToScene();
+  return groundMesh;
 }
 
-/**
- * Utility to create a single line in the scene.
- */
-function createLine(
-  scene: BABYLON.Scene,
-  start: BABYLON.Vector3,
-  end: BABYLON.Vector3,
-  name: string
-): BABYLON.Mesh {
-  const line = BABYLON.MeshBuilder.CreateLines(name, { points: [start, end] }, scene);
-  line.color = BABYLON.Color3.White();
-  return line;
-}
-
-/**
- * Draw the tennis court lines.
- */
-function createCourtLines(scene: BABYLON.Scene): void {
-  const halfCourtWidth = 4.115;
-  const fullCourtLength = 23.77;
-  const serviceLineDistance = 6.4;
-  const doublesWidth = 5.485;
-
-  // Outer boundary lines
-  createLine(scene, new BABYLON.Vector3(-doublesWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(-doublesWidth, 0.01, fullCourtLength / 2), "outerLeft");
-  createLine(scene, new BABYLON.Vector3(doublesWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(doublesWidth, 0.01, fullCourtLength / 2), "outerRight");
-  createLine(scene, new BABYLON.Vector3(-doublesWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(doublesWidth, 0.01, -fullCourtLength / 2), "outerTop");
-  createLine(scene, new BABYLON.Vector3(-doublesWidth, 0.01, fullCourtLength / 2), new BABYLON.Vector3(doublesWidth, 0.01, fullCourtLength / 2), "outerBottom");
-
-  // Singles lines
-  createLine(scene, new BABYLON.Vector3(-halfCourtWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(-halfCourtWidth, 0.01, fullCourtLength / 2), "singlesLeft");
-  createLine(scene, new BABYLON.Vector3(halfCourtWidth, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(halfCourtWidth, 0.01, fullCourtLength / 2), "singlesRight");
-
-  // Service lines
-  createLine(scene, new BABYLON.Vector3(-halfCourtWidth, 0.01, -serviceLineDistance), new BABYLON.Vector3(halfCourtWidth, 0.01, -serviceLineDistance), "serviceLineTop");
-  createLine(scene, new BABYLON.Vector3(-halfCourtWidth, 0.01, serviceLineDistance), new BABYLON.Vector3(halfCourtWidth, 0.01, serviceLineDistance), "serviceLineBottom");
-  createLine(scene, new BABYLON.Vector3(0, 0.01, -serviceLineDistance), new BABYLON.Vector3(0, 0.01, serviceLineDistance), "centerServiceLine");
-
-  // Baseline center marks
-  createLine(scene, new BABYLON.Vector3(0, 0.01, -fullCourtLength / 2), new BABYLON.Vector3(0, 0.01, -fullCourtLength / 2 + 0.1), "baselineCenterTop");
-  createLine(scene, new BABYLON.Vector3(0, 0.01, fullCourtLength / 2), new BABYLON.Vector3(0, 0.01, fullCourtLength / 2 - 0.1), "baselineCenterBottom");
-}
-
-/**
- * Create a player's paddle (just a box mesh here).
- */
-function createPlayerPaddle(
-  scene: BABYLON.Scene,
-  positionZ: number,
-  paddleWidth: number,
-  paddleHeight: number,
-  paddleDepth: number
-): BABYLON.Mesh {
-  const paddle = BABYLON.MeshBuilder.CreateBox("playerPaddle", { width: paddleWidth, height: paddleHeight, depth: paddleDepth }, scene);
-  paddle.position = new BABYLON.Vector3(0, 0, positionZ);
-  const paddleMaterial = new BABYLON.StandardMaterial("playerPaddleMaterial", scene);
-  paddleMaterial.emissiveColor = BABYLON.Color3.White();
-  paddle.material = paddleMaterial;
+// Create a player's paddle from model data.
+async function createPlayerPaddle(scene: Scene, positionZ: number): Promise<Mesh> {
+  const container: AssetContainer = await LoadAssetContainerAsync("models/racket.glb", scene);
+  console.log("Paddle meshes:", container.meshes);
+  const paddle = container.meshes[0] as Mesh;
+  paddle.scaling = new Vector3(0.5, 0.5, 0.5);
+  paddle.position = new Vector3(45, 0, positionZ);
+  paddle.rotation.x = 0;
+  paddle.rotation.y = 45;
+  paddle.checkCollisions = true;
+  paddle.actionManager = new ActionManager(scene);
+  paddle.actionManager.registerAction(new SetValueAction(ActionManager.OnPickDownTrigger, paddle, "scaling", new Vector3(5, 5, 5)));
+  container.addAllToScene();
   return paddle;
 }
 
-/**
- * Create two paddles (player1, player2).
- */
-function createPlayers(scene: BABYLON.Scene): { player1: BABYLON.Mesh; player2: BABYLON.Mesh } {
+// Create both player paddles.
+async function createPlayers(scene: Scene): Promise<{ player1: Mesh; player2: Mesh }> {
   const fullCourtLength = 23.77;
-  const PADDLE_WIDTH = 1;
-  const PADDLE_HEIGHT = 1.5;
-  const PADDLE_DEPTH = 0.2;
-
-  const player1 = createPlayerPaddle(scene, -fullCourtLength / 2, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH);
-  const player2 = createPlayerPaddle(scene, fullCourtLength / 2, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH);
-
+  const player1 = await createPlayerPaddle(scene, -fullCourtLength / 2);
+  const player2 = await createPlayerPaddle(scene, fullCourtLength / 2);
   return { player1, player2 };
 }
 
-/**
- * Create the ball mesh.
- */
-function createBall(scene: BABYLON.Scene): BABYLON.Mesh {
-  const ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: 0.3 }, scene);
-  ball.position = new BABYLON.Vector3(0, 0.25, 0);
+// Create the ball mesh.
+async function createBall(scene: Scene): Promise<Mesh> {
+  const container: AssetContainer = await LoadAssetContainerAsync("models/ball.glb", scene);
+
+  const ball = container.meshes[0] as Mesh;
+  
+  ball.scaling = new Vector3(0.2, 0.2, 0.2);
+  
+  ball.position = new Vector3(0, 1, 0);
+  container.addAllToScene();
+  ball.physicsImpostor = new PhysicsImpostor(ball, PhysicsImpostor.BoxImpostor, { mass: 1, restitution: 0.9 }, scene);
+  ball.checkCollisions = true;
   return ball;
 }
 
-/**
- * Main function that is called when rendering the /pong page.
- * It initializes the scene, sets up the game objects (players, ball, ground),
- * and listens to keyboard events to send 'player_move' events (if needed).
- */
-export function loadPongPageScript(): void {
+// Animate paddle swing (demonstration)
+function swingRacket(mesh: Mesh): void {
+  const scene = mesh.getScene();
+  scene.stopAnimation(mesh);
+  const startQuat = mesh.rotationQuaternion?.clone() || Quaternion.Identity();
+  const swingQuat = Quaternion.FromEulerAngles(Tools.ToRadians(45), 0, 0);
+  const targetQuat = startQuat.multiply(swingQuat);
+  const anim = new Animation("racketSwingQuat", "rotationQuaternion", 60, Animation.ANIMATIONTYPE_QUATERNION, Animation.ANIMATIONLOOPMODE_CONSTANT);
+  anim.setKeys([
+    { frame: 0, value: startQuat },
+    { frame: 5, value: targetQuat },
+    { frame: 10, value: startQuat }
+  ]);
+  mesh.animations = [anim];
+  scene.beginAnimation(mesh, 0, 10, false);
+}
+
+// Main function to initialize and run the game scene.
+export async function loadPongPageScript(): Promise<void> {
   const { canvas, startMenu, gameOverMenu, startButton, restartButton, quitButton } = getElements();
-
-  // Create a Babylon engine and scene
   const engine = createEngine(canvas);
-  const scene = new BABYLON.Scene(engine);
+  engine.displayLoadingUI();
+  engine.loadingUIText = "Loading...";
+  engine.loadingUIBackgroundColor = "black";
 
-  // Basic setup: camera, lights, environment
+  const scene = new Scene(engine);
+  scene.collisionsEnabled = true;
+  // In this 2D-like setup, we disable gravity.
+  scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
+
   const camera = createCamera(scene);
   createLights(scene);
   createGround(scene);
-  createNet(scene);
-  createCourtLines(scene);
 
-  // Create mesh objects
-  const { player1, player2 } = createPlayers(scene);
-  const ball = createBall(scene);
+  const { player1, player2 } = await createPlayers(scene);
+  const ball = await createBall(scene);
 
-  // Example: If you still want to handle local input for test
+  engine.hideLoadingUI();
+
+  // Keyboard events for player movement (sending updates to the server)
   window.addEventListener("keydown", (event: KeyboardEvent) => {
-    console.log("Key pressed: ", event.key);
     userId = UserState.getUser()?.id || null;
-    if(event.key === "ArrowLeft") {
-      UserState.getGameSocket()?.send(JSON.stringify({ type: 'player_move', gameId: clientGameState.gameId, userId, direction: 'LEFT' }))}
-    else if(event.key === "ArrowRight") {
-      UserState.getGameSocket()?.send(JSON.stringify({ type: 'player_move', gameId: clientGameState.gameId, userId, direction: 'RIGHT' }))
+    if (event.key === "s") {
+      UserState.getGameSocket()?.send(JSON.stringify({
+        type: "player_move",
+        gameId: clientGameState.gameId,
+        userId,
+        direction: "LEFT"
+      }));
+    } else if (event.key === "a") {
+      UserState.getGameSocket()?.send(JSON.stringify({
+        type: "player_move",
+        gameId: clientGameState.gameId,
+        userId,
+        direction: "RIGHT"
+      }));
+    }
+  });
 
-
-    // Instead of directly moving the paddle, you can send a WebSocket message:
-    // socket.send(JSON.stringify({type: 'player_move', userId, direction: 'LEFT' / 'RIGHT'}));
-    console.log("Pressed: ", event.key);
-  }});
-
+  // Show start menu after camera animation
   scene.beginAnimation(camera, 0, 100, false, 1, () => {
-    // Show the start menu after camera animation
     startMenu.style.display = "block";
   });
 
-  /**
-   * Example startGame function. Right now, it just hides the menu and resets some UI.
-   * The actual ball/paddle logic is on the server, so no local loop is needed.
-   */
   function startGame(): void {
     startMenu.style.display = "none";
     gameOverMenu.style.display = "none";
@@ -313,45 +243,25 @@ export function loadPongPageScript(): void {
 
   startButton.onclick = startGame;
   restartButton.onclick = () => {
-    // If you want to request a "restart" from the server, do it here
-    // For now, just reset local scores
     clientGameState.player1.score = 0;
     clientGameState.player2.score = 0;
     updateScoreDisplay();
     startGame();
   };
-
   quitButton.onclick = () => {
     alert("Merci d'avoir joué!");
     gameOverMenu.style.display = "none";
-    // Potentially redirect user away from the game
   };
 
-  /**
-   * Main render loop for BabylonJS
-   * - We read the `clientGameState` for positions/score
-   * - Then we update the mesh positions accordingly
-   */
+  // Main render loop: update scoreboard and sync mesh positions from global state.
   engine.runRenderLoop(() => {
-    // Update the scoreboard from clientGameState
     updateScoreDisplay();
-
-    // Move player1 mesh according to clientGameState
     player1.position.x = clientGameState.player1.x;
-    // We keep the Z constant for player1 at the "top" or "bottom" as needed
-
-    // Move player2 mesh
     player2.position.x = clientGameState.player2.x;
-
-    // Move the ball
     ball.position.x = clientGameState.ball.x;
     ball.position.z = clientGameState.ball.y;
-
     scene.render();
   });
 
-  // Handle window resize
-  window.addEventListener("resize", () => {
-    engine.resize();
-  });
+  window.addEventListener("resize", () => engine.resize());
 }

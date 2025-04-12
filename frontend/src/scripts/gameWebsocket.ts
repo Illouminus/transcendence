@@ -52,6 +52,8 @@ export function connectGameWebSocket(token: string): WebSocket {
         }
         case 'game_invitation_accepted':
           showAlert(`Game invitation accepted by ${data.payload.fromUserId}`);
+          const gameId = data.payload.gameId;
+          clientGameState.gameId = gameId;
           
           redirectTo('/pong');
           break;
@@ -60,7 +62,6 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
 
         case 'game_update':
-          //console.log('Game update:', data);
           clientGameState.gameId = data.payload.gameId;
           clientGameState.player1.x = data.payload.players.p1.x;
           clientGameState.player1.y = data.payload.players.p1.y;
@@ -70,8 +71,13 @@ export function connectGameWebSocket(token: string): WebSocket {
           clientGameState.player2.score = data.payload.players.p2.score;
           clientGameState.ball.x = data.payload.ball.x;
           clientGameState.ball.y = data.payload.ball.y;
+
           break;
     
+        case 'game_result':
+          // Handle game result
+          console.log('Game result:', data);
+          break;
     
       //   default:
       //     console.warn('Unknown WS message type:', data);

@@ -11,6 +11,7 @@ export interface BallState {
     velX: number;
     velY: number;
     radius: number;
+    recentCollision?: boolean; // Optional property to track recent collision
   }
   
 export interface GameState {
@@ -28,13 +29,13 @@ export interface GameState {
       player1: {
         userId: player1Id,
         x: 0,
-        y: -5,
+        y: -10,
         score: 0
       },
       player2: {
         userId: player2Id,
         x: 0,
-        y: 5,
+        y: 10,
         score: 0
       },
       ball: {
@@ -42,7 +43,7 @@ export interface GameState {
         y: 0,
         velX: 0.1,
         velY: 0.1,
-        radius: 0.3
+        radius: 0.7
       },
       isRunning: true
     };
