@@ -7,7 +7,7 @@ import { fetchUserProfile } from "./services/user.service";
 import { fetchAllUsers } from "./loaders/outils";
 import { connectUserWebSocket } from "./userWebsocket";
 import { connectGameWebSocket } from "./gameWebsocket";
-import { connectChatWebSockter } from "./chatWebSocket";
+import { connectChatWebSocket } from "./chatWebSocket";
 import { createGameInvitationModal } from "./gameInvitationModal";
 import { chat } from "./chat";
 
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 		const allUsers = await fetchAllUsers();
 		UserState.setUserSocket(connectUserWebSocket(token));
 		UserState.setGameSocket(connectGameWebSocket(token));
-		UserState.setUserSocket(connectChatWebSockter(token));
+		UserState.setUserSocket(connectChatWebSocket(token));
 
 		if(allUsers)
 			UserState.setAllUsers(allUsers);

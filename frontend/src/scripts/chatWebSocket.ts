@@ -4,8 +4,7 @@ import { showAlert } from "./services/alert.service";
 let socket : WebSocket | null = null;
 
 
-export function connectChatWebSockter(token: string): WebSocket {
-  
+export function connectChatWebSocket(token: string): WebSocket {
     if (socket && socket.readyState === WebSocket.OPEN) {
       return socket;
     } 
@@ -13,10 +12,10 @@ export function connectChatWebSockter(token: string): WebSocket {
     socket.onopen = () => {
       console.log("WebSocket connection established");
     };
-    socket.onclose = () => {
-      console.log("WebSocket connection closed");
-      socket = null;
-    };
+    // socket.onclose = () => {
+    //   console.log("WebSocket connection closed");
+    //   socket = null;
+    // };
     socket.onerror = (err) => {
       console.error("WebSocket error:", err);
     };

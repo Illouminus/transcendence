@@ -30,9 +30,8 @@ const activeConnections = new Map<number, WebSocket>();
 
 server.register(async function (fastify: FastifyInstance) {
 	fastify.get('/ws', { websocket: true }, async (connection: any, req: FastifyRequest<{ Querystring: { token: string } }>) => {
-	  const token = req.query.token;  
+	  const token = req.query.token; 
 	  const payload = server.jwt.verify(token) as JwtPayload;
-	  
 	  const userAuthId = await getUserByAuthId(Number(payload.userId));
 
 	  if (!userAuthId) {
