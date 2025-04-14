@@ -114,7 +114,7 @@ import {
   // Check collision between a paddle and the ball based on a distance threshold.
 // Примерная функция, где мы задаем paddleWidth и используем ball.radius.
 function collisionWithPlayer(player: PlayerState, ball: BallState): boolean {
-	const paddleWidth = 0.5; // Примерная ширина ракетки (настройте по необходимости)
+	const paddleWidth = 0.01; // Примерная ширина ракетки (настройте по необходимости)
 	const ballRadius = ball.radius || 1.73; // Используем ball.radius, если он задан
 	
 	// Check vertical difference: должен быть небольшим

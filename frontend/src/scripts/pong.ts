@@ -44,35 +44,39 @@ function createEngine(canvas: HTMLCanvasElement): Engine {
 
 // Create and animate camera
 function createCamera(scene: Scene): ArcRotateCamera {
+  const isPlayer1 = UserState.getUser()?.id === clientGameState.player1.id;
+  const initialAlpha = isPlayer1 ? Tools.ToRadians(180) : Tools.ToRadians(0);
+  const targetPosition = isPlayer1 ? new Vector3(0, 5, -15) : new Vector3(0, 8, 20);
+
   const camera = new ArcRotateCamera(
     "camera",
-    Tools.ToRadians(60),
-    Tools.ToRadians(55),
+    initialAlpha,
+    Tools.ToRadians(90),
     20,
-    Vector3.Zero(),
+    targetPosition,
     scene
   );
   camera.setTarget(Vector3.Zero());
 
   // Camera alpha animation
-  const alphaAnim = new Animation("cameraAlphaAnim", "alpha", 40, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
+  const alphaAnim = new Animation("cameraAlphaAnim", "alpha", 40, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
   alphaAnim.setKeys([
-    { frame: 0, value: Tools.ToRadians(30) },
-    { frame: 100, value: Tools.ToRadians(0) }
+    { frame: 0, value: initialAlpha },
+    { frame: 100, value: initialAlpha }
   ]);
   camera.animations.push(alphaAnim);
 
-  // Camera beta animation
-  const betaAnim = new Animation("cameraBetaAnim", "beta", 30, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
-  betaAnim.setKeys([
-    { frame: 0, value: Tools.ToRadians(55) },
-    { frame: 100, value: Tools.ToRadians(30) }
+  // Camera position animation
+  const positionAnim = new Animation("cameraPositionAnim", "position", 40, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT);
+  positionAnim.setKeys([
+    { frame: 0, value: camera.position.clone() },
+    { frame: 100, value: targetPosition }
   ]);
-  camera.animations.push(betaAnim);
+  camera.animations.push(positionAnim);
 
-  camera.lowerRadiusLimit = 5;
-  camera.upperRadiusLimit = 20;
-  camera.panningSensibility = 0;
+  // camera.lowerRadiusLimit = 5;
+  // camera.upperRadiusLimit = 20;
+  // camera.panningSensibility = 0;
   camera.attachControl(getElements().canvas, true);
   camera.checkCollisions = true;
   return camera;
@@ -86,7 +90,9 @@ function createLights(scene: Scene): void {
   const envTex = CubeTexture.CreateFromPrefilteredData("environment/night.env", scene);
   envTex.gammaSpace = false;
   envTex.rotationY = Math.PI;
-  scene.createDefaultSkybox(envTex, true, 1000, 0.3);
+  scene.createDefaultSkybox(envTex, true);
+
+  scene.environmentTexture = envTex;
 
   scene.environmentIntensity = 1.5;
   scene.environmentTexture = envTex;
@@ -137,7 +143,7 @@ async function createPlayerPaddle(scene: Scene, positionZ: number): Promise<Mesh
   const container: AssetContainer = await LoadAssetContainerAsync("models/racket.glb", scene);
   console.log("Paddle meshes:", container.meshes);
   const paddle = container.meshes[0] as Mesh;
-  paddle.scaling = new Vector3(0.5, 0.5, 0.5);
+  paddle.scaling = new Vector3(0.2, 0.2, 0.2);
   paddle.position = new Vector3(45, 0, positionZ);
   paddle.rotation.x = 0;
   paddle.rotation.y = 45;
