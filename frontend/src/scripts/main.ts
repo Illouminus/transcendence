@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 		const allUsers = await fetchAllUsers();
 		UserState.setUserSocket(connectUserWebSocket(token));
 		UserState.setGameSocket(connectGameWebSocket(token));
-		UserState.setUserSocket(connectChatWebSocket(token));
+		UserState.setChatSocket(connectChatWebSocket(token));
 
 		if(allUsers)
 			UserState.setAllUsers(allUsers);

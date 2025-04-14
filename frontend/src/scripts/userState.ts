@@ -101,12 +101,12 @@ export class UserState {
 			}
 		}
 	}
-	
+
 	static setChatSocket(socket: WebSocket) {
-		this.gameSocket = socket;
+		this.chatSocket = socket;
 	}
 	static getChatSocket() {
-		return this.gameSocket;
+		return this.chatSocket;
 	}
 }
 
