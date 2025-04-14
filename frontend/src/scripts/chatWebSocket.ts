@@ -1,3 +1,4 @@
+import { chat } from "./chat";
 import { UserWebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
 

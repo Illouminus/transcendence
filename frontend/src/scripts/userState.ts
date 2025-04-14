@@ -11,6 +11,8 @@ export class UserState {
 	private static tempEmail: string = "";
 	private static userSocket: WebSocket | null = null;
 	private static gameSocket: WebSocket | null = null;
+	private static chatSocket: WebSocket | null = null; 
+
 
 	static setUser(user: User) {
 		this.user = user;
@@ -45,8 +47,10 @@ export class UserState {
 		renderAvatar(null);
 		this.userSocket?.close();
 		this.gameSocket?.close();
+		this.chatSocket?.close();
 		this.userSocket = null;
 		this.gameSocket = null;
+		this.chatSocket = null;
 		localStorage.removeItem("token");
 	}
 
@@ -96,6 +100,13 @@ export class UserState {
 				friend.online = online;
 			}
 		}
+	}
+	
+	static setChatSocket(socket: WebSocket) {
+		this.gameSocket = socket;
+	}
+	static getChatSocket() {
+		return this.gameSocket;
 	}
 }
 
