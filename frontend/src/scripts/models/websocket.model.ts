@@ -124,8 +124,8 @@ export interface GameErrorPayload {
 export interface GameUpdatePayload {
   gameId: number;
     players: {
-      p1: { x: number; y: number; score: number };
-      p2: { x: number; y: number; score: number };
+      p1: { id: number; x: number; y: number; score: number };
+      p2: { id: number; x: number; y: number; score: number };
     };
     ball: {
       x: number;

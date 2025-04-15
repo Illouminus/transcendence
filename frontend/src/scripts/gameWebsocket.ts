@@ -36,11 +36,12 @@ export function connectGameWebSocket(token: string): WebSocket {
         case 'game_invitation_income': {
           const gameInvitationModal = createGameInvitationModal();
           const friend = UserState.getUser()?.friends?.find(friend => friend.friend_id === data.payload.fromUserId);
-          console.log('friend ivited to game', friend);
           if (friend) {
             showAlert(`You have a new game invitation from ${friend.friend_username}`);
             gameInvitationModal.show(friend, () => {
               socket?.send(JSON.stringify({ type: 'game_invitation_accepted', payload: { friendId: data.payload.fromUserId } }));
+              clientGameState.player1.id = data.payload.fromUserId;
+              clientGameState.player2.id = UserState.getUser()!.id;
               redirectTo('/pong');
             }, () => {
               socket?.send(JSON.stringify({ type: 'game_invitation_rejected', payload: { friendId: data.payload.fromUserId } }));
@@ -52,9 +53,8 @@ export function connectGameWebSocket(token: string): WebSocket {
         }
         case 'game_invitation_accepted':
           showAlert(`Game invitation accepted by ${data.payload.fromUserId}`);
-          const gameId = data.payload.gameId;
-          clientGameState.gameId = gameId;
-          
+          clientGameState.player1.id = UserState.getUser()!.id;
+          clientGameState.player2.id = data.payload.fromUserId;
           redirectTo('/pong');
           break;
         case 'game_invitation_rejected':
@@ -63,6 +63,8 @@ export function connectGameWebSocket(token: string): WebSocket {
 
         case 'game_update':
           clientGameState.gameId = data.payload.gameId;
+          // clientGameState.player1.id = data.payload.players.p1.id;
+          // clientGameState.player2.id = data.payload.players.p2.id;
           clientGameState.player1.x = data.payload.players.p1.x;
           clientGameState.player1.y = data.payload.players.p1.y;
           clientGameState.player1.score = data.payload.players.p1.score;

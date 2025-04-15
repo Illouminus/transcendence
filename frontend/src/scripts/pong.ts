@@ -11,8 +11,8 @@ import { UserState } from "./userState";
 // Global game state synced with server updates
 export const clientGameState = {
   gameId: 0,
-  player1: { x: 0, y: 0, score: 0 },
-  player2: { x: 0, y: 0, score: 0 },
+  player1: { id: 0 ,x: 0, y: 0, score: 0 },
+  player2: { id: 0, x: 0, y: 0, score: 0 },
   ball: { x: 0, y: 0, velX: 0, velY: 0 },
 };
 
@@ -45,8 +45,9 @@ function createEngine(canvas: HTMLCanvasElement): Engine {
 // Create and animate camera
 function createCamera(scene: Scene): ArcRotateCamera {
   const isPlayer1 = UserState.getUser()?.id === clientGameState.player1.id;
-  const initialAlpha = isPlayer1 ? Tools.ToRadians(180) : Tools.ToRadians(0);
-  const targetPosition = isPlayer1 ? new Vector3(0, 5, -15) : new Vector3(0, 8, 20);
+
+  const initialAlpha = isPlayer1 ?  Tools.ToRadians(0): Tools.ToRadians(180);
+  const targetPosition = isPlayer1 ?  new Vector3(0, 8, 20) :  new Vector3(0, 5, -15);
 
   const camera = new ArcRotateCamera(
     "camera",
@@ -168,9 +169,9 @@ async function createBall(scene: Scene): Promise<Mesh> {
 
   const ball = container.meshes[0] as Mesh;
   
-  ball.scaling = new Vector3(0.2, 0.2, 0.2);
+  ball.scaling = new Vector3(0.1, 0.1, 0.1);
   
-  ball.position = new Vector3(0, 1, 0);
+  ball.position = new Vector3(0, 0.5, 0);
   container.addAllToScene();
   ball.physicsImpostor = new PhysicsImpostor(ball, PhysicsImpostor.BoxImpostor, { mass: 1, restitution: 0.9 }, scene);
   ball.checkCollisions = true;

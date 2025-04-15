@@ -43,7 +43,7 @@ export interface GameState {
         y: 0,
         velX: 0.1,
         velY: 0.1,
-        radius: 0.7
+        radius: 0.3
       },
       isRunning: true
     };

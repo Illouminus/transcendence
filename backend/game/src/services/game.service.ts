@@ -78,7 +78,7 @@ import {
 	  console.log("Collision with player1");
 	  ball.velY = Math.abs(ball.velY); // Make ball go upward.
 	  // Offset ball's y slightly above the paddle.
-	  ball.y = state.player1.y + 1.0;
+	  ball.y = state.player1.y + (ball.radius + 0.01);
 	  ball.recentCollision = true;
 	  setTimeout(() => ball.recentCollision = false, 100);
 	}
@@ -87,7 +87,7 @@ import {
 	if (collisionWithPlayer(state.player2, ball) && !ball.recentCollision) {
 	  console.log("Collision with player2");
 	  ball.velY = -Math.abs(ball.velY); // Make ball go downward.
-	  ball.y = state.player2.y - 1.0;
+	  ball.y = state.player2.y - (ball.radius + 0.01);
 	  ball.recentCollision = true;
 	  setTimeout(() => ball.recentCollision = false, 100);
 	}
@@ -114,11 +114,11 @@ import {
   // Check collision between a paddle and the ball based on a distance threshold.
 // Примерная функция, где мы задаем paddleWidth и используем ball.radius.
 function collisionWithPlayer(player: PlayerState, ball: BallState): boolean {
-	const paddleWidth = 0.01; // Примерная ширина ракетки (настройте по необходимости)
-	const ballRadius = ball.radius || 1.73; // Используем ball.radius, если он задан
+	const paddleWidth = 0.5; // Примерная ширина ракетки (настройте по необходимости)
+	const ballRadius = ball.radius ; // Используем ball.radius, если он задан
 	
 	// Check vertical difference: должен быть небольшим
-	const verticalThreshold = ballRadius + 0.1; // можно настроить
+	const verticalThreshold = ballRadius ; // можно настроить
 	if (Math.abs(ball.y - player.y) <= verticalThreshold) {
 	  // Check horizontal overlap:
 	  const horizontalThreshold = paddleWidth / 2 + ballRadius;
@@ -144,8 +144,8 @@ function collisionWithPlayer(player: PlayerState, ball: BallState): boolean {
 	  payload: {
 		gameId: state.gameId,
 		players: {
-		  p1: { x: state.player1.x, y: state.player1.y, score: state.player1.score },
-		  p2: { x: state.player2.x, y: state.player2.y, score: state.player2.score }
+		  p1: {  x: state.player1.x, y: state.player1.y, score: state.player1.score },
+		  p2: {  x: state.player2.x, y: state.player2.y, score: state.player2.score }
 		},
 		ball: { x: state.ball.x, y: state.ball.y }
 	  }
@@ -205,10 +205,8 @@ function collisionWithPlayer(player: PlayerState, ball: BallState): boolean {
   // Create and start a new game: initialize state, store it, and start the loop.
   export async function createAndStartGame(data: { player_1_id: number; player_2_id: number }): Promise<number> {
 	const gameId = await startOrdinaryGame(data.player_1_id, data.player_2_id);
-	console.log("Game started with ID:", gameId);
 	
 	const state = initGameState(gameId, data.player_1_id, data.player_2_id);
-	console.log("Game state initialized:", state);
 	
 	activeGames[gameId] = state;
 	startGameLoop(gameId);
