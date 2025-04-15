@@ -65,15 +65,15 @@ function displayMessage(himUsername: string, meUsername: string, himId: number, 
 
 
 // Fonction pour créer la ligne de chat d'un utilisateur
-function createChatUserRow(user: UserArray): string {
+function createChatUserRow(user: Friend): string {
     return `
-        <div data-user-id="${user.id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
+        <div data-user-id="${user.friend_id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
             <div class="flex-shrink-0 h-10 w-10">
-                <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
+                <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.friend_avatar}`} alt="">
             </div>
             <div class="ml-4">
-                <div class="text-left text-sm font-medium text-gray-900 dark:text-white">${user.username}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">${user.email}</div>
+                <div class="text-left text-sm font-medium text-gray-900 dark:text-white">${user.friend_username}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">${user.friend_email}</div>
             </div>
         </div>
     `;
@@ -152,9 +152,19 @@ function toggleChatMenu(isOpen: boolean) {
     }
 }
 
+type Friend = {
+    friend_id: number;
+    friend_username: string;
+    friend_avatar: string;
+    friend_email: string;
+    status: string;
+    online: boolean;
+};
+
 // Fonction d'initialisation du chat
 export function chat(): void {
-    const { allUsers } = getUserData();
+    const { me } = getUserData();
+    const friends = me?.friends;
 
     // Gestion de l'affichage du chat menu (ouverture/fermeture)
     const chatButton = document.getElementById('chatButton');
@@ -165,11 +175,12 @@ export function chat(): void {
 
     // Remplit le menu des utilisateurs
     const friendsListContainer = document.getElementById("chat-friends-list");
-    allUsers.forEach((user: UserArray) => {
-        if (user.id !== UserState.getUser()?.id) {
-            const userRow = createChatUserRow(user);
+    friends?.forEach((friend) => {
+        if (friend.friend_id !== UserState.getUser()?.id) {
+            const userRow = createChatUserRow(friend);
             friendsListContainer?.insertAdjacentHTML('beforeend', userRow);
         }
+        console.log(friend); 
     });
 
     // Ajoute des événements sur les utilisateurs
