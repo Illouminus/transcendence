@@ -67,6 +67,7 @@ server.register(async function (fastify: FastifyInstance) {
 					sendNotification(data.payload.toUserId, {
 						type: "chat_receive",
 						payload: { 
+							username: data.payload.username,
 							fromUserId: data.payload.fromUserId, 
 							toUserId: data.payload.toUserId, 
 							text: data.payload.text},

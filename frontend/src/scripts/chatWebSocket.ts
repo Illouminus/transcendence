@@ -31,12 +31,12 @@ export function connectChatWebSocket(token: string): WebSocket {
       switch (data.type) {
         case 'chat_send': {
           console.log('Message sent:', data.payload);
-          showAlert(`You received a message from ${data.payload.toUserId}`, 'success');
+          showAlert(`You received a message from ${data.payload.username}`, 'success');
           break;
         }
         case 'chat_receive': {
           console.log('Message received:', data.payload);
-          showAlert(`You received a message from ${data.payload.fromUserId}`, 'success');
+          showAlert(`New Message from ${data.payload.username}`, 'success');
           break;
         }
         default:

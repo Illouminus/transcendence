@@ -49,6 +49,7 @@ export type UserWebSocketMessage =
   
   /** Сообщение чата */
   export interface ChatMessagePayload {
+    username: string;
     fromUserId: number;
     toUserId: number;
     text: string;

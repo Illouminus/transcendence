@@ -18,13 +18,13 @@ async function sendMessage(meId: number, himID: number, messageText: string, him
             chatSocket.send(JSON.stringify({
                 type: "chat_send",
                 payload: {
+                    username: himUsername,
                     fromUserId: meId,
                     toUserId: himID,
                     text: messageText,
                 },
             }));
         }
-
 
         const response = await fetch(`http://localhost:8084/chat/messages`, {
             method: "POST",
