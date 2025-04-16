@@ -1,7 +1,7 @@
 import { loadPongPageScript} from "../pong";
 import { fetchAndRender, setUpdateAvatar } from "./outils";
 import { loginHandler, renderGoogleButton, login2FA, registerHandler } from "../services/auth.service";
-import {UserState} from "../userState";
+import { UserState } from "../userState";
 import {succesSVG, errorSVG} from "./outils"
 import { handleUpdateProfile, handleUpdateAvatar, enable2FA, disable2FA } from "../services/user.service";
 import { fetchUsers, loadUserProfileData } from "../users";

@@ -193,12 +193,59 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
     const mode = card.getAttribute('data-mode') as GameMode;
     let selection: GameModeSelection = { mode };
 
+    // Get game socket once for all cases
+    const gameSocket = UserState.getGameSocket();
+    if (!gameSocket) {
+        showAlert('Game socket not available', 'danger');
+        return;
+    }
+
     switch (mode) {
         case 'vsComputer':
             const difficultySelect = card.querySelector('select') as HTMLSelectElement;
-            selection.difficulty = difficultySelect.value as Difficulty;
-            UserState.setGameMode(selection);
-            redirectTo('/pong');
+            const difficulty = difficultySelect.value as Difficulty;
+            selection.difficulty = difficulty;
+
+            try {
+                // Send request to start AI game
+                gameSocket.send(JSON.stringify({ 
+                    type: 'start_ai_game',
+                    payload: { difficulty }
+                }));
+
+                // Save game mode selection
+                UserState.setGameMode(selection);
+
+                // Show loading state
+                const startButton = button as HTMLButtonElement;
+                startButton.textContent = 'Starting game...';
+                startButton.disabled = true;
+                startButton.classList.add('bg-gray-600', 'cursor-not-allowed');
+
+                // Wait for game creation confirmation
+                await new Promise<void>((resolve) => {
+                    const listener = (event: MessageEvent) => {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'game_created') {
+                            gameSocket.removeEventListener('message', listener);
+                            resolve();
+                        }
+                    };
+                    gameSocket.addEventListener('message', listener);
+                });
+
+                // Redirect to game
+                redirectTo('/pong');
+            } catch (error) {
+                console.error('Error starting AI game:', error);
+                showAlert('Failed to start game', 'danger');
+                
+                // Reset button state
+                const startButton = button as HTMLButtonElement;
+                startButton.textContent = 'Start Game';
+                startButton.disabled = false;
+                startButton.classList.remove('bg-gray-600', 'cursor-not-allowed');
+            }
             break;
 
         case 'vsFriend':
@@ -213,13 +260,6 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
             const selectedOption = friendSelect.selectedOptions[0];
             if (selectedOption.disabled) {
                 showAlert('Selected friend is offline', 'warning');
-                return;
-            }
-
-            // Send game invitation
-            const gameSocket = UserState.getGameSocket();
-            if (!gameSocket) {
-                showAlert('Game socket not available', 'danger');
                 return;
             }
 

@@ -49,17 +49,7 @@ function createCamera(scene: Scene): ArcRotateCamera {
 
   const { player1, player2 } = clientGameState;
 
-  console.log("Player 1 ID:", player1.id);
-  console.log("Player 2 ID:", player2.id);
-  console.log("Client User ID:", UserState.getUser()?.id);
-  console.log("Client Game ID:", clientGameState.gameId);
-
   const isPlayer1 = UserState.getUser()?.id === clientGameState.player1.id;
-  console.log("Is Player 1:", isPlayer1);
-  console.log("Is Player 2:", !isPlayer1);
-  console.log("Player 1 Position:", player1.x);
-  console.log("Player 2 Position:", player2.x);
-  console.log("Ball Position:", clientGameState.ball.x, clientGameState.ball.y);
 
   const initialAlpha = isPlayer1 ?  Tools.ToRadians(0): Tools.ToRadians(180);
   const targetPosition = isPlayer1 ?  new Vector3(0, 8, 25) :  new Vector3(0, 8, -25);

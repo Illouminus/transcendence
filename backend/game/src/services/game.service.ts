@@ -12,6 +12,14 @@ import {
   const gameIntervals: Record<number, NodeJS.Timeout> = {};
   const activeGames: Record<number, GameState> = {};
   
+  // AI configuration
+  const AI_USER_ID = 999999; // This should match the AI user in the database
+  const AI_DIFFICULTY_SETTINGS = {
+	easy: { speed: 0.3, reactionDelay: 100, errorMargin: 2 },
+	medium: { speed: 0.4, reactionDelay: 50, errorMargin: 1 },
+	hard: { speed: 0.5, reactionDelay: 20, errorMargin: 0.5 }
+  };
+  
   // Returns game statistics from the database for a given user ID.
   export async function getGameStatisticsByIdService(id: number) {
 	try {
@@ -39,6 +47,9 @@ import {
 	const isPlayer1 = (state.player1.userId === userId);
 	const player = isPlayer1 ? state.player1 : state.player2;
 	
+	// Don't allow AI player to be controlled by input
+	if (player.userId === AI_USER_ID) return;
+	
 	console.log("Player move - User ID:", player.userId);
 	
 	// Adjust the player's x-position and constrain it within boundaries if needed.
@@ -57,10 +68,44 @@ import {
 	broadcastGameState(state);
   }
   
+  // AI movement logic
+  function updateAIPosition(state: GameState) {
+	if (state.player2.userId !== AI_USER_ID) return;
+
+	const difficulty = state.aiDifficulty || 'medium';
+	const settings = AI_DIFFICULTY_SETTINGS[difficulty];
+	
+	const ball = state.ball;
+	const ai = state.player2;
+
+	// Only move when ball is coming towards AI
+	if (ball.velY > 0) {
+	  // Add some prediction of where the ball will be
+	  const predictedX = ball.x + (ball.velX * (ball.y - ai.y) / ball.velY);
+	  
+	  // Add some randomness based on difficulty
+	  const targetX = predictedX + (Math.random() - 0.5) * settings.errorMargin;
+	  
+	  // Move towards the predicted position
+	  if (Math.abs(targetX - ai.x) > settings.speed) {
+		const direction = targetX > ai.x ? 1 : -1;
+		ai.x += direction * settings.speed;
+	  }
+	  
+	  // Ensure AI paddle stays within bounds
+	  ai.x = Math.min(Math.max(ai.x, -10), 10);
+	}
+  }
+  
   // Main game update loop: moves the ball, checks collisions, and broadcasts game state.
   function updateGame(gameId: number) {
 	const state = activeGames[gameId];
 	if (!state || !state.isRunning) return;
+	
+	// Update AI position if this is an AI game
+	if (state.player2.userId === AI_USER_ID) {
+	  updateAIPosition(state);
+	}
 	
 	const ball = state.ball;
 	
@@ -234,12 +279,26 @@ function collisionWithPlayer(player: PlayerState, ball: BallState): boolean {
 	delete activeGames[gameId];
   }
   
-  // Create and start a new game: initialize state, store it, and start the loop.
+  // Create and start a new game with AI
+  export async function createAndStartAIGame(playerId: number, difficulty: 'easy' | 'medium' | 'hard' = 'medium'): Promise<number> {
+	const gameId = await startOrdinaryGame(playerId, AI_USER_ID);
+	
+	const state = initGameState(gameId, playerId, AI_USER_ID);
+	state.isRunning = false;
+	state.aiDifficulty = difficulty;
+	
+	activeGames[gameId] = state;
+	startGameLoop(gameId);
+	
+	return gameId;
+  }
+
+  // Create and start a new regular game
   export async function createAndStartGame(data: { player_1_id: number; player_2_id: number }): Promise<number> {
 	const gameId = await startOrdinaryGame(data.player_1_id, data.player_2_id);
 	
 	const state = initGameState(gameId, data.player_1_id, data.player_2_id);
-	state.isRunning = false; // Игра не начнется, пока не закончится отсчет
+	state.isRunning = false;
 	
 	activeGames[gameId] = state;
 	startGameLoop(gameId);

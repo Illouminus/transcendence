@@ -10,7 +10,7 @@ import config from "./config";
 // Import the database connection - auto launches the connection
 import "./database";
 import { JwtPayload } from "./@types/user.types";
-import { createAndStartGame, updatePlayerPosition } from "./services/game.service";
+import { createAndStartGame, createAndStartAIGame, updatePlayerPosition } from "./services/game.service";
 import { insertMatchmakingQueue, startOrdinaryGame } from "./models/game.model";
 
 //connectRabbit();
@@ -53,15 +53,24 @@ server.register(async function (fastify: FastifyInstance) {
 	
 
 		switch (data.type) {
+			case 'start_ai_game':
+				const gameId = await createAndStartAIGame(userId, data.payload.difficulty);
+				connection.send(JSON.stringify({
+					type: 'game_created',
+					payload: { gameId }
+				}));
+				break;
 			case 'game_invite': 
-			sendNotification(data.payload.friendId, {
-				type: 'game_invitation_income',
-				payload: { fromUserId : userId}});
+				sendNotification(data.payload.friendId, {
+					type: 'game_invitation_income',
+					payload: { fromUserId: userId }
+				});
 				break;
 			case 'game_invitation_accepted':
 				sendNotification(data.payload.friendId, {
 					type: 'game_invitation_accepted',
-					payload: { fromUserId : userId }});
+					payload: { fromUserId: userId }
+				});
 				await createAndStartGame({player_1_id: userId, player_2_id: data.payload.friendId});
 				break;
 			case 'game_invitation_rejected':
