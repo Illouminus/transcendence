@@ -1,4 +1,4 @@
-import fastify, {FastifyRequest, FastifyInstance} from "fastify";
+import fastify, { FastifyRequest, FastifyInstance } from "fastify";
 import FastifyWebsocket from "@fastify/websocket";
 import cors from "@fastify/cors";
 import fastifyJwt from "fastify-jwt";
@@ -44,12 +44,10 @@ server.register(async function (fastify: FastifyInstance) {
 				connection.socket.close(4001, "Token required");
 				return;
 			}
-			console.log("🔑 Token reçu: " + token);
-
 			const payload = server.jwt.verify(token) as JwtPayload;
-			console.log("✅ JWT payload verified:", payload);
 
 			const userId = payload.userId;
+			console.log("✅ Connexion WebSocket établie pour l'utilisateur:", userId);
 			if (!userId) {
 				console.log("❌ Payload invalid, userId non trouvé");
 				connection.socket.close(4002, "Invalid token");
@@ -57,38 +55,34 @@ server.register(async function (fastify: FastifyInstance) {
 			}
 
 			// Ajout de la connexion à la liste active
-			activeConnections.set(userId, connection.socket);
-			console.log(`✅ User ${userId} connected via WebSocket`);
-
+			activeConnections.set(userId, connection);
 
 			// Gestion des messages reçus
-			connection.socket.on('message', (message: string) => {
-				try {
-					const data = JSON.parse(message.toString());
-					console.log(`💬 Message reçu de ${userId}:`, data);
+			connection.on('message', (message: string) => {
+				const data = JSON.parse(message);
 
-					// Exemple de traitement des messages
-					if (data.type === 'chat_message') {
-						const { content, recipientId } = data.payload;
-						sendNotification(recipientId, {
-							type: 'new_message',
-							payload: { senderId: userId, content },
-						});
-					}
-				} catch (err) {
-					console.error(`❌ Erreur de traitement du message pour ${userId}:`, err);
+				// Vérification du type de message
+				if (data.type == "chat_send") {
+					console.log('Message envoyé:', data.payload);
+					sendNotification(data.payload.toUserId, {
+						type: "chat_receive",
+						payload: { 
+							fromUserId: data.payload.fromUserId, 
+							toUserId: data.payload.toUserId, 
+							text: data.payload.text},
+					});
 				}
 			});
 
 			// Gestion de la déconnexion
-			connection.socket.on('close', () => {
+			connection.on('close', () => {
 				console.log(`❌ User ${userId} disconnected`);
 				activeConnections.delete(userId);
 
 			});
 
 			// Gestion des erreurs
-			connection.socket.on('error', (error: string) => {
+			connection.on('error', (error: string) => {
 				console.error(`⚠️ Erreur WebSocket pour l'utilisateur ${userId}:`, error);
 				activeConnections.delete(userId);
 			});
@@ -104,29 +98,24 @@ interface NotificationData {
 
 export function sendNotification(receiverId: number, data: NotificationData) {
     console.log('Send Notification Called');
-    const ws = activeConnections.get(receiverId); // Utiliser receiverId ici
+    const connection = activeConnections.get(receiverId);
 
     // Vérifie si la connexion WebSocket pour le destinataire est présente
-    if (!ws) {
+    if (!connection) {
         console.log(`WebSocket for user ${receiverId} not found in active connections`);
-        return;
-    }
-
-    // Vérifie si le WebSocket est ouvert pour le destinataire
-    if (ws.readyState !== WebSocket.OPEN) {
-        console.log(`WebSocket for user ${receiverId} is not available or not open. ReadyState:`, ws.readyState);
         return;
     }
 
     try {
         // Envoie la notification
-        ws.send(JSON.stringify(data));
+        connection.send(JSON.stringify(data));
         console.log('Notification sent successfully to user', receiverId);
     } catch (error) {
         console.error('Error sending notification:', error);
-        activeConnections.delete(receiverId);  // Nettoyer la connexion en cas d'erreur
+        activeConnections.delete(receiverId);
     }
 }
+
 
 
 

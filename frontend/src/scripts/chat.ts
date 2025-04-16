@@ -13,6 +13,19 @@ async function sendMessage(meId: number, himID: number, messageText: string, him
     if (!messageText || messageText.trim() === "") return;
 
     try {
+        const chatSocket = UserState.getChatSocket();
+        if (chatSocket) {
+            chatSocket.send(JSON.stringify({
+                type: "chat_send",
+                payload: {
+                    fromUserId: meId,
+                    toUserId: himID,
+                    text: messageText,
+                },
+            }));
+        }
+
+
         const response = await fetch(`http://localhost:8084/chat/messages`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -180,7 +193,6 @@ export function chat(): void {
             const userRow = createChatUserRow(friend);
             friendsListContainer?.insertAdjacentHTML('beforeend', userRow);
         }
-        console.log(friend); 
     });
 
     // Ajoute des événements sur les utilisateurs

@@ -41,12 +41,8 @@ export async function sendMessageController(req: FastifyRequest<{ Body: { sender
       // Si l'un des champs est manquant, renvoyer une erreur
       return reply.status(400).send({ error: "All fields are required" });
     }
-
     const newMessage = await sendMessageService(sender_id, receiver_id, content);
-    sendNotification(receiver_id, {
-      type: "new_message",
-      payload: { content: content },
-    });
+    
     return reply.status(201).send(newMessage);
   } catch (error) {
     logError(error, "sendMessageController");

@@ -5,7 +5,8 @@ export type UserWebSocketMessage =
   | { type: 'friend_blocked'; payload: FriendBlockedPayload }
   | { type: 'friend_unblocked'; payload: FriendUnblockedPayload }
   | { type: 'friend_deleted'; payload: FriendDeletedPayload }
-  | { type: 'chat_message'; payload: ChatMessagePayload }
+  | { type: 'chat_send'; payload: ChatMessagePayload }
+  | { type: 'chat_receive'; payload: ChatMessagePayload }
   | { type: 'system_notification'; payload: SystemNotificationPayload }
   | { type: 'user_connected'; payload: {user : UserInfo} }
   | { type: 'user_disconnected'; payload: {user: UserInfo} }

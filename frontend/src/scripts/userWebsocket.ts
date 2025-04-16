@@ -84,13 +84,6 @@ export function connectUserWebSocket(token: string): WebSocket {
           fetchUsers();
           break;
         }
-    
-        case 'chat_message': {
-          const { fromUserId, toUserId, text } = data.payload;
-          console.log(`Chat message from ${fromUserId} to ${toUserId}: ${text}`);
-          break;
-        }
-    
         case 'system_notification': {
           const { message, severity } = data.payload;
           showAlert(message, 'danger');
