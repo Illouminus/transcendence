@@ -1,8 +1,16 @@
+import { GameMode, GameModeSelection } from "./gameMode";
 import { User } from "./models/user.model";
 import { UserArray } from "./users";
 
-
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
+
+type ConnectionChangeCallback = () => void;
+type GameEventCallback = (event: GameEvent) => void;
+
+export type GameEvent = {
+	type: 'invitation_rejected' | 'invitation_accepted' | 'game_started';
+	friendId: number;
+};
 
 export class UserState {
 	private static user: User | null = null;
@@ -11,6 +19,9 @@ export class UserState {
 	private static tempEmail: string = "";
 	private static userSocket: WebSocket | null = null;
 	private static gameSocket: WebSocket | null = null;
+	private static gameMode: GameModeSelection | null = null;
+	private static connectionChangeCallbacks: Set<ConnectionChangeCallback> = new Set();
+	private static gameEventCallbacks: Set<GameEventCallback> = new Set();
 
 	static setUser(user: User) {
 		this.user = user;
@@ -20,13 +31,13 @@ export class UserState {
 				friend.online = false;
 			});
 		}
-		renderAvatar(user.avatar);
+		this.renderAvatar(user.avatar);
 	}
 
 	static updateUser(partial: Partial<User>) {
 		if (this.user) {
 			this.user = { ...this.user, ...partial };
-			renderAvatar(this.user.avatar);
+			this.renderAvatar(this.user.avatar);
 		}
 	}
 
@@ -42,7 +53,7 @@ export class UserState {
 		this.user = null;
 		this.allUsers = [];
 		this.sentFriendRequests.clear();
-		renderAvatar(null);
+		this.renderAvatar(null);
 		this.userSocket?.close();
 		this.gameSocket?.close();
 		this.userSocket = null;
@@ -70,17 +81,22 @@ export class UserState {
 		return this.sentFriendRequests.has(userId);
 	}
 
-
 	static setTempEmail(email: string) {
 		this.tempEmail = email;
+	}
+
+	static getTempEmail() {
+		return this.tempEmail;
 	}
 	
 	static setGameSocket(socket: WebSocket) {
 		this.gameSocket = socket;
 	}
+
 	static getGameSocket() {
 		return this.gameSocket;
 	}
+
 	static setUserSocket(socket: WebSocket) {
 		this.userSocket = socket;
 	}
@@ -89,24 +105,62 @@ export class UserState {
 		return this.userSocket;
 	}
 
+	static setGameMode(mode: GameModeSelection) {
+		this.gameMode = mode;
+	}
+
+	static getGameMode() {
+		return this.gameMode;
+	}
+
 	static updateFriendStatus(friendId: number, online: boolean, email?: string) {
 		if (this.user && this.user.friends) {
 			const friend = this.user.friends.find(f => f.friend_id === friendId || f.friend_email === email);
 			if (friend) {
 				friend.online = online;
+				// Notify all subscribers about the connection change
+				this.notifyConnectionChange();
 			}
+		}
+	}
+
+	// Subscribe to connection changes
+	static onConnectionChange(callback: ConnectionChangeCallback) {
+		this.connectionChangeCallbacks.add(callback);
+	}
+
+	// Unsubscribe from connection changes
+	static offConnectionChange(callback: ConnectionChangeCallback) {
+		this.connectionChangeCallbacks.delete(callback);
+	}
+
+	// Notify all subscribers about connection changes
+	private static notifyConnectionChange() {
+		this.connectionChangeCallbacks.forEach(callback => callback());
+	}
+
+	static onGameEvent(callback: GameEventCallback) {
+		this.gameEventCallbacks.add(callback);
+	}
+
+	static offGameEvent(callback: GameEventCallback) {
+		this.gameEventCallbacks.delete(callback);
+	}
+
+	static notifyGameEvent(event: GameEvent) {
+		this.gameEventCallbacks.forEach(callback => callback(event));
+	}
+
+	private static renderAvatar(avatar?: string | null) {
+		const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
+		if (avatarImg) {
+			avatarImg.onerror = () => {
+				avatarImg.onerror = null;
+				avatarImg.src = "http://localhost:8080/user/images/default_avatar.png";
+			};
+			avatarImg.src = avatar ? `http://localhost:8080/user${avatar}` : "http://localhost:8080/user/images/default_avatar.png";
 		}
 	}
 }
 
-
-function renderAvatar(avatar?: string | null) {
-	const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
-	if (avatarImg) {
-	  avatarImg.onerror = () => {
-		avatarImg.onerror = null;
-		avatarImg.src = "http://localhost:8080/user/images/default_avatar.png";
-	  };
-	  avatarImg.src = avatar ? `http://localhost:8080/user${avatar}` : "http://localhost:8080/user/images/default_avatar.png";
-	}
-  }
+export default UserState;

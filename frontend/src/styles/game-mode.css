@@ -1,0 +1,76 @@
+.game-mode-card {
+    background-color: rgb(31, 41, 55);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.3s;
+    border: 1px solid rgb(55, 65, 81);
+}
+
+.game-mode-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.2);
+    border-color: rgb(139, 92, 246);
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.icon-container {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+    background-color: rgb(55, 65, 81);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    transition: background-color 0.3s;
+}
+
+.group:hover .icon-container {
+    background-color: rgb(139, 92, 246);
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-fade-in-delay {
+    animation: fadeIn 0.5s ease-in-out 0.2s;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+select {
+    appearance: none;
+    background-color: rgb(31, 41, 55);
+    color: white;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+}
+
+select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(139, 92, 246);
+}
+
+.hidden {
+    display: none;
+}
+
+.group:hover .hidden {
+    display: block;
+} 

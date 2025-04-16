@@ -33,7 +33,8 @@ function getElements() {
     gameOverMenu: document.getElementById("gameOverMenu") as HTMLElement,
     startButton: document.getElementById("startButton") as HTMLButtonElement,
     restartButton: document.getElementById("restartButton") as HTMLButtonElement,
-    quitButton: document.getElementById("quitButton") as HTMLButtonElement
+    quitButton: document.getElementById("quitButton") as HTMLButtonElement,
+    choiseModal: document.getElementById("gameChoiseModal") as HTMLElement,
   };
 }
 
@@ -47,7 +48,7 @@ function createCamera(scene: Scene): ArcRotateCamera {
   const isPlayer1 = UserState.getUser()?.id === clientGameState.player1.id;
 
   const initialAlpha = isPlayer1 ?  Tools.ToRadians(0): Tools.ToRadians(180);
-  const targetPosition = isPlayer1 ?  new Vector3(0, 8, 20) :  new Vector3(0, 5, -15);
+  const targetPosition = isPlayer1 ?  new Vector3(0, 8, 25) :  new Vector3(0, 8, -25);
 
   const camera = new ArcRotateCamera(
     "camera",
@@ -141,17 +142,10 @@ async function createGround(scene: Scene): Promise<Mesh> {
 
 // Create a player's paddle from model data.
 async function createPlayerPaddle(scene: Scene, positionZ: number): Promise<Mesh> {
-  const container: AssetContainer = await LoadAssetContainerAsync("models/racket.glb", scene);
-  console.log("Paddle meshes:", container.meshes);
-  const paddle = container.meshes[0] as Mesh;
+
+  const paddle = await loadModel(scene, "models/paddel.glb", true);
   paddle.scaling = new Vector3(0.2, 0.2, 0.2);
-  paddle.position = new Vector3(45, 0, positionZ);
-  paddle.rotation.x = 0;
-  paddle.rotation.y = 45;
-  paddle.checkCollisions = true;
-  paddle.actionManager = new ActionManager(scene);
-  paddle.actionManager.registerAction(new SetValueAction(ActionManager.OnPickDownTrigger, paddle, "scaling", new Vector3(5, 5, 5)));
-  container.addAllToScene();
+  paddle.position = new Vector3(45, 0.5, positionZ);
   return paddle;
 }
 
@@ -165,46 +159,39 @@ async function createPlayers(scene: Scene): Promise<{ player1: Mesh; player2: Me
 
 // Create the ball mesh.
 async function createBall(scene: Scene): Promise<Mesh> {
-  const container: AssetContainer = await LoadAssetContainerAsync("models/ball.glb", scene);
-
-  const ball = container.meshes[0] as Mesh;
-  
+  const ball = await loadModel(scene, "models/ball.glb", true);
   ball.scaling = new Vector3(0.1, 0.1, 0.1);
-  
   ball.position = new Vector3(0, 0.5, 0);
-  container.addAllToScene();
-  ball.physicsImpostor = new PhysicsImpostor(ball, PhysicsImpostor.BoxImpostor, { mass: 1, restitution: 0.9 }, scene);
-  ball.checkCollisions = true;
   return ball;
 }
 
-// Animate paddle swing (demonstration)
-function swingRacket(mesh: Mesh): void {
-  const scene = mesh.getScene();
-  scene.stopAnimation(mesh);
-  const startQuat = mesh.rotationQuaternion?.clone() || Quaternion.Identity();
-  const swingQuat = Quaternion.FromEulerAngles(Tools.ToRadians(45), 0, 0);
-  const targetQuat = startQuat.multiply(swingQuat);
-  const anim = new Animation("racketSwingQuat", "rotationQuaternion", 60, Animation.ANIMATIONTYPE_QUATERNION, Animation.ANIMATIONLOOPMODE_CONSTANT);
-  anim.setKeys([
-    { frame: 0, value: startQuat },
-    { frame: 5, value: targetQuat },
-    { frame: 10, value: startQuat }
-  ]);
-  mesh.animations = [anim];
-  scene.beginAnimation(mesh, 0, 10, false);
-}
+// // Animate paddle swing (demonstration)
+// function swingRacket(mesh: Mesh): void {
+//   const scene = mesh.getScene();
+//   scene.stopAnimation(mesh);
+//   const startQuat = mesh.rotationQuaternion?.clone() || Quaternion.Identity();
+//   const swingQuat = Quaternion.FromEulerAngles(Tools.ToRadians(45), 0, 0);
+//   const targetQuat = startQuat.multiply(swingQuat);
+//   const anim = new Animation("racketSwingQuat", "rotationQuaternion", 60, Animation.ANIMATIONTYPE_QUATERNION, Animation.ANIMATIONLOOPMODE_CONSTANT);
+//   anim.setKeys([
+//     { frame: 0, value: startQuat },
+//     { frame: 5, value: targetQuat },
+//     { frame: 10, value: startQuat }
+//   ]);
+//   mesh.animations = [anim];
+//   scene.beginAnimation(mesh, 0, 10, false);
+// }
 
 // Main function to initialize and run the game scene.
 export async function loadPongPageScript(): Promise<void> {
-  const { canvas, startMenu, gameOverMenu, startButton, restartButton, quitButton } = getElements();
+  const { canvas, startMenu, gameOverMenu, choiseModal } = getElements();
   const engine = createEngine(canvas);
   engine.displayLoadingUI();
   engine.loadingUIText = "Loading...";
   engine.loadingUIBackgroundColor = "black";
 
   const scene = new Scene(engine);
-  scene.collisionsEnabled = true;
+  
   // In this 2D-like setup, we disable gravity.
   scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
 
@@ -237,9 +224,11 @@ export async function loadPongPageScript(): Promise<void> {
     }
   });
 
+  //choiseModal.style.display = "block";
+
   // Show start menu after camera animation
   scene.beginAnimation(camera, 0, 100, false, 1, () => {
-    startMenu.style.display = "block";
+    //startMenu.style.display = "block";
   });
 
   function startGame(): void {
@@ -248,17 +237,17 @@ export async function loadPongPageScript(): Promise<void> {
     updateScoreDisplay();
   }
 
-  startButton.onclick = startGame;
-  restartButton.onclick = () => {
-    clientGameState.player1.score = 0;
-    clientGameState.player2.score = 0;
-    updateScoreDisplay();
-    startGame();
-  };
-  quitButton.onclick = () => {
-    alert("Merci d'avoir joué!");
-    gameOverMenu.style.display = "none";
-  };
+  //startButton.onclick = startGame;
+  // restartButton.onclick = () => {
+  //   clientGameState.player1.score = 0;
+  //   clientGameState.player2.score = 0;
+  //   updateScoreDisplay();
+  //   startGame();
+  // };
+  // quitButton.onclick = () => {
+  //   alert("Merci d'avoir joué!");
+  //   gameOverMenu.style.display = "none";
+  // };
 
   // Main render loop: update scoreboard and sync mesh positions from global state.
   engine.runRenderLoop(() => {

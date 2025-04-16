@@ -53,12 +53,20 @@ export function connectGameWebSocket(token: string): WebSocket {
         }
         case 'game_invitation_accepted':
           showAlert(`Game invitation accepted by ${data.payload.fromUserId}`);
-          clientGameState.player1.id = UserState.getUser()!.id;
-          clientGameState.player2.id = data.payload.fromUserId;
+          UserState.notifyGameEvent({
+            type: 'invitation_accepted',
+            friendId: data.payload.fromUserId
+          });
+          clientGameState.player1.id = data.payload.fromUserId;
+          clientGameState.player2.id = UserState.getUser()!.id;
           redirectTo('/pong');
           break;
         case 'game_invitation_rejected':
           showAlert(`Game invitation rejected by ${data.payload.fromUserId}`);
+          UserState.notifyGameEvent({
+            type: 'invitation_rejected',
+            friendId: data.payload.fromUserId
+          });
           break;
 
         case 'game_update':

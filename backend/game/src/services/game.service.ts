@@ -78,7 +78,7 @@ import {
 	  console.log("Collision with player1");
 	  ball.velY = Math.abs(ball.velY); // Make ball go upward.
 	  // Offset ball's y slightly above the paddle.
-	  ball.y = state.player1.y + (ball.radius + 0.01);
+	  ball.y = state.player1.y ;
 	  ball.recentCollision = true;
 	  setTimeout(() => ball.recentCollision = false, 100);
 	}
@@ -87,7 +87,7 @@ import {
 	if (collisionWithPlayer(state.player2, ball) && !ball.recentCollision) {
 	  console.log("Collision with player2");
 	  ball.velY = -Math.abs(ball.velY); // Make ball go downward.
-	  ball.y = state.player2.y - (ball.radius + 0.01);
+	  ball.y = state.player2.y ;
 	  ball.recentCollision = true;
 	  setTimeout(() => ball.recentCollision = false, 100);
 	}
@@ -114,7 +114,7 @@ import {
   // Check collision between a paddle and the ball based on a distance threshold.
 // Примерная функция, где мы задаем paddleWidth и используем ball.radius.
 function collisionWithPlayer(player: PlayerState, ball: BallState): boolean {
-	const paddleWidth = 0.5; // Примерная ширина ракетки (настройте по необходимости)
+	const paddleWidth = 1.72; // Примерная ширина ракетки (настройте по необходимости)
 	const ballRadius = ball.radius ; // Используем ball.radius, если он задан
 	
 	// Check vertical difference: должен быть небольшим
@@ -123,6 +123,13 @@ function collisionWithPlayer(player: PlayerState, ball: BallState): boolean {
 	  // Check horizontal overlap:
 	  const horizontalThreshold = paddleWidth / 2 + ballRadius;
 	  if (Math.abs(ball.x - player.x) <= horizontalThreshold) {
+
+		console.log("Difference in Y:", Math.abs(ball.y - player.y));
+		console.log("Difference in X:", Math.abs(ball.x - player.x));
+		console.log("Ball radius:", ballRadius);
+		console.log("Paddle width:", paddleWidth);
+		console.log("Threshold X:", horizontalThreshold);
+		console.log("Threshold Y:", verticalThreshold);
 		return true;
 	  }
 	}
