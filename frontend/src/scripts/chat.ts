@@ -8,6 +8,33 @@ const getUserData = () => {
     return { me, allUsers };
 };
 
+// AFFICHAGE 
+function toggleElementClass(elementId: string, className: string, add: boolean): void {
+    const element = document.getElementById(elementId);
+    if (element) {
+        add ? element.classList.add(className) : element.classList.remove(className);
+    }
+}
+
+// Utilitaire pour mettre à jour le contenu d'un élément
+function updateElementContent(elementId: string, content: string): void {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerHTML = content;
+    }
+}
+
+// Utilitaire pour ajouter un gestionnaire d'événements
+function addEventListenerToElement(elementId: string, event: string, handler: EventListener): void {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.replaceWith(element.cloneNode(true)); // Nettoyage des anciens listeners
+        document.getElementById(elementId)?.addEventListener(event, handler);
+    }
+}
+
+
+
 // Fonction pour envoyer un message
 async function sendMessage(meId: number, himID: number, messageText: string, himUsername: string, meUsername: string) {
     if (!messageText || messageText.trim() === "") return;
@@ -91,36 +118,32 @@ function createChatUserRow(user: Friend): string {
         </div>
     `;
 }
-
-// Fonction pour ouvrir la fenêtre de chat
 async function openChatWindow(userId: string) {
     const { me, allUsers } = getUserData();
-    
     const him = allUsers.find(user => user.id === parseInt(userId));
-    const himUsername = him ? him.username : "Utilisateur inconnu";
+    const himUsername = him?.username ?? "Utilisateur inconnu";
     const himId = him?.id ?? 0;
     const meUsername = me?.username ?? "Utilisateur inconnu";
     const meId = me?.id ?? 0;
 
-    const friendsListContainer = document.getElementById("chat-friends-list");
-    if (friendsListContainer) friendsListContainer.classList.add("hidden");
+    // Mise à jour de l'affichage
+    toggleElementClass('closeChat', 'hidden', true);
+    toggleElementClass('goBack', 'hidden', false);
+    toggleElementClass('chat-friends-list', 'hidden', true);
+    toggleElementClass('chatInput', 'hidden', false);
+    toggleElementClass('chatMessages', 'hidden', false);
 
-    const chatInput = document.getElementById("chatInput");
-    if (chatInput) chatInput.classList.remove("hidden");
+    updateElementContent('chatTitle', himUsername);
+    updateElementContent('chatMessages', "");
 
-    const chatTitle = document.getElementById("chatTitle");
-    if (chatTitle) chatTitle.innerHTML = himUsername;
+    // Gestion du bouton "Retour"
+    addEventListenerToElement('goBack', 'click', () => hideChatMenu(true));
 
-    const chatMessagesContainer = document.getElementById("chatMessages");
-    if (chatMessagesContainer) {
-        chatMessagesContainer.innerHTML = "";
-        chatMessagesContainer.classList.remove("hidden");
-    }
-
+    // Chargement des messages
     try {
         const response = await fetch(`http://localhost:8084/chat/messages/${himId}/${meId}`);
         if (!response.ok) throw new Error("Erreur lors de la récupération des messages");
-        
+
         const messages = await response.json();
         messages.forEach((message: any) => {
             displayMessage(himUsername, meUsername, himId, message.sender_id, message.content, message.sent_at);
@@ -129,18 +152,16 @@ async function openChatWindow(userId: string) {
         console.error("Erreur de chargement des messages :", error);
     }
 
-    const sendButton = document.getElementById("sendButton");
-    sendButton?.replaceWith(sendButton.cloneNode(true)); // reset l'event listener
-    const newSendButton = document.getElementById("sendButton");
-
-    newSendButton?.addEventListener("click", () => {
+    // Gestion de l'envoi des messages
+    addEventListenerToElement("sendButton", "click", () => {
         const chatMessageInput = document.getElementById("chatMessage") as HTMLInputElement;
         if (chatMessageInput) {
             sendMessage(meId, himId, chatMessageInput.value, himUsername, meUsername);
-            chatMessageInput.value = '';  // Clear the input after sending
+            chatMessageInput.value = ''; // Effacement du champ après envoi
         }
     });
 }
+
 
 // Fonction pour initialiser les événements de chat
 function attachChatEventListeners(): void {
@@ -153,17 +174,23 @@ function attachChatEventListeners(): void {
     });
 }
 
-// Fonction pour afficher/masquer le menu de chat
-function toggleChatMenu(isOpen: boolean) {
-    const chatMenu = document.getElementById('chatMenu');
-    if (chatMenu) {
-        if (isOpen) {
-            chatMenu.classList.remove('hidden');
-        } else {
-            chatMenu.classList.add('hidden');
-        }
-    }
+function hideChatMenu(isOpen: boolean): void {
+    toggleElementClass('chatMessages', 'hidden', isOpen);
+    toggleElementClass('chatInput', 'hidden', isOpen);
+    toggleElementClass('chat-friends-list', 'hidden', false);
+
+    updateElementContent('chatTitle', 'Chat');
+
+    toggleElementClass('goBack', 'hidden', true);
+    toggleElementClass('closeChat', 'hidden', false);
 }
+
+
+// Fonction pour afficher/masquer le menu de chat
+function toggleChatMenu(isOpen: boolean): void {
+    toggleElementClass('chatMenu', 'hidden', !isOpen);
+}
+
 
 type Friend = {
     friend_id: number;
