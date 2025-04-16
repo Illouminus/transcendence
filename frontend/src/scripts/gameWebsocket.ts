@@ -10,8 +10,6 @@ import { UserState } from "./userState";
 
 let socket : WebSocket | null = null;
 
-
-
 export function connectGameWebSocket(token: string): WebSocket {
   
     if (socket && socket.readyState === WebSocket.OPEN) {
@@ -57,8 +55,8 @@ export function connectGameWebSocket(token: string): WebSocket {
             type: 'invitation_accepted',
             friendId: data.payload.fromUserId
           });
-          clientGameState.player1.id = data.payload.fromUserId;
-          clientGameState.player2.id = UserState.getUser()!.id;
+          clientGameState.player1.id = UserState.getUser()!.id;
+          clientGameState.player2.id = data.payload.fromUserId;
           redirectTo('/pong');
           break;
         case 'game_invitation_rejected':
@@ -69,10 +67,19 @@ export function connectGameWebSocket(token: string): WebSocket {
           });
           break;
 
+        case 'game_countdown':
+          const countdownTimer = document.getElementById('countdownTimer');
+          if (countdownTimer) {
+            countdownTimer.style.display = 'block';
+            countdownTimer.textContent = data.payload.count.toString();
+            if (data.payload.count === 0) {
+              countdownTimer.style.display = 'none';
+            }
+          }
+          break;
+
         case 'game_update':
           clientGameState.gameId = data.payload.gameId;
-          // clientGameState.player1.id = data.payload.players.p1.id;
-          // clientGameState.player2.id = data.payload.players.p2.id;
           clientGameState.player1.x = data.payload.players.p1.x;
           clientGameState.player1.y = data.payload.players.p1.y;
           clientGameState.player1.score = data.payload.players.p1.score;
@@ -81,23 +88,16 @@ export function connectGameWebSocket(token: string): WebSocket {
           clientGameState.player2.score = data.payload.players.p2.score;
           clientGameState.ball.x = data.payload.ball.x;
           clientGameState.ball.y = data.payload.ball.y;
-
           break;
     
         case 'game_result':
-          // Handle game result
           console.log('Game result:', data);
           break;
-    
-      //   default:
-      //     console.warn('Unknown WS message type:', data);
-      // }
+      }
     };
-
-  }
-  return socket;
+    return socket;
 }
   
-  export function getWebSocket(): WebSocket | null {
-    return socket;
-  }
+export function getWebSocket(): WebSocket | null {
+  return socket;
+}

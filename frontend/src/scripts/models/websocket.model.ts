@@ -4,6 +4,7 @@ export type UserWebSocketMessage =
   | { type: 'friend_request_rejected'; payload: FriendRequestRejectedPayload }
   | { type: 'friend_blocked'; payload: FriendBlockedPayload }
   | { type: 'friend_unblocked'; payload: FriendUnblockedPayload }
+  | { type: 'unblocked_user'; payload: UnblockedUserPayload }
   | { type: 'friend_deleted'; payload: FriendDeletedPayload }
   | { type: 'chat_message'; payload: ChatMessagePayload }
   | { type: 'system_notification'; payload: SystemNotificationPayload }
@@ -37,7 +38,8 @@ export type UserWebSocketMessage =
   /** Нас разблокировали */
   export interface FriendUnblockedPayload {
     message: string;
-    user: UserInfo; // user, который нас разблокировал
+    user: UserInfo;
+    isOnline: boolean;
   }
   
   /** Нас удалили из друзей */
@@ -79,6 +81,12 @@ export type UserWebSocketMessage =
     status: string;
   }
 
+  /** Пользователь разблокировал кого-то */
+  export interface UnblockedUserPayload {
+    message: string;
+    user: UserInfo; // user, которого разблокировали
+    isOnline: boolean;
+  }
 
 export type GameWebSocketMessage = 
 | { type: 'game_invitation_income'; payload: GameInvitationIncomePayload }
@@ -87,7 +95,8 @@ export type GameWebSocketMessage =
 | { type: 'game_started'; payload: GameStartedPayload }
 | { type: 'game_error'; payload: GameErrorPayload }
 | { type: 'game_update'; payload: GameUpdatePayload }
-| { type: 'game_result'; payload: GameResultPayload } ;
+| { type: 'game_countdown'; payload: GameCountdownPayload }
+| { type: 'game_result'; payload: GameResultPayload };
 
 
 export interface GameInvitationIncomePayload {
@@ -138,4 +147,8 @@ export interface GameResultPayload {
   gameType: string;
   winnerId: number; // ID победителя
   // другие поля, которые могут понадобиться
+}
+
+export interface GameCountdownPayload {
+  count: number;
 }

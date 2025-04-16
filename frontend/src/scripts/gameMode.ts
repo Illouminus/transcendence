@@ -1,5 +1,6 @@
 import { UserState } from './userState';
 import { showAlert } from './services/alert.service';
+import { redirectTo } from './router';
 
 export type GameMode = 'vsComputer' | 'vsFriend' | 'championship';
 export type Difficulty = 'easy' | 'medium' | 'hard';
@@ -107,7 +108,7 @@ function handleGameInviteResponse(payload: { accepted: boolean, friendId: number
             friendId: payload.friendId.toString()
         };
         UserState.setGameMode(selection);
-        window.location.href = '/pong.html';
+        redirectTo('/pong');
     } else {
         showAlert('Friend declined your invitation', 'warning');
         // Reset button state
@@ -197,7 +198,7 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
             const difficultySelect = card.querySelector('select') as HTMLSelectElement;
             selection.difficulty = difficultySelect.value as Difficulty;
             UserState.setGameMode(selection);
-            window.location.href = '/pong.html';
+            redirectTo('/pong');
             break;
 
         case 'vsFriend':

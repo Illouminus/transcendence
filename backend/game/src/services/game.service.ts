@@ -166,9 +166,34 @@ function collisionWithPlayer(player: PlayerState, ball: BallState): boolean {
   function startGameLoop(gameId: number): void {
 	if (gameIntervals[gameId]) return;
 	
-	gameIntervals[gameId] = setInterval(() => {
-	  updateGame(gameId);
-	}, 50);
+	// Начинаем с отсчета
+	let countdown = 5;
+	const countdownInterval = setInterval(() => {
+	  const state = activeGames[gameId];
+	  if (!state) {
+		clearInterval(countdownInterval);
+		return;
+	  }
+
+	  // Отправляем текущее значение таймера
+	  const countdownPayload = {
+		type: 'game_countdown',
+		payload: { count: countdown }
+	  };
+	  sendNotification(state.player1.userId, countdownPayload);
+	  sendNotification(state.player2.userId, countdownPayload);
+
+	  countdown--;
+
+	  // Когда отсчет закончен, запускаем игру
+	  if (countdown < 0) {
+		clearInterval(countdownInterval);
+		state.isRunning = true;
+		gameIntervals[gameId] = setInterval(() => {
+		  updateGame(gameId);
+		}, 50);
+	  }
+	}, 1000);
   }
   
   // End the game: stop loop, update the database, and notify players.
@@ -214,6 +239,7 @@ function collisionWithPlayer(player: PlayerState, ball: BallState): boolean {
 	const gameId = await startOrdinaryGame(data.player_1_id, data.player_2_id);
 	
 	const state = initGameState(gameId, data.player_1_id, data.player_2_id);
+	state.isRunning = false; // Игра не начнется, пока не закончится отсчет
 	
 	activeGames[gameId] = state;
 	startGameLoop(gameId);

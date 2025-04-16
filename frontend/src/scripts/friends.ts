@@ -176,10 +176,12 @@ const blockFriend = async (friendId: number, card: HTMLElement) => {
 
         if (!response.ok) throw new Error('Failed to block friend');
         
-        await updateUser();
-        UserState.updateFriendStatus(friendId, !isBlocked);
-        await loadFriends();
-        showAlert('Friend blocked successfully', 'success');
+        //await updateUser();
+        UserState.notifyFriendEvent({
+            type: isBlocked ? 'friend_blocked' : 'friend_unblocked',
+            friendId: friendId
+        });
+        showAlert(isBlocked ? 'Friend blocked successfully' : 'Friend unblocked successfully', 'success');
     } catch (error) {
         console.error('Error blocking friend:', error);
         showAlert('Failed to block friend', 'danger');
@@ -198,14 +200,14 @@ const acceptFriendRequest = async (requestId: number, card: HTMLElement) => {
         if (!response.ok) throw new Error('Failed to accept friend request');
 
         await updateUser();
-
-        UserState.updateFriendStatus(requestId, true);
+        UserState.notifyFriendEvent({
+            type: 'friend_request_accepted',
+            friendId: requestId
+        });
         
         card.classList.add('opacity-0', 'scale-95');
-
         setTimeout(() => {
             card.remove();
-            loadFriends();
         }, 300);
 
         showAlert('Friend request accepted', 'success');
@@ -227,6 +229,11 @@ const rejectFriendRequest = async (requestId: number, card: HTMLElement) => {
         if (!response.ok) throw new Error('Failed to reject friend request');
         
         await updateUser();
+        UserState.notifyFriendEvent({
+            type: 'friend_request_rejected',
+            friendId: requestId
+        });
+        
         card.classList.add('opacity-0', 'scale-95');
         setTimeout(() => card.remove(), 300);
 
@@ -249,6 +256,11 @@ const removeFriend = async (friendId: number, card: HTMLElement) => {
         if (!response.ok) throw new Error('Failed to remove friend');
         
         await updateUser();
+        UserState.notifyFriendEvent({
+            type: 'friend_deleted',
+            friendId: friendId
+        });
+        
         card.classList.add('opacity-0', 'scale-95');
         setTimeout(() => card.remove(), 300);
         
@@ -277,6 +289,35 @@ export const initializeFriends = async () => {
         await loadFriends();
         await loadFriendRequests();
         attachEventListeners();
+
+        // Subscribe to friend events
+        UserState.onFriendEvent((event) => {
+            switch (event.type) {
+                case 'friend_blocked':
+                case 'friend_unblocked':
+                case 'friend_deleted':
+                case 'friend_added':
+                case 'user_unblocked':
+                    loadFriends();
+                    break;
+                case 'incoming_request':
+                case 'friend_request_accepted':
+                case 'friend_request_rejected':
+                    loadFriendRequests();
+                    loadFriends();
+                    break;
+                case 'friend_connected':
+                case 'friend_disconnected':
+                case 'friend_online':
+                    loadFriends();
+                    break;
+            }
+        });
+
+        // Subscribe to connection changes
+        UserState.onConnectionChange(() => {
+            loadFriends();
+        });
     } catch (error) {
         console.error('Error initializing friends manager:', error);
     }
