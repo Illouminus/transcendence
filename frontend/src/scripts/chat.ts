@@ -1,5 +1,14 @@
-import { UserArray } from "./users";
 import { UserState } from "./userState";
+import { ChatState} from "./chatState";
+
+export interface ChatArray {
+    id: number;
+    fromUserId: number;
+    toUserId: string;
+    content: string;
+    sent_at: string;
+}
+
 
 // Fonction pour récupérer l'utilisateur courant et les utilisateurs
 const getUserData = () => {
@@ -34,16 +43,24 @@ function addEventListenerToElement(elementId: string, event: string, handler: Ev
 }
 
 // Fonction pour envoyer un message
-async function sendMessage(meId: number, himID: number, messageText: string, himUsername: string, meUsername: string) {
+async function sendMessage(meId: number, himID: number, messageText: string): void {
     if (!messageText || messageText.trim() === "") return;
 
+    const timestamp = new Date().toISOString(); // Horodatage
+
+    // Affichage immédiat (pas d'envoi au backend ici)
+    const { me, allUsers } = getUserData();
+    const himUsername = allUsers.find(user => user.id === himID)?.username ?? "Utilisateur inconnu";
+    const meUsername = me?.username ?? "Moi";
+
     try {
+        // Envoi du message via WebSocket
         const chatSocket = UserState.getChatSocket();
         if (chatSocket) {
             chatSocket.send(JSON.stringify({
                 type: "chat_send",
                 payload: {
-                    username: himUsername,
+                    username: meUsername,
                     fromUserId: meId,
                     toUserId: himID,
                     text: messageText,
@@ -51,23 +68,84 @@ async function sendMessage(meId: number, himID: number, messageText: string, him
             }));
         }
 
-        const response = await fetch(`http://localhost:8084/chat/messages`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                sender_id: meId,
-                receiver_id: himID,
-                content: messageText,
-            }),
-        });
-        
-        if (!response.ok) throw new Error("Erreur lors de l'envoi du message");
-        
+        // Ajout du message a l'Array pour le sauvegarder après
+        const newMessage: ChatArray = {
+            id: Date.now(), // Identifiant unique temporaire
+            fromUserId: meId,
+            toUserId: himID.toString(),
+            content: messageText,
+            sent_at: timestamp,
+        };
+
+        // Ajouter le message au tableau local
+        ChatState.addMessage(newMessage);
+
+            
         displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
     } catch (error) {
         console.error("Erreur d'envoi du message :", error);
     }
 }
+
+async function sendBufferedMessages(himID: number): Promise<void> {
+    // Récupérer les messages pour l'utilisateur
+    const messagesToSend = ChatState.getMessagesForUser(himID);
+    if (messagesToSend.length === 0) return; // Pas de messages à envoyer
+
+    try {
+        // Envoi des messages au backend
+        const response = await fetch(`http://localhost:8084/chat/messages/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: messagesToSend }),
+        });
+
+        if (!response.ok) throw new Error("Erreur lors de l'envoi des messages");
+
+        // Si succès, vider les messages pour cet utilisateur
+        ChatState.clearMessagesForUser(himID);
+    } catch (error) {
+        console.error("Erreur lors de l'envoi des messages stockés :", error);
+    }
+}
+
+
+// async function sendMessage(meId: number, himID: number, messageText: string, himUsername: string, meUsername: string) {
+//     if (!messageText || messageText.trim() === "") return;
+
+//     try {
+//         const chatSocket = UserState.getChatSocket();
+//         if (chatSocket) {
+//             chatSocket.send(JSON.stringify({
+//                 type: "chat_send",
+//                 payload: {
+//                     username: himUsername,
+//                     fromUserId: meId,
+//                     toUserId: himID,
+//                     text: messageText,
+//                 },
+//             }));
+//         }
+
+        
+
+//         // const response = await fetch(`http://localhost:8084/chat/messages`, {
+//         //     method: "POST",
+//         //     headers: { "Content-Type": "application/json" },
+//         //     body: JSON.stringify({
+//         //         sender_id: meId,
+//         //         receiver_id: himID,
+//         //         content: messageText,
+//         //     }),
+//         // });
+        
+//         // if (!response.ok) throw new Error("Erreur lors de l'envoi du message");
+        
+//         displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
+//     } catch (error) {
+//         console.error("Erreur d'envoi du message :", error);
+//     }
+// }
 
 // Fonction de gestion de l'affichage des messages
 function displayMessage(himUsername: string, meUsername: string, himId: number, senderId: number, content: string, time: string) {
@@ -99,12 +177,11 @@ function displayMessage(himUsername: string, meUsername: string, himId: number, 
     }
 }
 
-
 // Fonction pour créer la ligne de chat d'un utilisateur
 function createChatUserRow(user: Friend): string {
     return `
         <div data-user-id="${user.friend_id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
-            <div class="flex-shrink-0 h-10 w-10">
+            <div class="relative flex-shrink-0 h-10 w-10">
                 <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.friend_avatar}`} alt="">
             </div>
             <div class="ml-4">
@@ -114,6 +191,7 @@ function createChatUserRow(user: Friend): string {
         </div>
     `;
 }
+
 async function openChatWindow(userId: string) {
     const { me, allUsers } = getUserData();
     const him = allUsers.find(user => user.id === parseInt(userId));
@@ -152,7 +230,7 @@ async function openChatWindow(userId: string) {
     addEventListenerToElement("sendButton", "click", () => {
         const chatMessageInput = document.getElementById("chatMessage") as HTMLInputElement;
         if (chatMessageInput) {
-            sendMessage(meId, himId, chatMessageInput.value, himUsername, meUsername);
+            sendMessage(meId, himId, chatMessageInput.value);
             chatMessageInput.value = ''; // Effacement du champ après envoi
         }
     });
@@ -171,6 +249,15 @@ function attachChatEventListeners(): void {
 }
 
 function hideChatMenu(isOpen: boolean): void {
+    const { me, allUsers } = getUserData();
+    const currentChatUser = document.getElementById("chatTitle")?.textContent;
+    const him = allUsers.find(user => user.username === currentChatUser);
+
+    if (!isOpen && him) {
+        // Envoi des messages non envoyés pour cet utilisateur
+        sendBufferedMessages(him.id);
+    }
+
     toggleElementClass('chatMessages', 'hidden', isOpen);
     toggleElementClass('chatInput', 'hidden', isOpen);
     toggleElementClass('chat-friends-list', 'hidden', false);
@@ -180,6 +267,7 @@ function hideChatMenu(isOpen: boolean): void {
     toggleElementClass('goBack', 'hidden', true);
     toggleElementClass('closeChat', 'hidden', false);
 }
+
 
 
 // Fonction pour afficher/masquer le menu de chat
@@ -212,15 +300,9 @@ export function chat(): void {
     // Remplit le menu des utilisateurs
     const friendsListContainer = document.getElementById("chat-friends-list");
     friends?.forEach((friend) => {
-        if (friend.friend_id !== UserState.getUser()?.id && friend.online) {
+        if (friend.friend_id !== UserState.getUser()?.id) {
             const userRow = createChatUserRow(friend);
             friendsListContainer?.insertAdjacentHTML('beforeend', userRow);
-        }
-        else {
-            const noFriendsOnline = document.getElementById("noFriendsOnline");
-            if (noFriendsOnline) { 
-                noFriendsOnline.classList.remove("hidden");
-            }
         }
     });
 
