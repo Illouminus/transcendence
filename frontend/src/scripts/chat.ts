@@ -33,8 +33,6 @@ function addEventListenerToElement(elementId: string, event: string, handler: Ev
     }
 }
 
-
-
 // Fonction pour envoyer un message
 async function sendMessage(meId: number, himID: number, messageText: string, himUsername: string, meUsername: string) {
     if (!messageText || messageText.trim() === "") return;
@@ -65,7 +63,6 @@ async function sendMessage(meId: number, himID: number, messageText: string, him
         
         if (!response.ok) throw new Error("Erreur lors de l'envoi du message");
         
-        // Optionnel : tu pourrais directement appeler displayMessage après l'envoi du message
         displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
     } catch (error) {
         console.error("Erreur d'envoi du message :", error);
@@ -97,7 +94,6 @@ function displayMessage(himUsername: string, meUsername: string, himId: number, 
     messageContainer.innerHTML = messageHTML;
     chatMessagesContainer?.appendChild(messageContainer);
 
-    // ✅ SCROLL AUTOMATIQUE EN BAS
     if (chatMessagesContainer) {
         chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
     }
@@ -216,9 +212,15 @@ export function chat(): void {
     // Remplit le menu des utilisateurs
     const friendsListContainer = document.getElementById("chat-friends-list");
     friends?.forEach((friend) => {
-        if (friend.friend_id !== UserState.getUser()?.id) {
+        if (friend.friend_id !== UserState.getUser()?.id && friend.online) {
             const userRow = createChatUserRow(friend);
             friendsListContainer?.insertAdjacentHTML('beforeend', userRow);
+        }
+        else {
+            const noFriendsOnline = document.getElementById("noFriendsOnline");
+            if (noFriendsOnline) { 
+                noFriendsOnline.classList.remove("hidden");
+            }
         }
     });
 

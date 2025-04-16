@@ -15,10 +15,10 @@ export function connectChatWebSocket(token: string): WebSocket {
       console.log("Chat - WebSocket connection established");
     };
 
-    // socket.onclose = () => {
-    //   console.log("WebSocket connection closed");
-    //   socket = null;
-    // };
+    socket.onclose = () => {
+      console.log("WebSocket connection closed");
+      socket = null;
+    };
 
     socket.onerror = (err) => {
       console.error("WebSocket error:", err);
