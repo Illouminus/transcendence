@@ -1,3 +1,40 @@
+// async function sendMessage(meId: number, himID: number, messageText: string, himUsername: string, meUsername: string) {
+//     if (!messageText || messageText.trim() === "") return;
+
+//     try {
+//         const chatSocket = UserState.getChatSocket();
+//         if (chatSocket) {
+//             chatSocket.send(JSON.stringify({
+//                 type: "chat_send",
+//                 payload: {
+//                     username: himUsername,
+//                     fromUserId: meId,
+//                     toUserId: himID,
+//                     text: messageText,
+//                 },
+//             }));
+//         }
+
+        
+
+//         // const response = await fetch(`http://localhost:8084/chat/messages`, {
+//         //     method: "POST",
+//         //     headers: { "Content-Type": "application/json" },
+//         //     body: JSON.stringify({
+//         //         sender_id: meId,
+//         //         receiver_id: himID,
+//         //         content: messageText,
+//         //     }),
+//         // });
+        
+//         // if (!response.ok) throw new Error("Erreur lors de l'envoi du message");
+        
+//         displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
+//     } catch (error) {
+//         console.error("Erreur d'envoi du message :", error);
+//     }
+// }
+
 import { UserState } from "./userState";
 import { ChatState} from "./chatState";
 
@@ -8,7 +45,6 @@ export interface ChatArray {
     content: string;
     sent_at: string;
 }
-
 
 // Fonction pour récupérer l'utilisateur courant et les utilisateurs
 const getUserData = () => {
@@ -87,65 +123,47 @@ async function sendMessage(meId: number, himID: number, messageText: string): vo
     }
 }
 
-async function sendBufferedMessages(himID: number): Promise<void> {
-    // Récupérer les messages pour l'utilisateur
-    const messagesToSend = ChatState.getMessagesForUser(himID);
-    if (messagesToSend.length === 0) return; // Pas de messages à envoyer
+async function sendBufferedMessages(userId: number) {
+    // Récupérer les messages pour l'utilisateur spécifié
+    const bufferedMessages = ChatState.getMessagesForUser(userId);
+
+    if (bufferedMessages.length === 0) {
+        console.log("Aucun message à envoyer pour l'utilisateur :", userId);
+        return;
+    }
 
     try {
-        // Envoi des messages au backend
-        const response = await fetch(`http://localhost:8084/chat/messages/`, {
+        // Construire le payload attendu par le contrôleur
+        const payload = {
+            messages: bufferedMessages.map(msg => ({
+                sender_id: msg.fromUserId,
+                receiver_id: parseInt(msg.toUserId), // Conversion en nombre si nécessaire
+                content: msg.content,
+            })),
+        };
+
+        const response = await fetch("http://localhost:8084/chat/messages", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: messagesToSend }),
+            body: JSON.stringify(payload),
         });
 
-        if (!response.ok) throw new Error("Erreur lors de l'envoi des messages");
+        if (!response.ok) {
+            throw new Error("Erreur lors de l'envoi des messages au serveur.");
+        }
 
-        // Si succès, vider les messages pour cet utilisateur
-        ChatState.clearMessagesForUser(himID);
+        console.log("Messages envoyés avec succès pour l'utilisateur :", userId);
+
+        // Une fois les messages envoyés, vider les messages pour cet utilisateur
+        ChatState.clearMessagesForUser(userId);
     } catch (error) {
-        console.error("Erreur lors de l'envoi des messages stockés :", error);
+        console.error("Erreur lors de l'envoi des messages :", error);
     }
 }
 
 
-// async function sendMessage(meId: number, himID: number, messageText: string, himUsername: string, meUsername: string) {
-//     if (!messageText || messageText.trim() === "") return;
+  
 
-//     try {
-//         const chatSocket = UserState.getChatSocket();
-//         if (chatSocket) {
-//             chatSocket.send(JSON.stringify({
-//                 type: "chat_send",
-//                 payload: {
-//                     username: himUsername,
-//                     fromUserId: meId,
-//                     toUserId: himID,
-//                     text: messageText,
-//                 },
-//             }));
-//         }
-
-        
-
-//         // const response = await fetch(`http://localhost:8084/chat/messages`, {
-//         //     method: "POST",
-//         //     headers: { "Content-Type": "application/json" },
-//         //     body: JSON.stringify({
-//         //         sender_id: meId,
-//         //         receiver_id: himID,
-//         //         content: messageText,
-//         //     }),
-//         // });
-        
-//         // if (!response.ok) throw new Error("Erreur lors de l'envoi du message");
-        
-//         displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
-//     } catch (error) {
-//         console.error("Erreur d'envoi du message :", error);
-//     }
-// }
 
 // Fonction de gestion de l'affichage des messages
 function displayMessage(himUsername: string, meUsername: string, himId: number, senderId: number, content: string, time: string) {
@@ -253,7 +271,7 @@ function hideChatMenu(isOpen: boolean): void {
     const currentChatUser = document.getElementById("chatTitle")?.textContent;
     const him = allUsers.find(user => user.username === currentChatUser);
 
-    if (!isOpen && him) {
+    if (isOpen && him) {
         // Envoi des messages non envoyés pour cet utilisateur
         sendBufferedMessages(him.id);
     }
