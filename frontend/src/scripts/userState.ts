@@ -9,8 +9,13 @@ type GameEventCallback = (event: GameEvent) => void;
 type FriendEventCallback = (event: FriendEvent) => void;
 
 export type GameEvent = {
-	type: 'invitation_rejected' | 'invitation_accepted' | 'game_started';
-	friendId: number;
+	type: 'invitation_rejected' | 'invitation_accepted' | 'game_started' | 'game_result';
+	friendId?: number;
+	gameResult?: {
+		winnerId: number;
+		score1: number;
+		score2: number;
+	};
 };
 
 export type FriendEvent = {

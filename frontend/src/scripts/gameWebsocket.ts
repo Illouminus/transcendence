@@ -7,6 +7,7 @@ import { redirectTo } from "./router";
 import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
+import { showGameOverModal } from "./endGame";
 
 let socket : WebSocket | null = null;
 
@@ -92,6 +93,14 @@ export function connectGameWebSocket(token: string): WebSocket {
     
         case 'game_result':
           console.log('Game result:', data);
+          UserState.notifyGameEvent({
+            type: 'game_result',
+            gameResult: {
+              winnerId: data.payload.winnerId,
+              score1: data.payload.score1,
+              score2: data.payload.score2
+            }
+          });
           break;
       }
     };

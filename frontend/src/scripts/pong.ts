@@ -7,13 +7,22 @@ import {
 import * as CANNON from "cannon";
 import "@babylonjs/loaders";
 import { UserState } from "./userState";
+import { showGameOverModal } from './endGame';
+import { GameEvent } from './userState';
 
 // Global game state synced with server updates
 export const clientGameState = {
   gameId: 0,
-  player1: { id: 0 ,x: 0, y: 0, score: 0 },
+  player1: { id: 0, x: 0, y: 0, score: 0 },
   player2: { id: 0, x: 0, y: 0, score: 0 },
   ball: { x: 0, y: 0, velX: 0, velY: 0 },
+};
+
+// Current interpolated positions
+const currentPositions = {
+  player1: { x: 0 },
+  player2: { x: 0 },
+  ball: { x: 0, z: 0 }
 };
 
 let userId: number | null = UserState.getUser()?.id || null;
@@ -169,22 +178,39 @@ async function createBall(scene: Scene): Promise<Mesh> {
   return ball;
 }
 
-// // Animate paddle swing (demonstration)
-// function swingRacket(mesh: Mesh): void {
-//   const scene = mesh.getScene();
-//   scene.stopAnimation(mesh);
-//   const startQuat = mesh.rotationQuaternion?.clone() || Quaternion.Identity();
-//   const swingQuat = Quaternion.FromEulerAngles(Tools.ToRadians(45), 0, 0);
-//   const targetQuat = startQuat.multiply(swingQuat);
-//   const anim = new Animation("racketSwingQuat", "rotationQuaternion", 60, Animation.ANIMATIONTYPE_QUATERNION, Animation.ANIMATIONLOOPMODE_CONSTANT);
-//   anim.setKeys([
-//     { frame: 0, value: startQuat },
-//     { frame: 5, value: targetQuat },
-//     { frame: 10, value: startQuat }
-//   ]);
-//   mesh.animations = [anim];
-//   scene.beginAnimation(mesh, 0, 10, false);
-// }
+// Function to animate paddle hit
+function animatePaddleHit(paddle: Mesh, isPlayer1: boolean): void {
+    const scene = paddle.getScene();
+    scene.stopAnimation(paddle);
+    
+    // Get current rotation
+    const startQuat = paddle.rotationQuaternion?.clone() || Quaternion.Identity();
+    
+    // Calculate hit rotation (tilt back)
+    const hitAngle = Tools.ToRadians(isPlayer1 ? -15 : 15); // Different direction for each player
+    const hitQuat = Quaternion.FromEulerAngles(hitAngle, 0, 0);
+    const targetQuat = startQuat.multiply(hitQuat);
+    
+    // Create animation
+    const anim = new Animation(
+        "paddleHit",
+        "rotationQuaternion",
+        60,
+        Animation.ANIMATIONTYPE_QUATERNION,
+        Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
+    
+    // Set key frames
+    anim.setKeys([
+        { frame: 0, value: startQuat },
+        { frame: 5, value: targetQuat },
+        { frame: 10, value: startQuat }
+    ]);
+    
+    // Start animation
+    paddle.animations = [anim];
+    scene.beginAnimation(paddle, 0, 10, false);
+}
 
 // Main function to initialize and run the game scene.
 export async function loadPongPageScript(): Promise<void> {
@@ -193,6 +219,19 @@ export async function loadPongPageScript(): Promise<void> {
   engine.displayLoadingUI();
   engine.loadingUIText = "Loading...";
   engine.loadingUIBackgroundColor = "black";
+
+  // Subscribe to game events
+  const handleGameEvent = (event: GameEvent) => {
+    if (event.type === 'game_result' && event.gameResult) {
+      showGameOverModal(event.gameResult);
+    }
+  };
+  UserState.onGameEvent(handleGameEvent);
+
+  // Cleanup subscription when component unmounts
+  window.addEventListener('beforeunload', () => {
+    UserState.offGameEvent(handleGameEvent);
+  });
 
   const scene = new Scene(engine);
   
@@ -256,12 +295,45 @@ export async function loadPongPageScript(): Promise<void> {
   // Main render loop: update scoreboard and sync mesh positions from global state.
   engine.runRenderLoop(() => {
     updateScoreDisplay();
-    player1.position.x = clientGameState.player1.x;
-    player2.position.x = clientGameState.player2.x;
-    ball.position.x = clientGameState.ball.x;
-    ball.position.z = clientGameState.ball.y;
+
+    // Interpolation speed (adjust for smoother/faster movement)
+    const interpolationSpeed = 0.15;
+
+    // Smooth interpolation for player 1
+    currentPositions.player1.x += (clientGameState.player1.x - currentPositions.player1.x) * interpolationSpeed;
+    player1.position.x = currentPositions.player1.x;
+
+    // Smooth interpolation for player 2
+    currentPositions.player2.x += (clientGameState.player2.x - currentPositions.player2.x) * interpolationSpeed;
+    player2.position.x = currentPositions.player2.x;
+
+    // Smooth interpolation for ball
+    currentPositions.ball.x += (clientGameState.ball.x - currentPositions.ball.x) * interpolationSpeed;
+    currentPositions.ball.z += (clientGameState.ball.y - currentPositions.ball.z) * interpolationSpeed;
+    ball.position.x = currentPositions.ball.x;
+    ball.position.z = currentPositions.ball.z;
+
     scene.render();
   });
 
   window.addEventListener("resize", () => engine.resize());
+
+  // Update the WebSocket message handler
+  const socket = UserState.getGameSocket();
+  if (socket) {
+    const existingOnMessage = socket.onmessage;
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      
+      // Вызываем существующий обработчик, если он есть
+      if (existingOnMessage) {
+        existingOnMessage.call(socket, event);
+      }
+      
+      // Добавляем обработку game_result для модального окна
+      if (message.type === 'game_result') {
+        showGameOverModal(message.payload);
+      }
+    };
+  }
 }

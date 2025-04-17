@@ -143,10 +143,9 @@ export interface GameUpdatePayload {
 }
 
 export interface GameResultPayload {
-  gameId: number;
-  gameType: string;
-  winnerId: number; // ID победителя
-  // другие поля, которые могут понадобиться
+  winnerId: number;
+  score1: number;
+  score2: number;
 }
 
 export interface GameCountdownPayload {

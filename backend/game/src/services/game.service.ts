@@ -10,14 +10,32 @@ import {
   
   // Active game state storage
   const gameIntervals: Record<number, NodeJS.Timeout> = {};
-  const activeGames: Record<number, GameState> = {};
+  export const activeGames: Record<number, GameState> = {};
   
   // AI configuration
-  const AI_USER_ID = 999999; // This should match the AI user in the database
+  const AI_USER_ID = 999999;
   const AI_DIFFICULTY_SETTINGS = {
-	easy: { speed: 0.3, reactionDelay: 100, errorMargin: 2 },
-	medium: { speed: 0.4, reactionDelay: 50, errorMargin: 1 },
-	hard: { speed: 0.5, reactionDelay: 20, errorMargin: 0.5 }
+	easy: { 
+	  speed: 0.3, 
+	  reactionDelay: 100, 
+	  errorMargin: 2,
+	  missRate: 0.5,  // Пропускает 50% мячей
+	  ballSpeed: 0.15 // Медленная скорость мяча
+	},
+	medium: { 
+	  speed: 0.4, 
+	  reactionDelay: 50, 
+	  errorMargin: 1,
+	  missRate: 0.25, // Пропускает 25% мячей
+	  ballSpeed: 0.25 // Средняя скорость мяча
+	},
+	hard: { 
+	  speed: 0.5, 
+	  reactionDelay: 20, 
+	  errorMargin: 0.5,
+	  missRate: 0,    // Не пропускает мячи
+	  ballSpeed: 0.35 // Высокая скорость мяча
+	}
   };
   
   // Returns game statistics from the database for a given user ID.
@@ -68,7 +86,7 @@ import {
 	broadcastGameState(state);
   }
   
-  // AI movement logic
+  // AI movement logic with smoother updates and miss probability
   function updateAIPosition(state: GameState) {
 	if (state.player2.userId !== AI_USER_ID) return;
 
@@ -78,21 +96,29 @@ import {
 	const ball = state.ball;
 	const ai = state.player2;
 
-	// Only move when ball is coming towards AI
+	// Только двигаемся когда мяч летит к AI
 	if (ball.velY > 0) {
-	  // Add some prediction of where the ball will be
-	  const predictedX = ball.x + (ball.velX * (ball.y - ai.y) / ball.velY);
-	  
-	  // Add some randomness based on difficulty
-	  const targetX = predictedX + (Math.random() - 0.5) * settings.errorMargin;
-	  
-	  // Move towards the predicted position
-	  if (Math.abs(targetX - ai.x) > settings.speed) {
-		const direction = targetX > ai.x ? 1 : -1;
-		ai.x += direction * settings.speed;
+	  // Добавляем вероятность пропуска мяча
+	  if (Math.random() < settings.missRate) {
+		// Намеренно делаем ошибку в движении
+		const wrongDirection = ball.x > ai.x ? -1 : 1;
+		ai.x += wrongDirection * settings.speed;
+	  } else {
+		// Предсказываем, где будет мяч
+		const predictedX = ball.x + (ball.velX * (ball.y - ai.y) / ball.velY);
+		
+		// Добавляем случайность в движения
+		const targetX = predictedX + (Math.random() - 0.5) * settings.errorMargin;
+		
+		// Плавно двигаемся к целевой позиции
+		const distance = targetX - ai.x;
+		const direction = Math.sign(distance);
+		const speed = Math.min(Math.abs(distance), settings.speed);
+		
+		ai.x += direction * speed;
 	  }
 	  
-	  // Ensure AI paddle stays within bounds
+	  // Убеждаемся, что ракетка не выходит за границы
 	  ai.x = Math.min(Math.max(ai.x, -10), 10);
 	}
   }
@@ -139,10 +165,10 @@ import {
 	// Scoring conditions.
 	if (ball.y < -15) {
 	  state.player2.score++;
-	  resetBall(ball);
+	  resetBall(ball, state.aiDifficulty);
 	} else if (ball.y > 15) {
 	  state.player1.score++;
-	  resetBall(ball);
+	  resetBall(ball, state.aiDifficulty);
 	}
 	
 	// End game if necessary.
@@ -172,12 +198,14 @@ import {
 	return false;
   }
 
-  // Reset ball position and assign a random initial velocity.
-  function resetBall(ball: BallState): void {
+  // Reset ball position and assign a random initial velocity based on difficulty
+  function resetBall(ball: BallState, difficulty: 'easy' | 'medium' | 'hard' = 'medium'): void {
+	const settings = AI_DIFFICULTY_SETTINGS[difficulty];
 	ball.x = 0;
 	ball.y = 0;
-	ball.velX = (Math.random() - 0.5) * 0.2;
-	ball.velY = (Math.random() > 0.5) ? 0.2 : -0.2;
+	ball.velX = (Math.random() - 0.5) * settings.ballSpeed;
+	ball.velY = (Math.random() > 0.5) ? settings.ballSpeed : -settings.ballSpeed;
+	ball.recentCollision = false;
   }
   
   // Broadcast the current game state to both players via the notification system.
@@ -233,7 +261,7 @@ import {
   }
   
   // End the game: stop loop, update the database, and notify players.
-  async function endGame(gameId: number, winnerId: number): Promise<void> {
+  export async function endGame(gameId: number, winnerId: number): Promise<void> {
 	const state = activeGames[gameId];
 	if (!state) return;
 	
@@ -256,16 +284,17 @@ import {
 	  gameId
 	]);
 	
-	const endPayload = {
+	const gameResultPayload = {
 	  type: 'game_result',
-	  gameId,
-	  winnerId,
-	  score1: state.player1.score,
-	  score2: state.player2.score
+	  payload: {
+		winnerId,
+		score1: state.player1.score,
+		score2: state.player2.score
+	  }
 	};
 	
-	sendNotification(state.player1.userId, endPayload);
-	sendNotification(state.player2.userId, endPayload);
+	sendNotification(state.player1.userId, gameResultPayload);
+	sendNotification(state.player2.userId, gameResultPayload);
 	
 	delete activeGames[gameId];
   }
@@ -277,6 +306,9 @@ import {
 	const state = initGameState(gameId, playerId, AI_USER_ID);
 	state.isRunning = false;
 	state.aiDifficulty = difficulty;
+	
+	// Initialize ball with correct speed for the difficulty
+	resetBall(state.ball, difficulty);
 	
 	activeGames[gameId] = state;
 	startGameLoop(gameId);
