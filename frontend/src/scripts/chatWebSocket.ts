@@ -1,4 +1,4 @@
-import { chat } from "./chat";
+import { displayMessage } from "./chat";
 import { UserWebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
 
@@ -31,12 +31,20 @@ export function connectChatWebSocket(token: string): WebSocket {
       switch (data.type) {
         case 'chat_send': {
           console.log('Message sent:', data.payload);
-          showAlert(`You received a message from ${data.payload.username}`, 'success');
+          showAlert(`You sent a message to ${data.payload.username}`, 'success');
+          break;
+        }
+        case 'chat_user_blocked': {
+          console.log('User Blocked:', data.payload);
+          showAlert(`Cannot send message to ${data.payload.user.username} because is blocked`, 'warning');
           break;
         }
         case 'chat_receive': {
           console.log('Message received:', data.payload);
           showAlert(`New Message from ${data.payload.username}`, 'success');
+          console.log('From USer ID' + data.payload.fromUserId)
+          console.log('To USer ID' + data.payload.toUserId)
+          displayMessage(data.payload.username, data.payload.username, data.payload.toUserId, data.payload.fromUserId, data.payload.text, new Date().toLocaleTimeString());
           break;
         }
         default:

@@ -9,7 +9,6 @@ export class ChatState {
     // Ajouter un message au tableau
     public static addMessage(chat: ChatArray): void {
         this.allChats.push(chat);
-        console.log("Tous les messages :", this.allChats);
     }
 
     // Récupérer les messages pour un utilisateur donné

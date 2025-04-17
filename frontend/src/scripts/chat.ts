@@ -1,42 +1,7 @@
-// async function sendMessage(meId: number, himID: number, messageText: string, himUsername: string, meUsername: string) {
-//     if (!messageText || messageText.trim() === "") return;
-
-//     try {
-//         const chatSocket = UserState.getChatSocket();
-//         if (chatSocket) {
-//             chatSocket.send(JSON.stringify({
-//                 type: "chat_send",
-//                 payload: {
-//                     username: himUsername,
-//                     fromUserId: meId,
-//                     toUserId: himID,
-//                     text: messageText,
-//                 },
-//             }));
-//         }
-
-        
-
-//         // const response = await fetch(`http://localhost:8084/chat/messages`, {
-//         //     method: "POST",
-//         //     headers: { "Content-Type": "application/json" },
-//         //     body: JSON.stringify({
-//         //         sender_id: meId,
-//         //         receiver_id: himID,
-//         //         content: messageText,
-//         //     }),
-//         // });
-        
-//         // if (!response.ok) throw new Error("Erreur lors de l'envoi du message");
-        
-//         displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
-//     } catch (error) {
-//         console.error("Erreur d'envoi du message :", error);
-//     }
-// }
-
 import { UserState } from "./userState";
 import { ChatState} from "./chatState";
+import { ParseUint16 } from "babylonjs";
+import { showAlert } from "./services/alert.service";
 
 export interface ChatArray {
     id: number;
@@ -115,7 +80,6 @@ async function sendMessage(meId: number, himID: number, messageText: string): vo
 
         // Ajouter le message au tableau local
         ChatState.addMessage(newMessage);
-
             
         displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
     } catch (error) {
@@ -166,7 +130,7 @@ async function sendBufferedMessages(userId: number) {
 
 
 // Fonction de gestion de l'affichage des messages
-function displayMessage(himUsername: string, meUsername: string, himId: number, senderId: number, content: string, time: string) {
+export function displayMessage(himUsername: string, meUsername: string, himId: number, senderId: number, content: string, time: string) {
     const chatMessagesContainer = document.getElementById("chatMessages");
     const messageContainer = document.createElement("div");
     messageContainer.classList.add("chatMessageSingle", "flex", "items-start", "mb-5", "w-full");
@@ -211,12 +175,18 @@ function createChatUserRow(user: Friend): string {
 }
 
 async function openChatWindow(userId: string) {
-    const { me, allUsers } = getUserData();
-    const him = allUsers.find(user => user.id === parseInt(userId));
-    const himUsername = him?.username ?? "Utilisateur inconnu";
-    const himId = him?.id ?? 0;
+    const { me } = getUserData();
+    const friends = me?.friends;
+    const him = friends?.find(user => user.friend_id === parseInt(userId));
+    const himUsername = him?.friend_username ?? "Utilisateur inconnu";
+    const himId = him?.friend_id ?? 0;
     const meUsername = me?.username ?? "Utilisateur inconnu";
     const meId = me?.id ?? 0;
+
+    if (him?.status === 'blocked') {
+        showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
+        return;
+    }
 
     // Mise à jour de l'affichage
     toggleElementClass('closeChat', 'hidden', true);

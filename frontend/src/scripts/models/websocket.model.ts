@@ -7,6 +7,7 @@ export type UserWebSocketMessage =
   | { type: 'friend_deleted'; payload: FriendDeletedPayload }
   | { type: 'chat_send'; payload: ChatMessagePayload }
   | { type: 'chat_receive'; payload: ChatMessagePayload }
+  | { type: 'chat_user_blocked'; payload: ChatBlockedPayload }
   | { type: 'system_notification'; payload: SystemNotificationPayload }
   | { type: 'user_connected'; payload: {user : UserInfo} }
   | { type: 'user_disconnected'; payload: {user: UserInfo} }
@@ -54,6 +55,11 @@ export type UserWebSocketMessage =
     toUserId: number;
     text: string;
     // можно добавить timestamp, id сообщения и т.д.
+  }
+
+  export interface ChatBlockedPayload {
+    message: string;
+    user: UserInfo;
   }
   
   /** Системное уведомление */
