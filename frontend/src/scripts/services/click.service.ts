@@ -22,7 +22,7 @@ export async function onProfileClick() {
 }
 
 export async function onPongClick() {
-	redirectTo("/pong");
+	redirectTo("/game-mode");
 }
 
 export async function onSettingsClick() {

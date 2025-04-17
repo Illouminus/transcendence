@@ -2,7 +2,6 @@ export type AlertType = "info" | "danger" | "success" | "warning" | "dark";
 
 export function showAlert(message: string, type: AlertType = "info", duration: number = 3000): void {
 	const container = document.getElementById("alert-container");
-	console.log(container);
 	if (!container) return;
 
 	const alertEl = document.createElement("div");

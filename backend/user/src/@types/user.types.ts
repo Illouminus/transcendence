@@ -27,6 +27,7 @@ export interface JwtPayload {
 }
 
 export interface User {
+	auth_user_id: number;
 	id: number;
 	username: string;
 	avatar_url: string | null;

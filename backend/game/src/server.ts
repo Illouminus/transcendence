@@ -10,7 +10,7 @@ import config from "./config";
 // Import the database connection - auto launches the connection
 import "./database";
 import { JwtPayload } from "./@types/user.types";
-import { createAndStartGame, updatePlayerPosition } from "./services/game.service";
+import { createAndStartGame, createAndStartAIGame, updatePlayerPosition } from "./services/game.service";
 import { insertMatchmakingQueue, startOrdinaryGame } from "./models/game.model";
 
 //connectRabbit();
@@ -53,29 +53,35 @@ server.register(async function (fastify: FastifyInstance) {
 	
 
 		switch (data.type) {
+			case 'start_ai_game':
+				const gameId = await createAndStartAIGame(userId, data.payload.difficulty);
+				connection.send(JSON.stringify({
+					type: 'game_created',
+					payload: { gameId }
+				}));
+				break;
 			case 'game_invite': 
-			sendNotification(data.payload.friendId, {
-				type: 'game_invitation_income',
-				payload: { fromUserId : userId}});
+				sendNotification(data.payload.friendId, {
+					type: 'game_invitation_income',
+					payload: { fromUserId: userId }
+				});
 				break;
 			case 'game_invitation_accepted':
 				sendNotification(data.payload.friendId, {
 					type: 'game_invitation_accepted',
-					payload: { fromUserId : userId}});
+					payload: { fromUserId: userId }
+				});
+				await createAndStartGame({player_1_id: userId, player_2_id: data.payload.friendId});
 				break;
 			case 'game_invitation_rejected':
 				sendNotification(data.payload.friendId, {
 					type: 'game_invitation_rejected',
 					payload: { fromUserId : userId}});
 				break;
-			case 'game_start':
-				const gameId = await createAndStartGame(data);
-				connection.send(JSON.stringify({ type: 'game_start', message: 'Game is starting!', gameId: gameId }));
-				break;
 			case 'player_move':
 				updatePlayerPosition(data.gameId, data.userId, data.direction);
 				// Обработка движения игрока
-				connection.send(JSON.stringify({ type: 'player_move', message: `Player ${data.userId} moved to (${data.direction})` }));
+				//connection.send(JSON.stringify({ type: 'player_move', message: `Player ${data.userId} moved to (${data.direction})` }));
 				break;
 			case 'game_end':
 				connection.send(JSON.stringify({ type: 'game_end', message: 'Game has ended!' }));
@@ -107,18 +113,41 @@ interface NotificationData {
 	payload: unknown;
 }
 
-export function sendNotification(userId: number, data: NotificationData) {
+interface GameNotificationData {
+	type: string;
+	gameId: number;
+	payload: {
+		players: {
+			p1: { x: number; y: number; score: number };
+			p2: { x: number; y: number; score: number };
+		};
+		ball: {
+			x: number;
+			y: number;
+		};
+	}
+}
 
-	activeConnections.forEach((ws, id) => {
-		console.log(`User ID: ${id}, WebSocket: ${ws.readyState}`);
-	})
+interface GameResultPayload {
+	type: string,
+	gameId: number,
+	winnerId: number,
+	score1: number,
+	score2: number,
+}
+
+export function sendNotification(userId: number, data: NotificationData | GameNotificationData | GameResultPayload) {
+
+	// activeConnections.forEach((ws, id) => {
+	// 	console.log(`User ID: ${id}, WebSocket: ${ws.readyState}`);
+	// })
 
 	const ws = activeConnections.get(userId);
 	
 	if (ws && ws.readyState === WebSocket.OPEN) {
 		try {
 			ws.send(JSON.stringify(data));
-			console.log('Notification sent successfully to user', userId);
+			//console.log('Notification sent successfully to user', userId);
 		} catch (error) {
 			console.error('Error sending notification:', error);
 			activeConnections.delete(userId);

@@ -26,7 +26,9 @@ const server: FastifyInstance = fastify({
 server.register(fastifyJwt, { secret: config.security.jwtSecret });
 server.register(FastifyWebsocket);
 
-const activeConnections = new Map<number, WebSocket>();
+export const activeConnections = new Map<number, WebSocket>();
+
+
 
 server.register(async function (fastify: FastifyInstance) {
 	fastify.get('/ws', { websocket: true }, async (connection: any, req: FastifyRequest<{ Querystring: { token: string } }>) => {

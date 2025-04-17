@@ -5,7 +5,7 @@ import { getFriendsListService, sendFriendRequestService, getIncomingRequestsSer
     getOutgoingRequestsService, acceptFriendRequestService, rejectFriendRequestService,
     blockFriendService, unblockFriendService, deleteFriendService
  } from '../services/friends.service';
-import { sendNotification } from '../server';
+import { activeConnections, sendNotification } from '../server';
 import { getUserById } from '../models/user.model';
 
 export async function getFirendsListController( request: FastifyRequest, reply: FastifyReply) {
@@ -112,7 +112,32 @@ export async function unblockFriendController(request: FastifyRequest<{Params: {
 
         const response = await unblockFriendService(userId, friendId);
         const user = await getUserById(userId);
-        sendNotification(Number(friendId), {type: 'friend_unblocked', payload: {message: 'You have been unblocked by a user', user: user}});
+        const friend = await getUserById(friendId);
+        if (!friend) {
+            reply.code(404).send({error: 'Friend not found'});
+            return;
+        }
+        
+        // Check if the unblocked user is online using their auth_user_id
+        const isOnline = activeConnections.has(friend.auth_user_id);
+        
+        sendNotification(Number(friendId), {
+            type: 'friend_unblocked', 
+            payload: {
+                message: 'You have been unblocked by a user', 
+                user: user, 
+                isOnline: isOnline
+            }
+        });
+        
+        sendNotification(Number(userId), {
+            type: 'unblocked_user', 
+            payload: {
+                message: 'You have unblocked a user', 
+                user: friend,
+                isOnline: isOnline
+            }
+        });
         reply.code(200).send(response);
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});

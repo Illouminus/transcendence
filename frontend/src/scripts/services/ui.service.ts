@@ -8,7 +8,7 @@ export async function setupUI() {
 	toggleVisibility("inbox-button", isAuth);
 	toggleVisibility("settings-button", isAuth);
 	toggleVisibility("friends-button", isAuth);
-	toggleVisibility("game-button", isAuth);
+	toggleVisibility("pong-button", isAuth);
 	toggleVisibility("logout-button", isAuth);
 	toggleVisibility("user-photo-button", isAuth);
 	toggleVisibility("users-button", isAuth);

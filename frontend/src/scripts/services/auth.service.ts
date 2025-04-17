@@ -6,6 +6,7 @@ import { loadSettingsPage } from "../loaders/loaders";
 import { fetchAllUsers, setUpdateAvatar } from "../loaders/outils";
 import { fetchUserProfile } from "./user.service";
 import { connectUserWebSocket } from "../userWebsocket";
+import { connectGameWebSocket } from "../gameWebsocket";
 
 declare var google: any;
 
@@ -34,7 +35,7 @@ export async function login2FA(email: string, code: string) {
 		showAlert("2FA successful", "success");
 		const user = await fetchUserProfile();
 		const allUsers = await fetchAllUsers();
-		UserState.setUserSocket(connectWebSocket(response.token));
+		UserState.setUserSocket(connectUserWebSocket(response.token));
 		if (allUsers)
 			UserState.setAllUsers(allUsers);
 		if (user)
@@ -74,6 +75,7 @@ export async function loginHandler(email: string, password: string) {
 			localStorage.setItem("token", data.token);
 
 			UserState.setUserSocket(connectUserWebSocket(data.token));
+			UserState.setGameSocket(connectGameWebSocket(data.token));
 			const user = await fetchUserProfile();
 			const allUsers = await fetchAllUsers();
 			
@@ -142,6 +144,7 @@ async function googleSignIn(response: any): Promise<void> {
 	  const data = await res.json();
 	  localStorage.setItem("token", data.token);
 	  UserState.setUserSocket(connectUserWebSocket(data.token));
+	  UserState.setGameSocket(connectGameWebSocket(data.token));
 	  const user = await fetchUserProfile();
 	  const allUsers = await fetchAllUsers();
 	  if (allUsers) {

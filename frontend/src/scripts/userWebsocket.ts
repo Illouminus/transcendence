@@ -6,8 +6,7 @@ import { fetchUsers } from "./users";
 import { UserState } from "./userState";
 
 let socket : WebSocket | null = null;
-
-
+let activeConnections: Set<number> = new Set();
 
 export function connectUserWebSocket(token: string): WebSocket {
   
@@ -21,6 +20,7 @@ export function connectUserWebSocket(token: string): WebSocket {
     socket.onclose = () => {
       console.log("WebSocket connection closed");
       socket = null;
+      activeConnections.clear();
     };
     socket.onerror = (err) => {
       console.error("WebSocket error:", err);
@@ -33,7 +33,11 @@ export function connectUserWebSocket(token: string): WebSocket {
         case 'incoming_request': {
           showAlert(`You have a new friend request from ${data.payload.user.username}`);
           await updateUser();
-          loadFriendRequests();
+          UserState.notifyFriendEvent({
+            type: 'incoming_request',
+            friendId: data.payload.user.id,
+            friendEmail: data.payload.user.email
+          });
           break;
         }
     
@@ -41,9 +45,12 @@ export function connectUserWebSocket(token: string): WebSocket {
           const { message, user } = data.payload;
           showAlert(message, 'success');
           await updateUser();
-          UserState.updateFriendStatus(user.id, true, user.email);
+          UserState.notifyFriendEvent({
+            type: 'friend_added',
+            friendId: user.id,
+            friendEmail: user.email
+          });
           fetchUsers();
-          loadFriends();
           break;
         }
     
@@ -51,10 +58,14 @@ export function connectUserWebSocket(token: string): WebSocket {
           const { message, user } = data.payload;
           showAlert(message, 'warning');
           await updateUser();
+          UserState.notifyFriendEvent({
+            type: 'friend_request_rejected',
+            friendId: user.id,
+            friendEmail: user.email
+          });
           const allUsers = await fetchAllUsers();
           if(allUsers)
             UserState.setAllUsers(allUsers);
-          UserState.removeSentFriendRequest(user.id);
           fetchUsers();
           break;
         }
@@ -63,16 +74,53 @@ export function connectUserWebSocket(token: string): WebSocket {
           const { message, user } = data.payload;
           showAlert(`${message}. Blocked by ${user.username}`, 'warning');
           await updateUser();
-          loadFriends();
+          UserState.notifyFriendEvent({
+            type: 'friend_blocked',
+            friendId: user.id,
+            friendEmail: user.email
+          });
           break;
         }
     
         case 'friend_unblocked': {
-          const { message, user } = data.payload;
+          const { message, user, isOnline } = data.payload;
           showAlert(`${message}. Unblocked by ${user.username}`, 'info');
+          
+          // Сначала отправляем событие об изменении статуса
+          UserState.notifyFriendEvent({
+            type: 'friend_unblocked',
+            friendId: user.id,
+            friendEmail: user.email,
+            isOnline: isOnline
+          });
+          
+          // Затем обновляем данные пользователя
           await updateUser();
-          UserState.updateFriendStatus(user.id, true, user.email);
-          loadFriends();
+          
+          // И восстанавливаем статус онлайн
+          UserState.updateFriendStatus(user.id, isOnline, user.email);
+          break;
+        }
+
+        case 'unblocked_user': {
+          const { message, user, isOnline } = data.payload;
+          showAlert(message, 'info');
+          console.log("User Id and is online ", user.id, isOnline);
+          
+          // Сначала отправляем событие об изменении статуса
+          UserState.notifyFriendEvent({
+            type: 'user_unblocked',
+            friendId: user.id,
+            friendEmail: user.email,
+            isOnline: isOnline
+          });
+          
+          // Затем обновляем данные пользователя
+          await updateUser();
+          
+          console.log("User State: ", UserState.getUser());
+          // И восстанавливаем статус онлайн
+          UserState.updateFriendStatus(user.id, isOnline, user.email);
           break;
         }
     
@@ -80,9 +128,11 @@ export function connectUserWebSocket(token: string): WebSocket {
           const { message, user } = data.payload;
           showAlert(`${message}. Deleted by ${user.username}`, 'info');
           await updateUser();
-          UserState.updateFriendStatus(user.id, false, user.email);
-          loadFriends();
-          fetchUsers();
+          UserState.notifyFriendEvent({
+            type: 'friend_deleted',
+            friendId: user.id,
+            friendEmail: user.email
+          });
           break;
         }
     
@@ -100,31 +150,41 @@ export function connectUserWebSocket(token: string): WebSocket {
 
         case 'user_connected': {
           const { user } = data.payload;
-
+          activeConnections.add(user.id);
           if(UserState.getUser()?.id === user.id){
             return;
           }
           showAlert(`${user.username} connected`, 'info');
-          UserState.updateFriendStatus(user.id, true, user.email);
-          loadFriends();
+          UserState.notifyFriendEvent({
+            type: 'friend_connected',
+            friendId: user.id,
+            friendEmail: user.email
+          });
           break;
-      }
+        }
 
         case 'user_online': {
           const { user } = data.payload;
           showAlert(`${user.friend_username} is online`, 'info');
-          UserState.updateFriendStatus(user.friend_id, true, user.friend_email);
-          loadFriends();
+          UserState.notifyFriendEvent({
+            type: 'friend_online',
+            friendId: user.friend_id,
+            friendEmail: user.friend_email
+          });
           break;
-      }
+        }
 
         case 'user_disconnected': {
           const { user } = data.payload;
+          activeConnections.delete(user.id);
           showAlert(`${user.username} disconnected`, 'info');
-          UserState.updateFriendStatus(user.id, false, user.email);
-          loadFriends();
+          UserState.notifyFriendEvent({
+            type: 'friend_disconnected',
+            friendId: user.id,
+            friendEmail: user.email
+          });
           break;
-      }
+        }
     
         default:
           console.warn('Unknown WS message type:', data);

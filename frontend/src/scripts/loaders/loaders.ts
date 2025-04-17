@@ -1,12 +1,13 @@
 import { loadPongPageScript} from "../pong";
 import { fetchAndRender, setUpdateAvatar } from "./outils";
 import { loginHandler, renderGoogleButton, login2FA, registerHandler } from "../services/auth.service";
-import {UserState} from "../userState";
+import { UserState } from "../userState";
 import {succesSVG, errorSVG} from "./outils"
 import { handleUpdateProfile, handleUpdateAvatar, enable2FA, disable2FA } from "../services/user.service";
 import { fetchUsers, loadUserProfileData } from "../users";
 import { initializeFriends } from "../friends";
-
+import { initializeGameModeSelection } from "../gameMode";
+import { initializeChampionship } from "../championship";
 
 export async function loadHomePage() {
 	await fetchAndRender("dog");
@@ -22,6 +23,24 @@ export async function loadLoginPage() {
 		const password = (document.getElementById("password") as HTMLInputElement).value;
 		await loginHandler(email, password);
 	});
+}
+
+export async function loadGameModePage() {
+	await fetchAndRender("game-mode");
+	await initializeGameModeSelection();
+	const friendSelect = document.querySelector('.friend-selector select') as HTMLSelectElement;
+	
+	// Populate friend selector with online friends
+	const user = UserState.getUser();
+	if (user?.friends) {
+		const onlineFriends = user.friends.filter(friend => friend.online);
+		onlineFriends.forEach(friend => {
+			const option = document.createElement('option');
+			option.value = friend.friend_id.toString();
+			option.textContent = friend.friend_email;
+			friendSelect.appendChild(option);
+		});
+	}
 }
 
 
@@ -157,7 +176,7 @@ export async function load2FAPage() {
 	document.querySelector("form")?.addEventListener("submit", async (e) => {
 		e.preventDefault();
 		const code = (document.getElementById("code") as HTMLInputElement).value;
-		const email = UserState.tempEmail;
+		const email = UserState.getTempEmail();
 		await login2FA(email, code);
 	});
 }
@@ -197,4 +216,10 @@ export async function loadFriendsPage(): Promise<void> {
 	} catch (error) {
 		console.error("Error loading friends page:", error);
 	}
+}
+
+
+export async function loadChampionshipPage(): Promise<void> {
+	await fetchAndRender("championship");
+	initializeChampionship();
 }
