@@ -57,6 +57,18 @@ export function initializeGameModeSelection(): void {
         populateFriendsList();
     });
     
+    // Активируем карточку чемпионата
+    const championshipCard = document.querySelector('[data-mode="championship"]');
+    if (championshipCard) {
+        const button = championshipCard.querySelector('button');
+        if (button) {
+            button.textContent = 'Start Game';
+            button.disabled = false;
+            button.classList.remove('cursor-not-allowed', 'opacity-50');
+            button.classList.add('hover:bg-purple-700', 'bg-purple-600');
+        }
+    }
+    
     cards.forEach(card => {
         card.addEventListener('click', () => {
             const mode = card.getAttribute('data-mode') as GameMode;
@@ -285,10 +297,36 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
             break;
 
         case 'championship':
-            // Championship mode is not available yet
-            return;
+            try {
+                // Save game mode selection
+                UserState.setGameMode(selection);
+
+                // Show loading state
+                const startButton = button as HTMLButtonElement;
+                startButton.textContent = 'Joining championship...';
+                startButton.disabled = true;
+                startButton.classList.add('bg-gray-600', 'cursor-not-allowed');
+
+                // Send request to join championship
+                gameSocket.send(JSON.stringify({ 
+                    type: 'join_championship',
+                    payload: { 
+                        userId: UserState.getUser()?.id 
+                    }
+                }));
+
+                // Redirect to championship waiting room
+                redirectTo('/championship');
+            } catch (error) {
+                console.error('Error joining championship:', error);
+                showAlert('Failed to join championship', 'danger');
+                
+                // Reset button state
+                const startButton = button as HTMLButtonElement;
+                startButton.textContent = 'Start Game';
+                startButton.disabled = false;
+                startButton.classList.remove('bg-gray-600', 'cursor-not-allowed');
+            }
+            break;
     }
 }
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeGameModeSelection);

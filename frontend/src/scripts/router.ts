@@ -1,5 +1,5 @@
 import { loadPongPage, loadHomePage, loadLoginPage, loadSignupPage, loadSettingsPage, 
-	loadProfilePage, load2FAPage, loadUsersPage, loadUserProfilePage, loadFriendsPage, loadGameModePage } from "./loaders/loaders";
+	loadProfilePage, load2FAPage, loadUsersPage, loadUserProfilePage, loadFriendsPage, loadGameModePage, loadChampionshipPage } from "./loaders/loaders";
 import { UserState } from "./userState";
 
 type RouteHandler = () => void | Promise<void>;
@@ -29,6 +29,9 @@ const routes: Record<string, RouteHandler> = {
 	},
 	"/game-mode": async () => {
 		(UserState.isLoggedIn()) ? await loadGameModePage() : redirectTo("/login");
+	},
+	"/championship": async () => {
+		(UserState.isLoggedIn()) ? await loadChampionshipPage() : redirectTo("/login");
 	}
 };
 

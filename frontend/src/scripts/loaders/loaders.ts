@@ -7,6 +7,7 @@ import { handleUpdateProfile, handleUpdateAvatar, enable2FA, disable2FA } from "
 import { fetchUsers, loadUserProfileData } from "../users";
 import { initializeFriends } from "../friends";
 import { initializeGameModeSelection } from "../gameMode";
+import { initializeChampionship } from "../championship";
 
 export async function loadHomePage() {
 	await fetchAndRender("dog");
@@ -215,4 +216,10 @@ export async function loadFriendsPage(): Promise<void> {
 	} catch (error) {
 		console.error("Error loading friends page:", error);
 	}
+}
+
+
+export async function loadChampionshipPage(): Promise<void> {
+	await fetchAndRender("championship");
+	initializeChampionship();
 }
