@@ -1,4 +1,3 @@
-import confetti from 'canvas-confetti';
 import { UserState } from './userState';
 import { redirectTo } from './router';
 

@@ -18,6 +18,7 @@
 		"@types/cannon": "^0.1.13",
 		"autoprefixer": "^10.4.20",
 		"cannon": "^0.6.2",
+		"canvas-confetti": "^1.9.3",
 		"chart.js": "^4.4.8",
 		"install": "^0.13.0",
 		"npm": "^11.1.0",
