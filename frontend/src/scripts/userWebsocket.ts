@@ -40,7 +40,6 @@ export function connectUserWebSocket(token: string): WebSocket {
           });
           break;
         }
-    
         case 'friend_request_accepted': {
           const { message, user } = data.payload;
           showAlert(message, 'success');
@@ -135,13 +134,6 @@ export function connectUserWebSocket(token: string): WebSocket {
           });
           break;
         }
-    
-        case 'chat_message': {
-          const { fromUserId, toUserId, text } = data.payload;
-          console.log(`Chat message from ${fromUserId} to ${toUserId}: ${text}`);
-          break;
-        }
-    
         case 'system_notification': {
           const { message, severity } = data.payload;
           showAlert(message, 'danger');

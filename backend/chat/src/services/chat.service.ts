@@ -16,6 +16,17 @@ import { getConversationId, createConversation, getMessagesBetweenUsers,  saveMe
     }
   }
   
+  function formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Mois de 0 à 11
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+  
   // Service pour envoyer un message
   export async function sendMessageService(sender_id: number, receiver_id: number, content: string) {
     try {
@@ -24,7 +35,6 @@ import { getConversationId, createConversation, getMessagesBetweenUsers,  saveMe
       }
   
       let conversation_id = await getConversationId(sender_id, receiver_id);
-      console.log('Conversation ID' + conversation_id);
   
       if (conversation_id === null) {
         // Créer une nouvelle conversation si elle n'existe pas
@@ -35,7 +45,10 @@ import { getConversationId, createConversation, getMessagesBetweenUsers,  saveMe
         throw createDatabaseError("Failed to create or retrieve conversation", { sender_id, receiver_id });
       }
   
-      const sent_at = new Date().toISOString();
+      const now = new Date();
+      const sent_at = formatDate(now);
+      console.log(sent_at); // Exemple : 2025-04-10 09:16:09
+
       const newMessage = await saveMessage(conversation_id, sender_id, receiver_id, content, sent_at);
   
       return newMessage;
@@ -44,7 +57,7 @@ import { getConversationId, createConversation, getMessagesBetweenUsers,  saveMe
       throw createDatabaseError("Failed to send message", { sender_id, receiver_id });
     }
   }
-  
+
   
   
   // Service pour récupérer toutes les conversations d'un utilisateur

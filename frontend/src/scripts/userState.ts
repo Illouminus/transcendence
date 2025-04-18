@@ -48,6 +48,8 @@ export class UserState {
 	private static connectionChangeCallbacks: Set<ConnectionChangeCallback> = new Set();
 	private static gameEventCallbacks: Set<GameEventCallback> = new Set();
 	private static friendEventCallbacks: Set<FriendEventCallback> = new Set();
+	private static chatSocket: WebSocket | null = null; 
+
 
 	static setUser(user: User) {
 		this.user = user;
@@ -82,8 +84,10 @@ export class UserState {
 		this.renderAvatar(null);
 		this.userSocket?.close();
 		this.gameSocket?.close();
+		this.chatSocket?.close();
 		this.userSocket = null;
 		this.gameSocket = null;
+		this.chatSocket = null;
 		localStorage.removeItem("token");
 	}
 
@@ -137,6 +141,13 @@ export class UserState {
 
 	static getGameMode() {
 		return this.gameMode;
+	}
+
+	static setChatSocket(socket: WebSocket) {
+		this.chatSocket = socket;
+	}
+	static getChatSocket() {
+		return this.chatSocket;
 	}
 
 	static updateFriendStatus(friendId: number, online: boolean, email?: string) {

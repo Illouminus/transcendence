@@ -5,6 +5,7 @@ import {
   getConversationsService, 
   deleteMessageService 
 } from "../services/chat.service";
+import { sendNotification } from "../server";
 import { getErrorMessage, getErrorStatusCode, logError } from "../utils/errorHandler";
 
 // Récupérer les messages entre deux utilisateurs
@@ -27,25 +28,36 @@ export async function getMessagesController(req: FastifyRequest<{ Params: { user
   }
 }
 
-
-// Envoyer un message
-export async function sendMessageController(req: FastifyRequest<{ Body: { sender_id: number, receiver_id: number, content: string } }>, reply: FastifyReply) {
+// Envoyer plusieurs messages
+export async function sendMessagesController(
+  req: FastifyRequest<{ Body: { messages: { sender_id: number, receiver_id: number, content: string }[] } }>, 
+  reply: FastifyReply
+) {
   try {
-    const { sender_id, receiver_id, content } = req.body;
+    const { messages } = req.body;
+    console.log("Messages to send:", messages);
 
-    if (!sender_id || !receiver_id || !content) {
-      // Si l'un des champs est manquant, renvoyer une erreur
-      return reply.status(400).send({ error: "All fields are required" });
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return reply.status(400).send({ error: "The messages array is required and cannot be empty." });
     }
 
-    const newMessage = await sendMessageService(sender_id, receiver_id, content);
-    return reply.status(201).send(newMessage);
+    // Vérification que tous les messages contiennent les champs requis
+    const invalidMessage = messages.find(msg => !msg.sender_id || !msg.receiver_id || !msg.content);
+    if (invalidMessage) {
+      return reply.status(400).send({ error: "All fields are required for each message." });
+    }
+
+    // Appeler le service pour sauvegarder les messages
+    const savedMessages = await Promise.all(
+      messages.map(msg => sendMessageService(msg.sender_id, msg.receiver_id, msg.content))
+    );
+
+    return reply.status(201).send(savedMessages);
   } catch (error) {
-    logError(error, "sendMessageController");
+    logError(error, "sendMessagesController");
     return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
   }
 }
-
 
 
 // Récupérer toutes les conversations d'un utilisateur
