@@ -10,7 +10,9 @@ export type UserWebSocketMessage =
   | { type: 'system_notification'; payload: SystemNotificationPayload }
   | { type: 'user_connected'; payload: {user : UserInfo} }
   | { type: 'user_disconnected'; payload: {user: UserInfo} }
-  | { type: 'user_online'; payload: {user: FriendOnline} };
+  | { type: 'user_online'; payload: {user: FriendOnline} 
+  | { type: 'tournament_match_start'; payload: TournamentMatchStartPayload }
+  | { type: 'tournament_completed'; payload: TournamentCompletedPayload }};
 
   export interface IncomingRequestPayload {
     message: string;
@@ -88,6 +90,15 @@ export type UserWebSocketMessage =
     isOnline: boolean;
   }
 
+  export interface TournamentPlayer {
+    id: number;
+    username: string;
+    avatar: string;
+    ready: boolean;
+    isHost?: boolean;
+  }
+  
+
 export type GameWebSocketMessage = 
 | { type: 'game_invitation_income'; payload: GameInvitationIncomePayload }
 | { type: 'game_invitation_accepted'; payload: GameInvitationAcceptedPayload }
@@ -96,7 +107,24 @@ export type GameWebSocketMessage =
 | { type: 'game_error'; payload: GameErrorPayload }
 | { type: 'game_update'; payload: GameUpdatePayload }
 | { type: 'game_countdown'; payload: GameCountdownPayload }
-| { type: 'game_result'; payload: GameResultPayload };
+| { type: 'game_result'; payload: GameResultPayload }
+| { type: 'player_joined'; payload: TournamentPlayer }
+| { type: 'player_left'; payload: number } // ID игрока
+| { type: 'player_ready'; payload: { playerId: number; ready: boolean } }
+| { type: 'tournament_starting'; payload: { startTime: number } }
+| { type: 'tournament_started'; payload: void }
+| { type: 'tournament_cancelled'; payload: void }
+| { type: 'tournament_created'; payload: TournamentCreatedPayload }
+| { type: 'tournament_state_update'; payload: TournamentStatePayload }
+| { type: 'tournament_match_start'; payload: TournamentMatchStartPayload }
+| { type: 'tournament_match_complete'; payload: { 
+    matchType: 'semifinal' | 'third_place' | 'final';
+    gameId: string;
+    winnerId: number;
+    score1: number;
+    score2: number;
+  }}
+| { type: 'tournament_completed'; payload: TournamentCompletedPayload };
 
 
 export interface GameInvitationIncomePayload {
@@ -150,4 +178,49 @@ export interface GameResultPayload {
 
 export interface GameCountdownPayload {
   count: number;
+}
+
+export interface TournamentMatchStartPayload {
+  opponentId: number;
+  gameId: number;
+  round: number; // 1 = полуфинал, 2 = финал
+  matchType: 'semifinal' | 'final' | 'third_place';
+}
+
+export interface TournamentCompletedPayload {
+  podium: Array<{
+    userId: number;
+    place: number; // 1, 2, 3
+  }>;
+}
+
+export interface TournamentCreatedPayload {
+  tournamentId: string;
+  hostId: number;
+}
+
+export interface TournamentStatePayload {
+  tournamentId: string;
+  phase: 'waiting' | 'semifinals' | 'third_place' | 'final' | 'completed';
+  players: TournamentPlayer[];
+  matches?: {
+    semifinals?: Array<{
+      player1Id: number;
+      player2Id: number;
+      gameId?: string;
+      winner?: number;
+    }>;
+    thirdPlace?: {
+      player1Id: number;
+      player2Id: number;
+      gameId?: string;
+      winner?: number;
+    };
+    final?: {
+      player1Id: number;
+      player2Id: number;
+      gameId?: string;
+      winner?: number;
+    };
+  };
 }

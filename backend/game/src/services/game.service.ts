@@ -6,10 +6,12 @@ import {
   } from "../models/game.model";
   import db from "../database";
   import { BallState, GameState, initGameState, PlayerState } from "../@types/game.types";
+  import { GameType } from "../@types/tournament.types";
   import { sendNotification } from "../server";
+  import { handleGameComplete } from './tournament.service';
   
   // Active game state storage
-  const gameIntervals: Record<number, NodeJS.Timeout> = {};
+  const gameIntervals: Record<number, ReturnType<typeof setInterval>> = {};
   export const activeGames: Record<number, GameState> = {};
   
   // AI configuration
@@ -34,7 +36,7 @@ import {
 	  reactionDelay: 20, 
 	  errorMargin: 0.5,
 	  missRate: 0,    // Не пропускает мячи
-	  ballSpeed: 0.35 // Высокая скорость мяча
+	  ballSpeed: 1 // Высокая скорость мяча
 	}
   };
   
@@ -270,31 +272,45 @@ import {
 	
 	state.isRunning = false;
 	
+	const game = (await db.get(`
+		SELECT game_type, tournament_match_id
+		FROM games
+		WHERE id = ?
+	`, [gameId])) as unknown as { game_type: GameType; tournament_match_id: number | null } | undefined;
+	
+	if (!game) {
+		throw new Error(`Game ${gameId} not found`);
+	}
+	
 	await db.run(`
-	  UPDATE games
-	  SET winner_id = ?,
-		  score_player1 = ?,
-		  score_player2 = ?,
-		  ended_at = CURRENT_TIMESTAMP
-	  WHERE id = ?
+		UPDATE games
+		SET winner_id = ?,
+			score_player1 = ?,
+			score_player2 = ?,
+			ended_at = CURRENT_TIMESTAMP
+		WHERE id = ?
 	`, [
-	  winnerId,
-	  state.player1.score,
-	  state.player2.score,
-	  gameId
+		winnerId,
+		state.player1.score,
+		state.player2.score,
+		gameId
 	]);
 	
 	const gameResultPayload = {
-	  type: 'game_result',
-	  payload: {
-		winnerId,
-		score1: state.player1.score,
-		score2: state.player2.score
-	  }
+		type: 'game_result',
+		payload: {
+			winnerId,
+			score1: state.player1.score,
+			score2: state.player2.score
+		}
 	};
 	
 	sendNotification(state.player1.userId, gameResultPayload);
 	sendNotification(state.player2.userId, gameResultPayload);
+	
+	if (game.game_type === 'tournament') {
+		await handleGameComplete(gameId, winnerId);
+	}
 	
 	delete activeGames[gameId];
   }
@@ -305,6 +321,7 @@ import {
 	
 	const state = initGameState(gameId, playerId, AI_USER_ID);
 	state.isRunning = false;
+	state.gameType = 'ai';
 	state.aiDifficulty = difficulty;
 	
 	// Initialize ball with correct speed for the difficulty
@@ -316,12 +333,21 @@ import {
 	return gameId;
   }
 
-  // Create and start a new regular game
-  export async function createAndStartGame(data: { player_1_id: number; player_2_id: number }): Promise<number> {
-	const gameId = await startOrdinaryGame(data.player_1_id, data.player_2_id);
+  interface CreateGameParams {
+    player_1_id: number;
+    player_2_id: number;
+    game_type?: GameType;
+    tournament_id?: string;
+    match_id?: number;
+  }
+
+  export async function createAndStartGame(params: CreateGameParams): Promise<number> {
+	const gameId = await startOrdinaryGame(params.player_1_id, params.player_2_id);
 	
-	const state = initGameState(gameId, data.player_1_id, data.player_2_id);
+	const state = initGameState(gameId, params.player_1_id, params.player_2_id);
 	state.isRunning = false;
+	state.gameType = params.game_type || 'casual';
+	state.tournamentMatchId = params.match_id;
 	
 	activeGames[gameId] = state;
 	startGameLoop(gameId);

@@ -9,12 +9,59 @@ type GameEventCallback = (event: GameEvent) => void;
 type FriendEventCallback = (event: FriendEvent) => void;
 
 export type GameEvent = {
-	type: 'invitation_rejected' | 'invitation_accepted' | 'game_started' | 'game_result';
+	type: 
+		| 'invitation_rejected'
+		| 'invitation_accepted'
+		| 'game_started'
+		| 'game_result'
+		| 'tournament_created'
+		| 'tournament_state_update'
+		| 'tournament_match_start'
+		| 'tournament_match_complete'
+		| 'tournament_completed';
 	friendId?: number;
 	gameResult?: {
 		winnerId: number;
 		score1: number;
 		score2: number;
+	};
+	tournamentId?: string;
+	tournamentState?: {
+		phase: 'waiting' | 'semifinals' | 'third_place' | 'final' | 'completed';
+		players: Array<{
+			id: number;
+			username: string;
+			ready: boolean;
+		}>;
+		matches?: {
+			semifinals?: Array<{
+				player1Id: number;
+				player2Id: number;
+				gameId?: string;
+				winner?: number;
+			}>;
+			thirdPlace?: {
+				player1Id: number;
+				player2Id: number;
+				gameId?: string;
+				winner?: number;
+			};
+			final?: {
+				player1Id: number;
+				player2Id: number;
+				gameId?: string;
+				winner?: number;
+			};
+		};
+	};
+	tournamentMatch?: {
+		opponentId: number;
+		gameId: number;
+		matchType: 'semifinal' | 'final' | 'third_place';
+	};
+	tournamentResult?: {
+		place: number;
+		podium: { userId: number; place: number }[];
 	};
 };
 

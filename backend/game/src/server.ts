@@ -6,14 +6,13 @@ import { WebSocket } from 'ws';
 import { logError } from "./utils/errorHandler";
 import { connectRabbit } from "./rabbit/rabbit";
 import config from "./config";
+import { createAndStartGame, createAndStartAIGame, updatePlayerPosition } from "./services/game.service";
+import { createTournament, joinTournament, toggleReady } from "./services/tournament.service";
+import { JwtPayload } from "./@types/user.types";
+import { TournamentWebSocketMessage } from "./@types/tournament.types";
 
 // Import the database connection - auto launches the connection
 import "./database";
-import { JwtPayload } from "./@types/user.types";
-import { createAndStartGame, createAndStartAIGame, updatePlayerPosition } from "./services/game.service";
-import { insertMatchmakingQueue, startOrdinaryGame } from "./models/game.model";
-
-//connectRabbit();
 
 // Create an instance of Fastify server
 const server = fastify({
@@ -23,7 +22,6 @@ const server = fastify({
 
 server.register(fastifyJwt, { secret: config.security.jwtSecret });
 server.register(FastifyWebsocket);
-
 
 const activeConnections = new Map<number, WebSocket>();
 
@@ -43,67 +41,84 @@ server.register(async function (fastify: FastifyInstance) {
 	  activeConnections.set(userId, connection);
 	  
 	  connection.on('close', () => {
-		console.log(`User ${payload.userId} disconnected`);
-		activeConnections.delete(payload.userId);
+		console.log(`User ${userId} disconnected`);
+		activeConnections.delete(userId);
 	  });
 	  
 	  connection.on('message', async (message: any) => {
-		const data = JSON.parse(message);
+		const data = JSON.parse(message) as TournamentWebSocketMessage;
 		console.log('Received message:', data);
 	
-
-		switch (data.type) {
-			case 'start_ai_game':
-				const gameId = await createAndStartAIGame(userId, data.payload.difficulty);
-				connection.send(JSON.stringify({
-					type: 'game_created',
-					payload: { gameId }
-				}));
-				break;
-			case 'game_invite': 
-				sendNotification(data.payload.friendId, {
-					type: 'game_invitation_income',
-					payload: { fromUserId: userId }
-				});
-				break;
-			case 'game_invitation_accepted':
-				sendNotification(data.payload.friendId, {
-					type: 'game_invitation_accepted',
-					payload: { fromUserId: userId }
-				});
-				await createAndStartGame({player_1_id: userId, player_2_id: data.payload.friendId});
-				break;
-			case 'game_invitation_rejected':
-				sendNotification(data.payload.friendId, {
-					type: 'game_invitation_rejected',
-					payload: { fromUserId : userId}});
-				break;
-			case 'player_move':
-				updatePlayerPosition(data.gameId, data.userId, data.direction);
-				// Обработка движения игрока
-				//connection.send(JSON.stringify({ type: 'player_move', message: `Player ${data.userId} moved to (${data.direction})` }));
-				break;
-			case 'game_end':
-				connection.send(JSON.stringify({ type: 'game_end', message: 'Game has ended!' }));
-				break;
-			case 'game_update':
-				connection.send(JSON.stringify({ type: 'game_update', message: 'Game state updated!' }));
-				break;
-			case 'game_statistics':
-				connection.send(JSON.stringify({ type: 'game_statistics', message: 'Game statistics updated!' }));
-				break;
-			case 'game_error':
-				connection.send(JSON.stringify({ type: 'game_error', message: 'An error occurred in the game!' }));
-				break;
-			default:
-				break;
+		try {
+			switch (data.type) {
+				case 'create_tournament':
+					const tournamentId = await createTournament(userId);
+					connection.send(JSON.stringify({
+						type: 'tournament_created',
+						payload: { tournamentId, hostId: userId }
+					}));
+					break;
+				case 'join_tournament':
+					await joinTournament(Number(data.payload.tournamentId), userId);
+					break;
+				case 'toggle_ready':
+					await toggleReady(Number(data.payload.tournamentId), userId, data.payload.ready);
+					break;
+				case 'start_ai_game':
+					const gameId = await createAndStartAIGame(userId, data.payload.difficulty);
+					connection.send(JSON.stringify({
+						type: 'game_created',
+						payload: { gameId }
+					}));
+					break;
+				case 'game_invite': 
+					sendNotification(data.payload.friendId, {
+						type: 'game_invitation_income',
+						payload: { fromUserId: userId }
+					});
+					break;
+				case 'game_invitation_accepted':
+					sendNotification(data.payload.friendId, {
+						type: 'game_invitation_accepted',
+						payload: { fromUserId: userId }
+					});
+					await createAndStartGame({player_1_id: userId, player_2_id: data.payload.friendId});
+					break;
+				case 'game_invitation_rejected':
+					sendNotification(data.payload.friendId, {
+						type: 'game_invitation_rejected',
+						payload: { fromUserId : userId}});
+					break;
+				case 'player_move':
+					updatePlayerPosition(data.gameId, data.userId, data.direction);
+					break;
+				case 'game_end':
+					connection.send(JSON.stringify({ type: 'game_end', message: 'Game has ended!' }));
+					break;
+				case 'game_update':
+					connection.send(JSON.stringify({ type: 'game_update', message: 'Game state updated!' }));
+					break;
+				case 'game_statistics':
+					connection.send(JSON.stringify({ type: 'game_statistics', message: 'Game statistics updated!' }));
+					break;
+				case 'game_error':
+					connection.send(JSON.stringify({ type: 'game_error', message: 'An error occurred in the game!' }));
+					break;
+				default:
+					console.log('Unknown message type:', data.type);
+					break;
+			}
+		} catch (error) {
+			console.error('Error processing message:', error);
+			connection.send(JSON.stringify({
+				type: 'error',
+				payload: { message: error instanceof Error ? error.message : 'Unknown error' }
+			}));
 		}
-
 	  });
 
-	  connection.on('error', (error: any) => {
-		console.error(`WebSocket error for user ${payload.userId}:`, error);
-		//activeConnections.delete(payload.userId);
+	  connection.on('error', (error: Error) => {
+		console.error(`WebSocket error for user ${userId}:`, error);
 	  });
 	});
   });
@@ -137,17 +152,11 @@ interface GameResultPayload {
 }
 
 export function sendNotification(userId: number, data: NotificationData | GameNotificationData | GameResultPayload) {
-
-	// activeConnections.forEach((ws, id) => {
-	// 	console.log(`User ID: ${id}, WebSocket: ${ws.readyState}`);
-	// })
-
 	const ws = activeConnections.get(userId);
 	
 	if (ws && ws.readyState === WebSocket.OPEN) {
 		try {
 			ws.send(JSON.stringify(data));
-			//console.log('Notification sent successfully to user', userId);
 		} catch (error) {
 			console.error('Error sending notification:', error);
 			activeConnections.delete(userId);
@@ -157,9 +166,7 @@ export function sendNotification(userId: number, data: NotificationData | GameNo
 	}
 }
 
-
 export function sendNotificationToAll(data: NotificationData) {
-
 	for (const ws of activeConnections.values()) {
 		if (ws.readyState === WebSocket.OPEN) {
 			try {
@@ -169,25 +176,18 @@ export function sendNotificationToAll(data: NotificationData) {
 			}
 		}
 	}
-
 }
 
-
-server.setErrorHandler((error, request, reply) => {
+server.setErrorHandler((error: Error, request: any, reply: any) => {
 	logError(error, 'Server');
-	reply.status(error.statusCode || 500).send({
+	reply.status(error || 500).send({
 	  error: error.message || 'Internal Server Error',
-	  statusCode: error.statusCode || 500,
+	  statusCode: error || 500,
 	});
   });
 
-// Register the routes - prefix means that all routes in the authRoutes will start with /auth
-// For example, if you have a route in the authRoutes file with the path /login, you can access it at http://localhost:5000/user/update
 server.register(gameRoutes);
 
-
-// Start the server
-// The server will listen on the port and host specified in the config file
 const start = async () => {
 	try {
 	  await server.listen({ 
@@ -207,6 +207,4 @@ const start = async () => {
 	}
   };
 
-
-// Start the server
 start();

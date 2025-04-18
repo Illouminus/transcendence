@@ -25,10 +25,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 	document.getElementById("friends-button")?.addEventListener("click", onFriendsClick);
 
 	const token = localStorage.getItem("token");
-	//Fetch user profile and set user state accordingly if token is present
+
 	if(token) 
 	{
 		const user = await fetchUserProfile();
+		if(!user)
+		{
+			UserState.logout();
+			localStorage.removeItem("token");
+		}
 		const allUsers = await fetchAllUsers();
 		UserState.setUserSocket(connectUserWebSocket(token));
 		UserState.setGameSocket(connectGameWebSocket(token));

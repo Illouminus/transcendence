@@ -102,6 +102,51 @@ export function connectGameWebSocket(token: string): WebSocket {
             }
           });
           break;
+        case 'tournament_created':
+          UserState.notifyGameEvent({
+            type: 'tournament_created',
+            tournamentId: data.payload.tournamentId
+          });
+          break;
+
+        case 'tournament_state_update':
+          UserState.notifyGameEvent({
+            type: 'tournament_state_update',
+            tournamentState: data.payload
+          });
+          break;
+
+        case 'tournament_match_start':
+          UserState.notifyGameEvent({
+            type: 'tournament_match_start',
+            tournamentMatch: {
+              opponentId: data.payload.opponentId,
+              gameId: data.payload.gameId,
+              matchType: data.payload.matchType
+            }
+          });
+          clientGameState.player1.id = UserState.getUser()!.id;
+          clientGameState.player2.id = data.payload.opponentId;
+          clientGameState.gameId = data.payload.gameId;
+          UserState.setGameMode({ mode: 'championship' });
+          redirectTo('/pong');
+          break;
+
+        case 'tournament_match_complete':
+          // Обработка завершения матча, но не перенаправляем пользователя
+          // Ждем следующего события tournament_match_start или tournament_completed
+          break;
+
+        case 'tournament_completed':
+          UserState.notifyGameEvent({
+            type: 'tournament_completed',
+            tournamentResult: {
+              place: data.payload.podium.find(p => p.userId === UserState.getUser()?.id)?.place || 0,
+              podium: data.payload.podium
+            }
+          });
+          redirectTo('/game'); // Возвращаемся в главное меню
+          break;
       }
     };
     return socket;

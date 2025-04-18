@@ -109,7 +109,7 @@ async function verifyJWT(req: FastifyRequest, reply: FastifyReply) {
       }
     }
     else
-      reply.status(404).send("Acces refused");
+      reply.status(401).send("Acces refused");
   } catch (error) {
       reply.status(401).send("Acces refused");
   }
