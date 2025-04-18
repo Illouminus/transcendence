@@ -125,6 +125,20 @@ async function sendBufferedMessages(userId: number) {
     }
 }
 
+const chatInviteToGame = async (friendId: number) => {
+    try {
+        const gameSocket = UserState.getGameSocket();
+        if (!gameSocket) {
+            console.error('Game socket not available');
+            showAlert('Game socket not available', 'danger');
+            return;
+        }
+        gameSocket.send(JSON.stringify({ type: 'game_invite', payload: {friendId: friendId}}));
+    } catch (error) {
+        console.error('Error inviting to game:', error);
+        showAlert('Failed to send game invitation', 'danger');
+    }
+};
 
   
 
@@ -200,6 +214,13 @@ async function openChatWindow(userId: string) {
 
     // Gestion du bouton "Retour"
     addEventListenerToElement('goBack', 'click', () => hideChatMenu(true));
+    
+    // Gestion du bouton "Invite to Game"
+    const button = document.getElementById('chatInviteGameButton');
+    if (button) {
+        addEventListenerToElement('chatInviteGameButton', 'click', () => chatInviteToGame(himId));
+    }
+
 
     // Chargement des messages
     try {
