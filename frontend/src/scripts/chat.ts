@@ -216,10 +216,11 @@ async function openChatWindow(userId: string) {
     addEventListenerToElement('goBack', 'click', () => hideChatMenu(true));
     
     // Gestion du bouton "Invite to Game"
-    const button = document.getElementById('chatInviteGameButton');
-    if (button) {
-        addEventListenerToElement('chatInviteGameButton', 'click', () => chatInviteToGame(himId));
-    }
+    addEventListenerToElement('chatInviteGameButton', 'click', () => {
+        chatInviteToGame(himId);
+        toggleChatMenu(false);
+    });
+    
 
 
     // Chargement des messages
