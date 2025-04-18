@@ -2,6 +2,8 @@ import { UserState } from "./userState";
 import { ChatState} from "./chatState";
 import { ParseUint16 } from "babylonjs";
 import { showAlert } from "./services/alert.service";
+import { redirectTo } from "./router";
+
 
 export interface ChatArray {
     id: number;
@@ -220,7 +222,11 @@ async function openChatWindow(userId: string) {
         chatInviteToGame(himId);
         toggleChatMenu(false);
     });
-    
+
+    // Gestion du bouton "Profile"
+    addEventListenerToElement('chatTitle', 'click', () => {
+        redirectTo(`/user-profile?id=${himId}`);
+    });
 
 
     // Chargement des messages
