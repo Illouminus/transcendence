@@ -48,7 +48,7 @@ export class ChatState {
                 fromUserId: message.sender_id,
                 toUserId: message.receiver_id,
                 content: message.content,
-                sentAt: message.sent_at,
+                sent_at: message.sent_at,
             }));
         } catch (error) {
             console.error("Erreur de chargement des messages :", error);

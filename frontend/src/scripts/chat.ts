@@ -5,7 +5,6 @@ import { redirectTo } from "./router";
 
 
 export interface ChatArray {
-    sentAt: any;
     id: number;
     fromUserId: number;
     toUserId: number;
@@ -70,6 +69,7 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
                     fromUserId: meId,
                     toUserId: himID,
                     text: messageText,
+                    sent_at: timestamp,
                 },
             }));
         }
@@ -88,7 +88,7 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
 
         console.log(meId ,himID); 
         if (openedChatWindow ) {
-            displayMessage(himUsername, meUsername, newMessage);
+            displayMessage(meUsername, himUsername, meId, messageText, timestamp);
         }
     } catch (error) {
         console.error("Erreur d'envoi du message :", error);
@@ -239,7 +239,7 @@ async function openChatWindow(userId: string) {
 
     const messages = ChatState.filterMessages(meId, himId);
     messages.forEach(message => {
-        displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sentAt);
+        displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sent_at);
     });
 
   

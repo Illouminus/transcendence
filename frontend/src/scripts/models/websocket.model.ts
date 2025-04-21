@@ -56,7 +56,7 @@ export type UserWebSocketMessage =
     fromUserId: number;
     toUserId: number;
     text: string;
-    // можно добавить timestamp, id сообщения и т.д.
+    sent_at: string; 
   }
 
   export interface ChatBlockedPayload {

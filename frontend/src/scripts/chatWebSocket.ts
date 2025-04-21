@@ -42,9 +42,7 @@ export function connectChatWebSocket(token: string): WebSocket {
         case 'chat_receive': {
           console.log('Message received:', data.payload);
           showAlert(`New Message from ${data.payload.username}`, 'success');
-          console.log('From USer ID' + data.payload.fromUserId)
-          console.log('To USer ID' + data.payload.toUserId)
-          displayMessage(data.payload.username, data.payload.username, data.payload.toUserId, data.payload.fromUserId, data.payload.text, new Date().toLocaleTimeString());
+          displayMessage(data.payload.username, data.payload.username, data.payload.fromUserId,data.payload.text, data.payload.sent_at);
           break;
         }
         default:

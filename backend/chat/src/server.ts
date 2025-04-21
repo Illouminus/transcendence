@@ -70,7 +70,8 @@ server.register(async function (fastify: FastifyInstance) {
 							username: data.payload.username,
 							fromUserId: data.payload.fromUserId, 
 							toUserId: data.payload.toUserId, 
-							text: data.payload.text},
+							text: data.payload.text,
+							sent_at: data.payload.sent_at},
 					});
 				}
 			});
