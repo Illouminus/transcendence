@@ -6,6 +6,7 @@ export class ChatState {
 
     private static chat: Chat | null = null; // Chat actuel
     private static allChats: ChatArray[] = []; // Tableau pour stocker tous les messages
+    private static pendingChats: ChatArray[] = []; // Tableau pour stocker tous les messages à envoyer
 
     // Ajouter un message au tableau
     public static addMessage(chat: ChatArray): void {
@@ -65,7 +66,7 @@ export class ChatState {
             ((msg.fromUserId === sender_id && receiver_id === msg.toUserId) ||
             (msg.fromUserId === receiver_id && sender_id === msg.toUserId))
         );
-        return (filteredMessages)
+        return (filteredMessages);
     }
 
 }

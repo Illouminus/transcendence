@@ -207,7 +207,11 @@ async function openChatWindow(userId: string) {
     toggleElementClass('chat-friends-list', 'hidden', true);
     toggleElementClass('chatInput', 'hidden', false);
     toggleElementClass('chatMessages', 'hidden', false);
-
+    const chatSubContainer = document.getElementById("chatSubContainer");
+    if (chatSubContainer) {
+        chatSubContainer.classList.remove("justify-start");
+        chatSubContainer.classList.add("justify-end");
+    }
     updateElementContent('chatTitle', himUsername);
     updateElementContent('chatMessages', "");
 
@@ -226,6 +230,7 @@ async function openChatWindow(userId: string) {
     });
 
     const messages = ChatState.filterMessages(meId, himId);
+    console.log("Filtered messages:", messages);
     messages.forEach(message => {
         displayMessage(himUsername, meUsername, message.toUserId, message.fromUserId, message.content, message.sent_at);
     });
@@ -262,6 +267,11 @@ function hideChatMenu(isOpen: boolean): void {
         sendBufferedMessages(him.id);
     }
 
+    const chatSubContainer = document.getElementById("chatSubContainer");
+    if (chatSubContainer) {
+        chatSubContainer.classList.remove("justify-end");
+        chatSubContainer.classList.add("justify-start");
+    }
     toggleElementClass('chatMessages', 'hidden', isOpen);
     toggleElementClass('chatInput', 'hidden', isOpen);
     toggleElementClass('chat-friends-list', 'hidden', false);
@@ -270,6 +280,14 @@ function hideChatMenu(isOpen: boolean): void {
 
     toggleElementClass('goBack', 'hidden', true);
     toggleElementClass('closeChat', 'hidden', false);
+    deleteDisplayMessage();
+}
+
+export function deleteDisplayMessage() {
+    const chatMessagesContainer = document.getElementById("chatMessages");
+    if (chatMessagesContainer) {
+        chatMessagesContainer.innerHTML = ''; // Supprime tout le contenu HTML de la div
+    }
 }
 
 
