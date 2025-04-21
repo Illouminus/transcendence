@@ -1,6 +1,5 @@
 import { UserState } from "./userState";
 import { ChatState} from "./chatState";
-import { ParseUint16 } from "babylonjs";
 import { showAlert } from "./services/alert.service";
 import { redirectTo } from "./router";
 
@@ -8,7 +7,7 @@ import { redirectTo } from "./router";
 export interface ChatArray {
     id: number;
     fromUserId: number;
-    toUserId: string;
+    toUserId: number;
     content: string;
     sent_at: string;
 }
@@ -46,7 +45,7 @@ function addEventListenerToElement(elementId: string, event: string, handler: Ev
 }
 
 // Fonction pour envoyer un message
-async function sendMessage(meId: number, himID: number, messageText: string): void {
+async function sendMessage(meId: number, himID: number, messageText: string): Promise<void> {
     if (!messageText || messageText.trim() === "") return;
 
     const timestamp = new Date().toISOString(); // Horodatage
@@ -75,7 +74,7 @@ async function sendMessage(meId: number, himID: number, messageText: string): vo
         const newMessage: ChatArray = {
             id: Date.now(), // Identifiant unique temporaire
             fromUserId: meId,
-            toUserId: himID.toString(),
+            toUserId: himID,
             content: messageText,
             sent_at: timestamp,
         };
@@ -103,7 +102,7 @@ async function sendBufferedMessages(userId: number) {
         const payload = {
             messages: bufferedMessages.map(msg => ({
                 sender_id: msg.fromUserId,
-                receiver_id: parseInt(msg.toUserId), // Conversion en nombre si nécessaire
+                receiver_id: msg.toUserId, // Conversion en nombre si nécessaire
                 content: msg.content,
             })),
         };
@@ -141,8 +140,6 @@ const chatInviteToGame = async (friendId: number) => {
         showAlert('Failed to send game invitation', 'danger');
     }
 };
-
-  
 
 
 // Fonction de gestion de l'affichage des messages
@@ -228,19 +225,10 @@ async function openChatWindow(userId: string) {
         redirectTo(`/user-profile?id=${himId}`);
     });
 
-
-    // Chargement des messages
-    try {
-        const response = await fetch(`http://localhost:8084/chat/messages/${himId}/${meId}`);
-        if (!response.ok) throw new Error("Erreur lors de la récupération des messages");
-
-        const messages = await response.json();
-        messages.forEach((message: any) => {
-            displayMessage(himUsername, meUsername, himId, message.sender_id, message.content, message.sent_at);
-        });
-    } catch (error) {
-        console.error("Erreur de chargement des messages :", error);
-    }
+    const messages = ChatState.filterMessages(meId, himId);
+    messages.forEach(message => {
+        displayMessage(himUsername, meUsername, message.toUserId, message.fromUserId, message.content, message.sent_at);
+    });
 
     // Gestion de l'envoi des messages
     addEventListenerToElement("sendButton", "click", () => {

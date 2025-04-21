@@ -2,16 +2,15 @@ import db from "../database";
 import { logError } from "../utils/errorHandler";
 
 // Fonction pour récupérer les messages entre deux utilisateurs
-export async function getMessagesBetweenUsers(user1: number, user2: number) {
+export async function getMessagesBetweenUsers(user1: number) {
   return new Promise((resolve, reject) => {
     const query = `
       SELECT * FROM messages 
-      WHERE (sender_id = ? AND receiver_id = ?) 
-         OR (sender_id = ? AND receiver_id = ?) 
+      WHERE (sender_id = ? OR receiver_id = ?) 
       ORDER BY sent_at ASC
     `;
 
-    db.all(query, [user1, user2, user2, user1], (err, rows) => {
+    db.all(query, [user1, user1], (err, rows) => {
       if (err) {
         logError(err, "getMessagesBetweenUsers");
         return reject(err);

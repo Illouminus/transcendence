@@ -10,6 +10,8 @@ import { connectGameWebSocket } from "./gameWebsocket";
 import { connectChatWebSocket } from "./chatWebSocket";
 import { createGameInvitationModal } from "./gameInvitationModal";
 import { chat } from "./chat";
+import { ChatState } from "./chatState";
+
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -42,6 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 			if(UserState.getUser() === null)
 				UserState.updateUser(user);
 			UserState.setUser(user);
+			ChatState.fetchMessagesForUser(user.id);
 		}
 		else
 		{
