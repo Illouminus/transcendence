@@ -5,12 +5,16 @@ import { redirectTo } from "./router";
 
 
 export interface ChatArray {
+    sentAt: any;
     id: number;
     fromUserId: number;
     toUserId: number;
     content: string;
     sent_at: string;
 }
+
+// Variable pour suivre l'utilisateur de la fenêtre de chat ouverte
+let openedChatWindow: boolean = false; 
 
 // Fonction pour récupérer l'utilisateur courant et les utilisateurs
 const getUserData = () => {
@@ -81,9 +85,11 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
 
         // Ajouter le message au tableau local
         ChatState.addPendingMessage(newMessage);
-        console.log('New message added:', newMessage.content);
-            
-        displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
+
+        console.log(meId ,himID); 
+        if (openedChatWindow ) {
+            displayMessage(himUsername, meUsername, newMessage);
+        }
     } catch (error) {
         console.error("Erreur d'envoi du message :", error);
     }
@@ -92,7 +98,6 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
 async function sendBufferedMessages(userId: number) {
     // Récupérer les messages pour l'utilisateur spécifié
     const pendingMessages = ChatState.getPendingMessages();
-
     if (pendingMessages.length === 0) {
         console.log("Aucun message à envoyer pour l'utilisateur :", userId);
         return;
@@ -144,21 +149,22 @@ const chatInviteToGame = async (friendId: number) => {
 
 
 // Fonction de gestion de l'affichage des messages
-export function displayMessage(himUsername: string, meUsername: string, himId: number, senderId: number, content: string, time: string) {
+export function displayMessage(user1: string, user2: string, fromUserId: number, content: string, sent_at: string ): void {
+    const { me } = getUserData();
+    const meId = me?.id ?? 0;
     const chatMessagesContainer = document.getElementById("chatMessages");
     const messageContainer = document.createElement("div");
     messageContainer.classList.add("chatMessageSingle", "flex", "items-start", "mb-5", "w-full");
-    messageContainer.setAttribute("data-user-id", senderId?.toString());
+    messageContainer.setAttribute("data-user-id", fromUserId?.toString());
 
-    const username = senderId === himId ? himUsername : meUsername;
-
-    messageContainer.classList.add(senderId === himId ? "justify-start" : "justify-end");
+    const username = fromUserId === meId ? user1 : user2;
+    messageContainer.classList.add(fromUserId === meId ? "justify-end" : "justify-start");
 
     const messageHTML = `
         <div style="width: 70%" class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-xl dark:bg-gray-700">
             <div class="flex items-center space-x-2 rtl:space-x-reverse">
                 <span class="text-sm font-semibold text-gray-900 dark:text-white">${username}</span>
-                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${time}</span>
+                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${sent_at}</span>
             </div>
             <p class="text-sm text-left py-2.5 text-gray-900 dark:text-white">${content}</p>
             <span class="text-sm text-right font-normal text-gray-500 dark:text-gray-400">Delivered</span>
@@ -189,6 +195,7 @@ function createChatUserRow(user: Friend): string {
 }
 
 async function openChatWindow(userId: string) {
+    openedChatWindow = true;
     const { me } = getUserData();
     const friends = me?.friends;
     const him = friends?.find(user => user.friend_id === parseInt(userId));
@@ -231,11 +238,11 @@ async function openChatWindow(userId: string) {
     });
 
     const messages = ChatState.filterMessages(meId, himId);
-    console.log("Filtered messages:", messages);
     messages.forEach(message => {
-        displayMessage(himUsername, meUsername, message.toUserId, message.fromUserId, message.content, message.sent_at);
+        displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sentAt);
     });
 
+  
     // Gestion de l'envoi des messages
     addEventListenerToElement("sendButton", "click", () => {
         const chatMessageInput = document.getElementById("chatMessage") as HTMLInputElement;
