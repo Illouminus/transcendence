@@ -124,6 +124,7 @@ function updateTournamentState(newState: Partial<TournamentState>): void {
     
     tournamentState = { ...tournamentState, ...newState };
     updateUI();
+    
 }
 
 // Update all UI components
@@ -244,7 +245,7 @@ function leaveTournament(): void {
             payload: { tournamentId: tournamentState.tournamentId }
         }));
     }
-    redirectTo('/game');
+    redirectTo('/');
 }
 
 function toggleReady(): void {
@@ -281,7 +282,11 @@ export function initializeChampionship(): void {
     console.log('Initializing championship...');
 
     // Check if we already have a tournamentId in UserState
+
+    console.log('USER STATE GAME MODE :', UserState.getGameMode());
+
     const existingTournamentId = UserState.getGameMode()?.tournamentId;
+    console.log('Existing tournament ID:', existingTournamentId);
 
     if(!existingTournamentId) {
         gameSocket.send(JSON.stringify({
@@ -316,7 +321,7 @@ export function initializeChampionship(): void {
 
     // Subscribe to tournament events through UserState
     UserState.onGameEvent((event) => {
-        console.log('Received game event:', event);
+        let isFriend: boolean = false;
         
         switch (event.type) {
             case 'tournament_created':
@@ -325,16 +330,30 @@ export function initializeChampionship(): void {
                     updateTournamentState({ tournamentId: event.tournamentId });
                 }
                 break;
+            case 'new_tournament_created':
+                console.log('New tournament created GAME EVENT :', event.tournamentId);
+                if (event.tournamentId) {
+                    console.log('New tournament created:', event.tournamentId);
+                    updateTournamentState({ tournamentId: event.tournamentId });
+                }
+                break;
             case 'tournament_state_update':
                 if (event.tournamentState) {
-                    console.log('Tournament state update:', event.tournamentState);
-                    const players = event.tournamentState.players.map(p => ({
-                        id: p.id,
-                        username: p.username,
-                        avatar: '/images/default_avatar.png',
-                        ready: p.ready
-                    }));
+                        const players = event.tournamentState.players.map(p => {
+                        const friend = UserState.getUser()?.friends.find(friend => friend.friend_id === p.id);
+                        if (!friend) 
+                            return; 
+                        isFriend = true;
+                        return {
+                            id: p.id,
+                            username: friend ? friend.friend_username : 'Unknown',
+                            avatar: friend ? friend.friend_avatar : '/images/default_avatar.png',
+                            ready: p.ready
+                        };
+                    }).filter((player): player is Player => player !== undefined);
                     
+                    if(!isFriend) return;
+
                     updateTournamentState({
                         phase: event.tournamentState.phase,
                         players,

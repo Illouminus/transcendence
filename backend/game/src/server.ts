@@ -38,6 +38,7 @@ server.register(async function (fastify: FastifyInstance) {
 		return;
 	  }
 
+	  
 	  activeConnections.set(userId, connection);
 	  
 	  connection.on('close', () => {
@@ -57,6 +58,12 @@ server.register(async function (fastify: FastifyInstance) {
 						type: 'tournament_created',
 						payload: { tournamentId, hostId: userId }
 					}));
+
+					// Notify all users about the new tournament
+					sendNotificationToAll({
+						type: 'new_tournament_created',
+						payload: { tournamentId, hostId: userId }
+					});
 					break;
 				case 'join_tournament':
 					if (!data.payload.tournamentId) {
@@ -182,6 +189,8 @@ export function sendNotificationToAll(data: NotificationData) {
 	for (const ws of activeConnections.values()) {
 		if (ws.readyState === WebSocket.OPEN) {
 			try {
+				console.log('Sending notification to all users:', data);
+				console.log('To users with active connections:', activeConnections.keys());
 				ws.send(JSON.stringify(data));
 			} catch (error) {
 				console.error('Error sending notification:', error);

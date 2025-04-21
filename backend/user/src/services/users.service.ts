@@ -42,7 +42,7 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 
   
 
-  export async function registerUserService( userId: number, username: string, email: string): Promise<{ message: string }> {
+  export async function registerUserService( userId: number, username: string, email: string): Promise<User | null> {
 	try {
 	  if (!username || !email) {
 		throw createValidationError("All fields are required", {
@@ -50,8 +50,8 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 		});
 	  }
 	  const avatar_url = "/images/default_avatar.png";
-	  await createUser(userId,username, avatar_url, email);
-	  return { message: "User registered!" };
+	  const user = await createUser(userId,username, avatar_url, email);
+	  return user;
 	} catch (error) {
 	  logError(error, "registerUserService");
 	  throw createDatabaseError("Failed to register user", {

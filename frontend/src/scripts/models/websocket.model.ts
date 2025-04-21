@@ -115,6 +115,7 @@ export type GameWebSocketMessage =
 | { type: 'tournament_started'; payload: void }
 | { type: 'tournament_cancelled'; payload: void }
 | { type: 'tournament_created'; payload: TournamentCreatedPayload }
+| { type : 'new_tournament_created'; payload: TournamentCreatedPayload }
 | { type: 'tournament_state_update'; payload: TournamentStatePayload }
 | { type: 'tournament_match_start'; payload: TournamentMatchStartPayload }
 | { type: 'tournament_match_complete'; payload: { 

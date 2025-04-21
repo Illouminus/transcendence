@@ -2,15 +2,8 @@ import db from '../database';
 import { sendNotification } from '../server';
 import { createAndStartGame } from './game.service';
 import { GameType } from '../@types/tournament.types';
-import { createTournamentDB } from '../models/tournament.model';
+import { createTournamentDB, getExistingPlayersDB, getTournamentDB, insertUserTournamentDB, updateReadyDB } from '../models/tournament.model';
 
-interface DbTournament {
-    id: number;
-    status: string;
-    host_id: number;
-    created_at: string;
-    completed_at: string | null;
-}
 
 interface DbTournamentMatch {
     id: number;
@@ -54,80 +47,64 @@ const activeTournaments: Record<number, TournamentState> = {};
 
 export async function createTournament(hostId: number): Promise<number> {
 	const result = await createTournamentDB(hostId);
-    
-    console.log('Tournament creation result:', result);
+    if (!result) {
+        throw new Error('Failed to create tournament');
+    }
 
-    // if (!tournamentId) {
-    //     throw new Error('Failed to create tournament');
-    // }
-    // console.log('Created tournament with ID:', tournamentId);
+    await insertUserTournamentDB(result, hostId);
     
-    // // Add host as first player
-    // await dbRun(`
-    //     INSERT INTO tournament_players (tournament_id, user_id)
-    //     VALUES (?, ?)
-    // `, [tournamentId, hostId]);
-
-    // // Initialize tournament state
-    // const state: TournamentState = {
-    //     tournamentId,
-    //     phase: 'waiting',
-    //     players: [{
-    //         id: hostId,
-    //         ready: false
-    //     }]
-    // };
+    const state: TournamentState = {
+        tournamentId: result,
+        phase: 'waiting',
+        players: [{
+            id: hostId,
+            ready: false
+        }]
+    };
     
-    // activeTournaments[tournamentId] = state;
-    
-     return 10;
+    activeTournaments[result] = state;
+    return result;
 }
 
 export async function joinTournament(tournamentId: number, userId: number): Promise<void> {
-    // Check if tournament exists and is in waiting phase
-    const tournament = (await db.get(`
-        SELECT id, status, host_id, created_at, completed_at 
-        FROM tournaments 
-        WHERE id = ?
-    `, [tournamentId])) as unknown as DbTournament | undefined;
 
-    if (!tournament || tournament.status !== 'waiting') {
-        throw new Error('Tournament not available for joining');
-    }
-
-    // Add player to tournament
-    await db.run(`
-        INSERT INTO tournament_players (tournament_id, user_id)
-        VALUES (?, ?)
-    `, [tournamentId, userId]);
-    
-    // Update state and notify all players
-    const state = activeTournaments[tournamentId];
-    if (state) {
-        state.players.push({
-            id: userId,
-            ready: false
-        });
+    try {
+        const tournament = await getTournamentDB(tournamentId);
+        if (!tournament || tournament.status !== 'waiting') {
+            throw new Error('Tournament not available for joining');
+        }
+        const existingPlayer = await getExistingPlayersDB(tournamentId);
+        console.log('EXISTING PLAYERS', existingPlayer);
+        if (existingPlayer) {
+            throw new Error('User already in tournament');
+        } 
+        const state = activeTournaments[tournamentId];
+        if (state) {
+            state.players.push({
+                id: userId,
+                ready: false
+            });
+            broadcastTournamentState(tournamentId);
+        }
         
-        broadcastTournamentState(tournamentId);
+    } catch (error) {
+        console.error('Error joining tournament:', error);
+        throw error;
     }
+
 }
 
+
+
 export async function toggleReady(tournamentId: number, userId: number, ready: boolean): Promise<void> {
-    await db.run(`
-        UPDATE tournament_players
-        SET ready = ?
-        WHERE tournament_id = ? AND user_id = ?
-    `, [ready ? 1 : 0, tournamentId, userId]);
-    
+    await updateReadyDB(tournamentId, userId, ready);
     const state = activeTournaments[tournamentId];
     if (state) {
         const player = state.players.find(p => p.id === userId);
         if (player) {
             player.ready = ready;
         }
-        
-        // Check if all players are ready and we have 4 players
+
         if (state.players.length === 4 && state.players.every(p => p.ready)) {
             await startTournament(tournamentId);
         } else {

@@ -38,7 +38,7 @@ export async function loadGameModePage() {
 			const option = document.createElement('option');
 			option.value = friend.friend_id.toString();
 			option.textContent = friend.friend_email;
-			friendSelect.appendChild(option);
+			//friendSelect.appendChild(option);
 		});
 	}
 }

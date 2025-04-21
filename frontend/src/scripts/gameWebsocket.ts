@@ -108,6 +108,16 @@ export function connectGameWebSocket(token: string): WebSocket {
             tournamentId: data.payload.tournamentId
           });
           break;
+        case 'new_tournament_created':
+          console.log('New tournament created:', data);
+          UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
+          
+          // UserState.notifyGameEvent({
+          //   type: 'new_tournament_created',
+          //   tournamentId: data.payload.tournamentId,
+          // });
+          console.log("GME MODE", UserState.getGameMode());
+          break;
 
         case 'tournament_state_update':
           UserState.notifyGameEvent({

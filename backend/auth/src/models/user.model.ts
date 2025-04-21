@@ -208,3 +208,17 @@ export async function deleteSession(userId: number): Promise<void> {
 		);
 	});
 }
+
+
+export async function updateUserId(email: string, userId: number): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		db.run(
+			"UPDATE users SET user_id = ? WHERE email = ?",
+			[userId, email],
+			function (err: Error | null) {
+				if (err) return reject(err);
+				resolve();
+			}
+		);
+	});
+}

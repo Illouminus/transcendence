@@ -4,6 +4,18 @@ export type GameType = 'casual' | 'tournament' | 'ai';
 
 export type MatchType = 'semifinal' | 'final' | 'third_place';
 
+
+
+export interface DbTournament {
+    id: number;
+    status: string;
+    host_id: number;
+    created_at: string;
+    completed_at: string | null;
+}
+
+
+
 export interface TournamentPlayer {
     id: number;
     username: string;

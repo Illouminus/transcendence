@@ -15,6 +15,7 @@ export type GameEvent = {
 		| 'game_started'
 		| 'game_result'
 		| 'tournament_created'
+		| 'new_tournament_created'
 		| 'tournament_state_update'
 		| 'tournament_match_start'
 		| 'tournament_match_complete'
@@ -179,7 +180,12 @@ export class UserState {
 	}
 
 	static setGameMode(mode: GameModeSelection) {
-		this.gameMode = mode;
+		const currentMode = this.gameMode || {};
+
+		this.gameMode = {
+			...currentMode,
+			...mode,
+		};
 	}
 
 	static getGameMode() {
