@@ -2,6 +2,7 @@ import db from '../database';
 import { sendNotification } from '../server';
 import { createAndStartGame } from './game.service';
 import { GameType } from '../@types/tournament.types';
+import { createTournamentDB } from '../models/tournament.model';
 
 interface DbTournament {
     id: number;
@@ -52,32 +53,34 @@ interface TournamentState {
 const activeTournaments: Record<number, TournamentState> = {};
 
 export async function createTournament(hostId: number): Promise<number> {
-    const result = await db.run(`
-        INSERT INTO tournaments (status, host_id)
-        VALUES (?, ?)
-    `, ['waiting', hostId]);
+	const result = await createTournamentDB(hostId);
     
-    const tournamentId = (result as unknown as { lastInsertRowid: number }).lastInsertRowid;
-    
-    // Add host as first player
-    await db.run(`
-        INSERT INTO tournament_players (tournament_id, user_id)
-        VALUES (?, ?)
-    `, [tournamentId, hostId]);
+    console.log('Tournament creation result:', result);
 
-    // Initialize tournament state
-    const state: TournamentState = {
-        tournamentId,
-        phase: 'waiting',
-        players: [{
-            id: hostId,
-            ready: false
-        }]
-    };
+    // if (!tournamentId) {
+    //     throw new Error('Failed to create tournament');
+    // }
+    // console.log('Created tournament with ID:', tournamentId);
     
-    activeTournaments[tournamentId] = state;
+    // // Add host as first player
+    // await dbRun(`
+    //     INSERT INTO tournament_players (tournament_id, user_id)
+    //     VALUES (?, ?)
+    // `, [tournamentId, hostId]);
+
+    // // Initialize tournament state
+    // const state: TournamentState = {
+    //     tournamentId,
+    //     phase: 'waiting',
+    //     players: [{
+    //         id: hostId,
+    //         ready: false
+    //     }]
+    // };
     
-    return tournamentId;
+    // activeTournaments[tournamentId] = state;
+    
+     return 10;
 }
 
 export async function joinTournament(tournamentId: number, userId: number): Promise<void> {

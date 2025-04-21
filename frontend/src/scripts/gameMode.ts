@@ -9,6 +9,7 @@ export interface GameModeSelection {
     mode: GameMode;
     difficulty?: Difficulty;
     friendId?: string;
+    tournamentId?: string;
 }
 
 interface Friend {
@@ -48,6 +49,20 @@ export function initializeGameModeSelection(): void {
             case 'invitation_accepted':
                 // Game will start, no need to reset UI
                 invitationPending = false;
+                break;
+            case 'tournament_created':
+                if (event.tournamentId) {
+                    // Save tournamentId in UserState
+                    const currentMode = UserState.getGameMode();
+                    if (currentMode) {
+                        UserState.setGameMode({
+                            ...currentMode,
+                            tournamentId: event.tournamentId
+                        });
+                    }
+                    // Redirect to championship waiting room
+                    redirectTo('/championship');
+                }
                 break;
         }
     });
@@ -306,14 +321,6 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
                 startButton.textContent = 'Joining championship...';
                 startButton.disabled = true;
                 startButton.classList.add('bg-gray-600', 'cursor-not-allowed');
-
-                // Send request to join championship
-                gameSocket.send(JSON.stringify({ 
-                    type: 'join_championship',
-                    payload: { 
-                        userId: UserState.getUser()?.id 
-                    }
-                }));
 
                 // Redirect to championship waiting room
                 redirectTo('/championship');

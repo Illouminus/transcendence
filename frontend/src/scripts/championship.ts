@@ -280,11 +280,22 @@ export function initializeChampionship(): void {
 
     console.log('Initializing championship...');
 
-    // Create new tournament or join existing
-    gameSocket.send(JSON.stringify({
-        type: 'create_tournament'
-    }));
+    // Check if we already have a tournamentId in UserState
+    const existingTournamentId = UserState.getGameMode()?.tournamentId;
 
+    if(!existingTournamentId) {
+        gameSocket.send(JSON.stringify({
+            type: 'create_tournament',
+            payload: {}
+        }));
+    }
+    else {
+        gameSocket.send(JSON.stringify({
+            type: 'join_tournament',
+            payload: existingTournamentId ? { tournamentId: existingTournamentId } : {}
+        }));
+    }
+    
     // Initialize current player
     updateCurrentPlayer();
 

@@ -47,7 +47,6 @@ export async function loginUser( email: string, password: string): Promise<Login
 	else {
 		return {user};
 	}
-
 }
 
 export async function verifyTwoFactorAuth( fastify: FastifyInstance, email: string, code: string, ): Promise<number> {

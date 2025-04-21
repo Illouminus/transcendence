@@ -59,7 +59,19 @@ server.register(async function (fastify: FastifyInstance) {
 					}));
 					break;
 				case 'join_tournament':
-					await joinTournament(Number(data.payload.tournamentId), userId);
+					if (!data.payload.tournamentId) {
+						// If no tournamentId provided, create a new tournament
+						const tournamentId = await createTournament(userId);
+						// Add host as first player is already done in createTournament
+						connection.send(JSON.stringify({
+							type: 'tournament_created',
+							payload: { tournamentId, hostId: userId }
+							
+						}));
+					} else {
+						// Join existing tournament
+						await joinTournament(Number(data.payload.tournamentId), userId);
+					}
 					break;
 				case 'toggle_ready':
 					await toggleReady(Number(data.payload.tournamentId), userId, data.payload.ready);
