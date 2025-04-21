@@ -69,13 +69,17 @@ export async function createTournament(hostId: number): Promise<number> {
 export async function joinTournament(tournamentId: number, userId: number): Promise<void> {
 
     try {
+
+
+        console.log('JOIN TOURNAMENT', tournamentId, userId);
+
         const tournament = await getTournamentDB(tournamentId);
         if (!tournament || tournament.status !== 'waiting') {
             throw new Error('Tournament not available for joining');
         }
         const existingPlayer = await getExistingPlayersDB(tournamentId);
         console.log('EXISTING PLAYERS', existingPlayer);
-        if (existingPlayer) {
+        if (existingPlayer.includes(userId)) {
             throw new Error('User already in tournament');
         } 
         const state = activeTournaments[tournamentId];
