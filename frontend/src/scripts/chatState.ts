@@ -13,6 +13,19 @@ export class ChatState {
         this.allChats.push(chat);
     }
 
+    public static addPendingMessage(chat: ChatArray): void {
+        this.pendingChats.push(chat);
+    }
+
+    public static getPendingMessages(): ChatArray[] {
+        return this.pendingChats;
+    }
+
+    public static clearPendingMessages(): void {
+        // Add all pending messages to allChats before clearing
+        this.allChats = [...this.allChats, ...this.pendingChats];
+        this.pendingChats = [];
+    }
     // Récupérer les messages pour un utilisateur donné
     public static getMessagesForUser(userId: number): ChatArray[] {
         return this.allChats.filter(chat => chat.toUserId === userId || chat.fromUserId === userId);
@@ -44,7 +57,7 @@ export class ChatState {
     }
 
     public static filterMessages(sender_id: number, receiver_id: number): ChatArray[] {
-        // Vérifier si les IDs sont valides
+        // Vérifier si les IDs sont valides)
         if (isNaN(sender_id) || isNaN(receiver_id)) {
             console.error("Invalid user IDs");
             return [];

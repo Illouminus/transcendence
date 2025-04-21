@@ -80,7 +80,8 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
         };
 
         // Ajouter le message au tableau local
-        ChatState.addMessage(newMessage);
+        ChatState.addPendingMessage(newMessage);
+        console.log('New message added:', newMessage.content);
             
         displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
     } catch (error) {
@@ -90,9 +91,9 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
 
 async function sendBufferedMessages(userId: number) {
     // Récupérer les messages pour l'utilisateur spécifié
-    const bufferedMessages = ChatState.getMessagesForUser(userId);
+    const pendingMessages = ChatState.getPendingMessages();
 
-    if (bufferedMessages.length === 0) {
+    if (pendingMessages.length === 0) {
         console.log("Aucun message à envoyer pour l'utilisateur :", userId);
         return;
     }
@@ -100,9 +101,9 @@ async function sendBufferedMessages(userId: number) {
     try {
         // Construire le payload attendu par le contrôleur
         const payload = {
-            messages: bufferedMessages.map(msg => ({
+            messages: pendingMessages.map(msg => ({
                 sender_id: msg.fromUserId,
-                receiver_id: msg.toUserId, // Conversion en nombre si nécessaire
+                receiver_id: msg.toUserId,
                 content: msg.content,
             })),
         };
@@ -120,7 +121,7 @@ async function sendBufferedMessages(userId: number) {
         console.log("Messages envoyés avec succès pour l'utilisateur :", userId);
 
         // Une fois les messages envoyés, vider les messages pour cet utilisateur
-        ChatState.clearMessagesForUser(userId);
+        ChatState.clearPendingMessages();
     } catch (error) {
         console.error("Erreur lors de l'envoi des messages :", error);
     }
@@ -280,15 +281,8 @@ function hideChatMenu(isOpen: boolean): void {
 
     toggleElementClass('goBack', 'hidden', true);
     toggleElementClass('closeChat', 'hidden', false);
-    deleteDisplayMessage();
 }
 
-export function deleteDisplayMessage() {
-    const chatMessagesContainer = document.getElementById("chatMessages");
-    if (chatMessagesContainer) {
-        chatMessagesContainer.innerHTML = ''; // Supprime tout le contenu HTML de la div
-    }
-}
 
 
 
@@ -317,7 +311,9 @@ export function chat(): void {
     const closeChatButton = document.getElementById('closeChat');
     
     chatButton?.addEventListener('click', () => toggleChatMenu(true));
-    closeChatButton?.addEventListener('click', () => toggleChatMenu(false));
+    closeChatButton?.addEventListener('click', () => {
+        toggleChatMenu(false);
+    });
 
     // Remplit le menu des utilisateurs
     const friendsListContainer = document.getElementById("chat-friends-list");
