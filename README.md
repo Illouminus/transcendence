@@ -14,4 +14,4 @@
   + sur Chrome ça fonctionne   
 
 ## Questions
-* les ports 8081, 8082, 8083, 8084, 5672, 15672 doivent rester ouverts ? 
+* Les ports 8081, 8082, 8083, 8084, 5672, 15672 doivent rester ouverts ? 
