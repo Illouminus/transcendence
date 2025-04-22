@@ -7,4 +7,7 @@
   ![Screenshot from 2025-04-22 16-38-56](https://github.com/user-attachments/assets/238a201e-b399-4e2b-aba1-21a2ea6b64c7)
 * toujours le meme chiffre 3  
   ![Screenshot from 2025-04-22 16-41-51](https://github.com/user-attachments/assets/5784b356-b2bb-4714-af2c-dc869f84d834)
+* friendSelect is null
+  ![Screenshot from 2025-04-22 16-46-48](https://github.com/user-attachments/assets/86c15633-4529-4cd3-995e-dac8c8ccfe52)
+
 
