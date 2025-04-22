@@ -196,12 +196,12 @@ export interface TournamentCompletedPayload {
 }
 
 export interface TournamentCreatedPayload {
-  tournamentId: string;
+  tournamentId: number;
   hostId: number;
 }
 
 export interface TournamentStatePayload {
-  tournamentId: string;
+  tournamentId: number;
   phase: 'waiting' | 'semifinals' | 'third_place' | 'final' | 'completed';
   players: TournamentPlayer[];
   matches?: {

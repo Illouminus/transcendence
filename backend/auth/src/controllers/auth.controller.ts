@@ -75,6 +75,8 @@ export async function verifyEmailController(req: FastifyRequest<{Querystring: {t
 export async function googleAuthLogin( req: FastifyRequest<{ Body: { idToken: string } }>, res: FastifyReply) {
 	try {
 		const { idToken } = req.body;
+
+		console.log("ID Token AUTH SERVICE: ", idToken);
 		if (!idToken) {
 			return res.status(400).send({ error: "Token is required" });
 		}

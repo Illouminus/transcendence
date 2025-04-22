@@ -9,7 +9,7 @@ import config from "./config";
 import { createAndStartGame, createAndStartAIGame, updatePlayerPosition } from "./services/game.service";
 import { createTournament, joinTournament, toggleReady } from "./services/tournament.service";
 import { JwtPayload } from "./@types/user.types";
-import { TournamentWebSocketMessage } from "./@types/tournament.types";
+//import { TournamentWebSocketMessage } from "./@types/tournament.types";
 
 // Import the database connection - auto launches the connection
 import "./database";
@@ -47,7 +47,8 @@ server.register(async function (fastify: FastifyInstance) {
 	  });
 	  
 	  connection.on('message', async (message: any) => {
-		const data = JSON.parse(message) as TournamentWebSocketMessage;
+		//const data = JSON.parse(message) as TournamentWebSocketMessage;
+		const data = JSON.parse(message);
 		console.log('Received message:', data);
 	
 		try {

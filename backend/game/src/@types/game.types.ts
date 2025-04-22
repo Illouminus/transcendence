@@ -7,6 +7,13 @@ export interface PlayerState {
     score: number;
 }
 
+export interface DbGame {
+    id: number;
+    tournament_id: number;
+    match_id: number;
+    game_type: 'casual' | 'tournament' | 'ai';
+  }
+
 export interface BallState {
     x: number;
     y: number;

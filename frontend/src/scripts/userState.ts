@@ -26,9 +26,10 @@ export type GameEvent = {
 		score1: number;
 		score2: number;
 	};
-	tournamentId?: string;
+	tournamentId?: number;
 	tournamentState?: {
 		phase: 'waiting' | 'semifinals' | 'third_place' | 'final' | 'completed';
+		tournamentId: number;
 		players: Array<{
 			id: number;
 			username: string;

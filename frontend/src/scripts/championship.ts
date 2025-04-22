@@ -4,7 +4,7 @@ import { redirectTo } from './router';
 
 // Tournament state interface
 interface TournamentState {
-    tournamentId: string | null;
+    tournamentId: number | null;
     phase: 'waiting' | 'semifinals' | 'third_place' | 'final' | 'completed';
     players: Player[];
     matches?: {
@@ -347,7 +347,7 @@ export function initializeChampionship(): void {
                         return {
                             id: p.id,
                             username: friend ? friend.friend_username : 'Unknown',
-                            avatar: friend ? friend.friend_avatar : '/images/default_avatar.png',
+                            avatar: friend ? 'http://localhost:8080/user' + friend.friend_avatar : 'http:://localhost::8080/user/images/default_avatar.png',
                             ready: p.ready
                         };
                     }).filter((player): player is Player => player !== undefined);
@@ -357,6 +357,7 @@ export function initializeChampionship(): void {
                     updateTournamentState({
                         phase: event.tournamentState.phase,
                         players,
+                        tournamentId: event.tournamentState.tournamentId,
                         matches: event.tournamentState.matches
                     });
                 }

@@ -9,7 +9,7 @@ export interface GameModeSelection {
     mode: GameMode;
     difficulty?: Difficulty;
     friendId?: string;
-    tournamentId?: string;
+    tournamentId?: number;
 }
 
 interface Friend {

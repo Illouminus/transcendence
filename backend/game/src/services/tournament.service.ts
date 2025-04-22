@@ -1,265 +1,172 @@
-import db from '../database';
 import { sendNotification } from '../server';
 import { createAndStartGame } from './game.service';
-import { GameType } from '../@types/tournament.types';
-import { createTournamentDB, getExistingPlayersDB, getTournamentDB, insertUserTournamentDB, updateReadyDB } from '../models/tournament.model';
+import {
+  completeMatchDB,
+  createTournamentDB,
+  getExistingPlayersDB,
+  getGameById,
+  getMatchById,
+  getSemifinalWinners,
+  getTournamentDB,
+  getTournamentPlayers,
+  insertFinalMatchDB,
+  insertMatchDB,
+  insertUserTournamentDB,
+  setTournamentWinner,
+  updateMatchWithGameDB,
+  updateReadyDB
+} from '../models/tournament.model';
+import { activeTournaments } from '../state/tournament.state';
+import { DbTournamentMatch, TournamentMatch, TournamentPlayer, TournamentState } from '../@types/tournament.types';
 
-
-interface DbTournamentMatch {
-    id: number;
-    tournament_id: number;
-    player1_id: number;
-    player2_id: number;
-    game_id: number | null;
-    winner_id: number | null;
-    match_type: 'semifinal' | 'final';
-    started_at: string | null;
-    completed_at: string | null;
-}
-
-interface TournamentPlayer {
-    id: number;
-    ready: boolean;
-}
-
-interface TournamentMatch {
-    id: number;
-    player1Id: number;
-    player2Id: number;
-    matchType: 'semifinal' | 'final';
-    gameId?: number;
-    startedAt?: string;
-    completedAt?: string;
-}
-
-interface TournamentState {
-    tournamentId: number;
-    phase: 'waiting' | 'semifinals' | 'final';
-    players: TournamentPlayer[];
-    matches?: {
-        semifinals: TournamentMatch[];
-        final?: TournamentMatch;
-    };
-}
-
-// Active tournaments cache
-const activeTournaments: Record<number, TournamentState> = {};
-
-export async function createTournament(hostId: number): Promise<number> {
-	const result = await createTournamentDB(hostId);
-    if (!result) {
-        throw new Error('Failed to create tournament');
-    }
-
-    await insertUserTournamentDB(result, hostId);
-    
-    const state: TournamentState = {
-        tournamentId: result,
-        phase: 'waiting',
-        players: [{
-            id: hostId,
-            ready: false
-        }]
-    };
-    
-    activeTournaments[result] = state;
-    return result;
-}
-
-export async function joinTournament(tournamentId: number, userId: number): Promise<void> {
-
-    try {
-
-
-        console.log('JOIN TOURNAMENT', tournamentId, userId);
-
-        const tournament = await getTournamentDB(tournamentId);
-        if (!tournament || tournament.status !== 'waiting') {
-            throw new Error('Tournament not available for joining');
-        }
-        const existingPlayer = await getExistingPlayersDB(tournamentId);
-        console.log('EXISTING PLAYERS', existingPlayer);
-        if (existingPlayer.includes(userId)) {
-            throw new Error('User already in tournament');
-        } 
-        const state = activeTournaments[tournamentId];
-        if (state) {
-            state.players.push({
-                id: userId,
-                ready: false
-            });
-            broadcastTournamentState(tournamentId);
-        }
-        
-    } catch (error) {
-        console.error('Error joining tournament:', error);
-        throw error;
-    }
-
-}
-
-
-
-export async function toggleReady(tournamentId: number, userId: number, ready: boolean): Promise<void> {
-    await updateReadyDB(tournamentId, userId, ready);
-    const state = activeTournaments[tournamentId];
-    if (state) {
-        const player = state.players.find(p => p.id === userId);
-        if (player) {
-            player.ready = ready;
-        }
-
-        if (state.players.length === 4 && state.players.every(p => p.ready)) {
-            await startTournament(tournamentId);
-        } else {
-            broadcastTournamentState(tournamentId);
-        }
-    }
-}
-
-async function startTournament(tournamentId: number): Promise<void> {
-    const tournament = activeTournaments[tournamentId];
-    if (!tournament) return;
-
-    // Create semifinal matches
-    const players = tournament.players;
-    const matches = [
-        {
-            id: 1,
-            player1Id: players[0].id,
-            player2Id: players[1].id,
-            matchType: 'semifinal' as const
-        },
-        {
-            id: 2,
-            player1Id: players[2].id,
-            player2Id: players[3].id,
-            matchType: 'semifinal' as const
-        }
-    ];
-
-    // Insert matches into database
-    for (const match of matches) {
-        await db.run(`
-            INSERT INTO tournament_matches (tournament_id, player1_id, player2_id, match_type)
-            VALUES (?, ?, ?, ?)
-        `, [tournamentId, match.player1Id, match.player2Id, match.matchType]);
-    }
-
-    tournament.phase = 'semifinals';
-    tournament.matches = {
-        semifinals: matches
-    };
-
-    // Start semifinal games
-    for (const match of matches) {
-        const gameId = await createAndStartGame({
-            player_1_id: match.player1Id,
-            player_2_id: match.player2Id,
-            tournament_id: tournamentId.toString(),
-            match_id: match.id
-        });
-
-        // Update match with game_id
-        await db.run(`
-            UPDATE tournament_matches
-            SET game_id = ?, started_at = CURRENT_TIMESTAMP
-            WHERE tournament_id = ? AND player1_id = ? AND player2_id = ?
-        `, [gameId, tournamentId, match.player1Id, match.player2Id]);
-    }
-
-    // Notify players about their matches
-    for (const match of matches) {
-        sendNotification(match.player1Id, {
-            type: 'tournament_match_ready',
-            payload: { matchId: match.id }
-        });
-        sendNotification(match.player2Id, {
-            type: 'tournament_match_ready',
-            payload: { matchId: match.id }
-        });
-    }
-
-    broadcastTournamentState(tournamentId);
+function toTournamentMatch(row: DbTournamentMatch): TournamentMatch {
+  return {
+    id: row.id,
+    player1Id: row.player1_id,
+    player2Id: row.player2_id,
+    matchType: row.match_type,
+    gameId: row.game_id,
+    winnerId: row.winner_id,
+    startedAt: row.started_at || undefined,
+    completedAt: row.completed_at || undefined,
+  };
 }
 
 function broadcastTournamentState(tournamentId: number): void {
-    const state = activeTournaments[tournamentId];
-    if (!state) return;
-    
-    const payload = {
-        type: 'tournament_state_update',
-        payload: state
-    };
-    
-    for (const player of state.players) {
-        sendNotification(player.id, payload);
+  const state = activeTournaments[tournamentId];
+  if (!state) return;
+
+  const payload = {
+    type: 'tournament_state_update',
+    tournamentId,
+    payload: state
+  };
+
+  for (const player of state.players) {
+    sendNotification(player.id, payload);
+  }
+}
+
+export async function createTournament(hostId: number): Promise<number> {
+  const tournamentId = await createTournamentDB(hostId);
+  await insertUserTournamentDB(tournamentId, hostId);
+
+  activeTournaments[tournamentId] = {
+    tournamentId,
+    phase: 'waiting',
+    players: [{ id: hostId, ready: false }]
+  };
+
+  return tournamentId;
+}
+
+export async function joinTournament(tournamentId: number, userId: number): Promise<void> {
+  const tournament = await getTournamentDB(tournamentId);
+  if (!tournament || tournament.status !== 'waiting') {
+    throw new Error('Tournament not available for joining');
+  }
+
+  const players = await getExistingPlayersDB(tournamentId);
+  if (players.includes(userId)) {
+    throw new Error('User already joined');
+  }
+
+  const state = activeTournaments[tournamentId];
+  if (state) {
+    state.players.push({ id: userId, ready: false });
+    broadcastTournamentState(tournamentId);
+  }
+}
+
+export async function toggleReady(tournamentId: number, userId: number, ready: boolean): Promise<void> {
+  await updateReadyDB(tournamentId, userId, ready);
+  const state = activeTournaments[tournamentId];
+  if (state) {
+    const player = state.players.find(p => p.id === userId);
+    if (player) player.ready = ready;
+
+    if (state.players.length === 4 && state.players.every(p => p.ready)) {
+      await startTournament(tournamentId);
+    } else {
+      broadcastTournamentState(tournamentId);
     }
+  }
+}
+
+export async function startTournament(tournamentId: number): Promise<void> {
+  const state = activeTournaments[tournamentId];
+  if (!state) return;
+
+  const players = state.players;
+  const matches: TournamentMatch [] = [
+    { id: 1, player1Id: players[0].id, player2Id: players[1].id, matchType: 'semifinal' },
+    { id: 2, player1Id: players[2].id, player2Id: players[3].id, matchType: 'semifinal' }
+  ];
+
+  for (const match of matches) {
+    await insertMatchDB(tournamentId, match.player1Id, match.player2Id, match.matchType);
+  }
+
+  state.phase = 'semifinals';
+  state.matches = { semifinals: matches };
+
+  for (const match of matches) {
+    const gameId = await createAndStartGame({
+      player_1_id: match.player1Id,
+      player_2_id: match.player2Id,
+      tournament_id: tournamentId.toString(),
+      match_id: match.id
+    });
+    await updateMatchWithGameDB(gameId, tournamentId, match.player1Id, match.player2Id);
+    sendNotification(match.player1Id, { type: 'tournament_match_ready', payload: { matchId: match.id } });
+    sendNotification(match.player2Id, { type: 'tournament_match_ready', payload: { matchId: match.id } });
+  }
+
+  broadcastTournamentState(tournamentId);
 }
 
 export async function handleGameComplete(gameId: number, winnerId: number): Promise<void> {
-    const game = (await db.get(`
-        SELECT tournament_id, match_id, game_type 
-        FROM games 
-        WHERE id = ?
-    `, [gameId])) as unknown as { tournament_id: number; match_id: number; game_type: GameType } | undefined;
+  const game = await getGameById(gameId);
+  if (!game || !game.id) return;
 
-    if (!game || !game.tournament_id) return;
+  const matchRaw = await getMatchById(game.match_id);
+  if (!matchRaw) return;
 
-    const match = (await db.get(`
-        SELECT id, tournament_id, player1_id, player2_id, game_id, winner_id, match_type, started_at, completed_at 
-        FROM tournament_matches 
-        WHERE id = ?
-    `, [game.match_id])) as unknown as DbTournamentMatch | undefined;
+  const match = toTournamentMatch(matchRaw);
+  await completeMatchDB(match.id, winnerId);
 
-    if (!match) return;
+  const state = activeTournaments[game.tournament_id];
+  if (!state) return;
 
-    // Update match winner and completion time
-    await db.run(
-        'UPDATE tournament_matches SET winner_id = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [winnerId, game.match_id]
-    );
+  if (match.matchType === 'semifinal') {
+    const semifinals = await getSemifinalWinners(game.tournament_id);
+    if (semifinals.length === 2 && semifinals.every(m => m.winner_id)) {
+      const [s1, s2] = semifinals;
 
-    // If this was a semifinal match, create final match
-    if (match.match_type === 'semifinal') {
-        // Get all semifinal matches to determine finalists
-        const semifinals = (await db.all(`
-            SELECT id, winner_id 
-            FROM tournament_matches 
-            WHERE tournament_id = ? AND match_type = ?
-        `, [game.tournament_id, 'semifinal'])) as unknown as Array<{ id: number; winner_id: number | null }>;
+      // финал
+      await insertFinalMatchDB(game.tournament_id, s1.winner_id!, s2.winner_id!);
 
-        // If both semifinals are completed, create final match
-        if (semifinals.length === 2 && semifinals.every(m => m.winner_id)) {
-            await db.run(`
-                INSERT INTO tournament_matches (tournament_id, player1_id, player2_id, match_type)
-                VALUES (?, ?, ?, ?)
-            `, [game.tournament_id, semifinals[0].winner_id, semifinals[1].winner_id, 'final']);
-        }
+      // матч за третье место
+      const loser1 = s1.player1_id === s1.winner_id ? s1.player2_id : s1.player1_id;
+      const loser2 = s2.player1_id === s2.winner_id ? s2.player2_id : s2.player1_id;
+      await insertMatchDB(game.tournament_id, loser1, loser2, 'third_place');
+
+      state.phase = 'final'; // можно сделать: semifinals -> third_place -> final (если нужно пошагово)
+      broadcastTournamentState(game.tournament_id);
     }
+  }
 
-    // If this was the final match, update tournament status and winner
-    if (match.match_type === 'final') {
-        await db.run(
-            'UPDATE tournaments SET status = ?, winner_id = ? WHERE id = ?',
-            'completed', winnerId, game.tournament_id
-        );
-
-        // Notify all tournament players
-        const players = (await db.all(`
-            SELECT user_id 
-            FROM tournament_players 
-            WHERE tournament_id = ?
-        `, [game.tournament_id])) as unknown as Array<{ user_id: number }>;
-
-        for (const player of players) {
-            sendNotification(player.user_id, {
-                type: 'tournament_completed',
-                payload: {
-                    tournament_id: game.tournament_id.toString(),
-                    winner_id: winnerId
-                }
-            });
+  if (match.matchType === 'final') {
+    await setTournamentWinner(game.tournament_id, winnerId);
+    const players = await getTournamentPlayers(game.tournament_id);
+    for (const player of players) {
+      sendNotification(player.user_id, {
+        type: 'tournament_completed',
+        payload: {
+          tournament_id: game.tournament_id.toString(),
+          winner_id: winnerId
         }
+      });
     }
-} 
+  }
+}

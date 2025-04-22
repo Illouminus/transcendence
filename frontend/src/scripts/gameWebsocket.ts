@@ -102,24 +102,25 @@ export function connectGameWebSocket(token: string): WebSocket {
             }
           });
           break;
-        case 'tournament_created':
-          UserState.notifyGameEvent({
-            type: 'tournament_created',
-            tournamentId: data.payload.tournamentId
-          });
-          break;
-        case 'new_tournament_created':
-          console.log('New tournament created:', data);
-          UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
+          case 'tournament_created':
+            UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
+            UserState.notifyGameEvent({
+              type: 'tournament_created',
+              tournamentId: data.payload.tournamentId
+            });
+            break;
           
-          // UserState.notifyGameEvent({
-          //   type: 'new_tournament_created',
-          //   tournamentId: data.payload.tournamentId,
-          // });
-          console.log("GME MODE", UserState.getGameMode());
-          break;
-
+          case 'new_tournament_created':
+            if (!UserState.getGameMode()?.tournamentId) {
+              UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
+            }
+            UserState.notifyGameEvent({
+              type: 'new_tournament_created',
+              tournamentId: data.payload.tournamentId
+            });
+            break;
         case 'tournament_state_update':
+          console.log('Tournament state update:', data.payload);
           UserState.notifyGameEvent({
             type: 'tournament_state_update',
             tournamentState: data.payload
