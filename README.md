@@ -10,3 +10,5 @@
 * friendSelect is null
   ![Screenshot from 2025-04-22 16-46-48](https://github.com/user-attachments/assets/86c15633-4529-4cd3-995e-dac8c8ccfe52)
 * mdp 123456 accepté
+* selectionner un niveau (easy / medium / hard) ne marche pas en Mozilla Firefox
+  + sur Chrome ça fonctionne   
