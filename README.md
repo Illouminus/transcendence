@@ -1,4 +1,4 @@
-
+### à voir 
 * je me connect avec le compte internet124816@gmail.com, mais ça ne marche pas avec internet12481632@gmail.com
   ![screencast-from-04-22-2025-035331-pm_xHvIjMef](https://github.com/user-attachments/assets/75af8113-374e-4598-a9ef-06eb0cb1fab6)
 * un ami est en trois exemplaires (des fois)
@@ -12,3 +12,6 @@
 * mdp 123456 accepté
 * selectionner un niveau (easy / medium / hard) ne marche pas en Mozilla Firefox
   + sur Chrome ça fonctionne   
+
+### questions
+* les ports 8081, 8082, 8083, 8084, 5672, 15672 doivent rester ouverts ? 
