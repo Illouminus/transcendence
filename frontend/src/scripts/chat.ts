@@ -51,7 +51,7 @@ function addEventListenerToElement(elementId: string, event: string, handler: Ev
 async function sendMessage(meId: number, himID: number, messageText: string): Promise<void> {
     if (!messageText || messageText.trim() === "") return;
 
-    const timestamp = new Date().toISOString(); // Horodatage
+    const timestamp = new Date().toLocaleTimeString(); // Horodatage
 
     // Affichage immédiat (pas d'envoi au backend ici)
     const { me, allUsers } = getUserData();
@@ -86,7 +86,6 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
         // Ajouter le message au tableau local
         ChatState.addPendingMessage(newMessage);
 
-        console.log(meId ,himID); 
         if (openedChatWindow ) {
             displayMessage(meUsername, himUsername, meId, messageText, timestamp);
         }
@@ -95,9 +94,11 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
     }
 }
 
-async function sendBufferedMessages(userId: number) {
+async function sendBufferedMessages(userId: number, himId: number) {
     // Récupérer les messages pour l'utilisateur spécifié
-    const pendingMessages = ChatState.getPendingMessages();
+    const pendingMessages = ChatState.getPendingMessagesForUsers(userId, himId);
+
+    console.log(pendingMessages);
     if (pendingMessages.length === 0) {
         console.log("Aucun message à envoyer pour l'utilisateur :", userId);
         return;
@@ -123,10 +124,9 @@ async function sendBufferedMessages(userId: number) {
             throw new Error("Erreur lors de l'envoi des messages au serveur.");
         }
 
-        console.log("Messages envoyés avec succès pour l'utilisateur :", userId);
-
         // Une fois les messages envoyés, vider les messages pour cet utilisateur
-        ChatState.clearPendingMessages();
+        ChatState.fetchMessagesForUser(userId);
+        ChatState.clearPendingMessagesForUsers(userId, himId);
     } catch (error) {
         console.error("Erreur lors de l'envoi des messages :", error);
     }
@@ -243,6 +243,7 @@ async function openChatWindow(userId: string) {
         redirectTo(`/user-profile?id=${himId}`);
     });
 
+    console.log('Chat - Retrieving Messages');
     const messages = ChatState.filterMessages(meId, himId);
     messages.forEach(message => {
         displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sent_at);
@@ -273,12 +274,13 @@ function attachChatEventListeners(): void {
 
 function hideChatMenu(isOpen: boolean): void {
     const { me, allUsers } = getUserData();
+    const meId = me?.id ?? 0;
     const currentChatUser = document.getElementById("chatTitle")?.textContent;
     const him = allUsers.find(user => user.username === currentChatUser);
 
     if (isOpen && him) {
         // Envoi des messages non envoyés pour cet utilisateur
-        sendBufferedMessages(him.id);
+        sendBufferedMessages(meId, him.id);
     }
 
     const chatSubContainer = document.getElementById("chatSubContainer");

@@ -17,9 +17,14 @@ export class ChatState {
         this.pendingChats.push(chat);
     }
 
-    public static getPendingMessages(): ChatArray[] {
-        return this.pendingChats;
-    }
+    public static getPendingMessagesForUsers(senderId: number, receiverId: number): ChatArray[] {
+    return this.pendingChats.filter(
+        chat =>
+            (chat.fromUserId === senderId && chat.toUserId === receiverId) ||
+            (chat.fromUserId === receiverId && chat.toUserId === senderId)
+    );
+}
+
 
     public static clearPendingMessages(): void {
         // Add all pending messages to allChats before clearing
@@ -32,9 +37,14 @@ export class ChatState {
     }
 
     // Vider les messages pour un utilisateur donné après envoi
-    public static clearMessagesForUser(userId: number): void {
-        this.allChats = this.allChats.filter(chat => chat.toUserId !== userId && chat.fromUserId !== userId);
+    public static clearPendingMessagesForUsers(senderId: number, receiverId: number): void {
+        this.pendingChats = this.pendingChats.filter(
+            chat =>
+                !((chat.fromUserId === senderId && chat.toUserId === receiverId) ||
+                  (chat.fromUserId === receiverId && chat.toUserId === senderId))
+        );
     }
+    
 
     public static async fetchMessagesForUser(userId: number): Promise<void> {
         // Chargement des messages
