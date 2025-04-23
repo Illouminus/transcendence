@@ -16,7 +16,7 @@
 ## Questions
 * Pourquoi 8081, 8082, 8083, 8084, 5672, 15672 sont ouverts ?
 * Pourquoi deux tables séparées : 'users' et 'profiles' ?
-* 'sendEmail' dans conteineur 'user' pas utilisé ?
+* 'sendEmail' dans conteneur 'user' pas utilisé ?
 * 'declare module "fastify"' pas utilisé ?
 * Pourquoi pas de 'disableRequestLogging' dans gateway/src/server.ts ?
 * 'frontend/yarn.lock' n'est pas utilisé ?
