@@ -14,4 +14,5 @@
   + sur Chrome ça fonctionne   
 
 ## Questions
-* Les ports 8081, 8082, 8083, 8084, 5672, 15672 doivent rester ouverts ? 
+* Les ports 8081, 8082, 8083, 8084, 5672, 15672 doivent rester ouverts ?
+* Pourquoi deux tables séparées 'users' et 'profiles' ?
