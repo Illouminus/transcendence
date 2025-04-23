@@ -25,4 +25,4 @@
   + première fois dans gateway
   + deuxième fois dans auth, user, game, chat ?
 * Pourquoi on n'utilise pas ORM ?
-* Pourquoi deux façons pour que les conteneurs communiquent : fetch (in server.get('/aggregated/profile') et rabbit meaasges ?
+* Pourquoi deux façons pour que les conteneurs communiquent : fetch (in server.get('/aggregated/profile') et rabbit mesages ?
