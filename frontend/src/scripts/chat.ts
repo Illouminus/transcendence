@@ -206,14 +206,20 @@ async function openChatWindow(userId: string) {
 
     if (him?.status === 'blocked') {
         showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
-        return;
+        toggleElementClass('chatInput', 'hidden', true);
     }
+    else if (him?.online === false)
+    {
+        showAlert(`${himUsername} is not online, cannot send messages.`, 'warning');
+        toggleElementClass('chatInput', 'hidden', true);
+    }
+    else 
+        toggleElementClass('chatInput', 'hidden', false);
 
     // Mise à jour de l'affichage
     toggleElementClass('closeChat', 'hidden', true);
     toggleElementClass('goBack', 'hidden', false);
     toggleElementClass('chat-friends-list', 'hidden', true);
-    toggleElementClass('chatInput', 'hidden', false);
     toggleElementClass('chatMessages', 'hidden', false);
     const chatSubContainer = document.getElementById("chatSubContainer");
     if (chatSubContainer) {
