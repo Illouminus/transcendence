@@ -6,7 +6,7 @@ import { WebSocket } from 'ws';
 import { logError } from "./utils/errorHandler";
 import { connectRabbit } from "./rabbit/rabbit";
 import config from "./config";
-import { createAndStartGame, createAndStartAIGame, updatePlayerPosition } from "./services/game.service";
+import { createAndStartGame, createAndStartAIGame, updatePlayerPosition, receiveGameReady } from "./services/game.service";
 import { createTournament, joinTournament, toggleReady } from "./services/tournament.service";
 import { JwtPayload } from "./@types/user.types";
 //import { TournamentWebSocketMessage } from "./@types/tournament.types";
@@ -84,11 +84,20 @@ server.register(async function (fastify: FastifyInstance) {
 					});
 					break;
 				case 'game_invitation_accepted':
+					const gameUserId = await createAndStartGame({player_1_id: userId, player_2_id: data.payload.friendId});
 					sendNotification(data.payload.friendId, {
 						type: 'game_invitation_accepted',
 						payload: { fromUserId: userId }
 					});
-					await createAndStartGame({player_1_id: userId, player_2_id: data.payload.friendId});
+					sendNotification(userId, {
+						type: 'game_created',
+						payload: { gameId: gameUserId }
+					});
+					sendNotification(data.payload.friendId, {
+						type: 'game_created',
+						payload: { gameId: gameUserId }
+					});
+					
 					break;
 				case 'game_invitation_rejected':
 					sendNotification(data.payload.friendId, {
@@ -109,6 +118,9 @@ server.register(async function (fastify: FastifyInstance) {
 					break;
 				case 'game_error':
 					connection.send(JSON.stringify({ type: 'game_error', message: 'An error occurred in the game!' }));
+					break;
+				case 'game_ready':
+					receiveGameReady(data.payload.gameId, userId);
 					break;
 				default:
 					console.log('Unknown message type:', data.type);

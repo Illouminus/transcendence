@@ -127,7 +127,8 @@ export async function startTournament(tournamentId: number): Promise<void> {
         gameId,
         opponentId: match.player2Id,
         matchType: match.matchType,
-        isPlayer1: true
+        isPlayer1: true,
+        pending: true
       }
     });
 
@@ -137,7 +138,8 @@ export async function startTournament(tournamentId: number): Promise<void> {
         gameId,
         opponentId: match.player1Id,
         matchType: match.matchType,
-        isPlayer1: false
+        isPlayer1: false,
+        pending: true
       }
     });
   }
@@ -193,7 +195,8 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
         payload: {
           gameId: finalGameId,
           opponentId: finalPlayer2,
-          matchType: 'final'
+          matchType: 'final',
+          pending: true
         }
       });
 
@@ -202,7 +205,8 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
         payload: {
           gameId: finalGameId,
           opponentId: finalPlayer1,
-          matchType: 'final'
+          matchType: 'final',
+          pending: true
         }
       });
 
@@ -211,7 +215,8 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
         payload: {
           gameId: thirdPlaceGameId,
           opponentId: loser2,
-          matchType: 'third_place'
+          matchType: 'third_place',
+          pending: true
         }
       });
 
@@ -220,7 +225,8 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
         payload: {
           gameId: thirdPlaceGameId,
           opponentId: loser1,
-          matchType: 'third_place'
+          matchType: 'third_place',
+          pending: true
         }
       });
 

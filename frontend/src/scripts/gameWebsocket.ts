@@ -67,7 +67,14 @@ export function connectGameWebSocket(token: string): WebSocket {
             friendId: data.payload.fromUserId
           });
           break;
-
+        case 'game_created':
+          console.log('Game created:', data.payload);
+          clientGameState.gameId = data.payload.gameId;
+          const gameSocket = UserState.getGameSocket();
+          if (gameSocket) {
+            gameSocket.send(JSON.stringify({ type: 'game_ready', payload: { gameId: data.payload.gameId, userId: UserState.getUser()?.id } }));
+          }
+          break;
         case 'game_countdown':
           const countdownTimer = document.getElementById('countdownTimer');
           if (countdownTimer) {
