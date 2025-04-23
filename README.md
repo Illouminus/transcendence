@@ -24,5 +24,5 @@
 * jwt token vérifié:
   + première fois dans gateway
   + deuxième fois dans auth, user, game, chat ?
-* On n'utilise pas ORM ?
-
+* Pourquoi on n'utilise pas ORM ?
+* Pourquoi deux façons pour que les conteneurs communiquent : fetch (in server.get('/aggregated/profile') et rabbit meaasges ?
