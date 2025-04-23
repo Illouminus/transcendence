@@ -176,6 +176,7 @@ export interface GameResultPayload {
   winnerId: number;
   score1: number;
   score2: number;
+  game_type: string;
 }
 
 export interface GameCountdownPayload {

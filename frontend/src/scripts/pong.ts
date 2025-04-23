@@ -329,11 +329,7 @@ export async function loadPongPageScript(): Promise<void> {
       if (existingOnMessage) {
         existingOnMessage.call(socket, event);
       }
-      
-      // Добавляем обработку game_result для модального окна
-      if (message.type === 'game_result') {
-        showGameOverModal(message.payload);
-      }
+
     };
   }
 }

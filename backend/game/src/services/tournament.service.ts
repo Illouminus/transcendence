@@ -154,9 +154,12 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
   const match = toTournamentMatch(matchRaw);
   await completeMatchDB(match.id, winnerId);
 
+  
+
   const tournamentId = matchRaw.tournament_id;
   const state = activeTournaments[tournamentId];
   if (!state) return;
+
 
   if (match.matchType === 'semifinal') {
     const semifinals = await getSemifinalWinners(tournamentId);
@@ -196,6 +199,7 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
           gameId: finalGameId,
           opponentId: finalPlayer2,
           matchType: 'final',
+          isPlayer1: true,
           pending: true
         }
       });
@@ -206,6 +210,7 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
           gameId: finalGameId,
           opponentId: finalPlayer1,
           matchType: 'final',
+          isPlayer1: false,
           pending: true
         }
       });
@@ -216,6 +221,7 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
           gameId: thirdPlaceGameId,
           opponentId: loser2,
           matchType: 'third_place',
+          isPlayer1: true,
           pending: true
         }
       });
@@ -226,6 +232,7 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
           gameId: thirdPlaceGameId,
           opponentId: loser1,
           matchType: 'third_place',
+          isPlayer1: false,
           pending: true
         }
       });

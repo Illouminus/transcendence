@@ -9,6 +9,8 @@ import { fetchUsers } from "./users";
 import { UserState } from "./userState";
 import { showGameOverModal } from "./endGame";
 import { createGameIntro } from "../components/gameIntro";
+import { showGameIntroWithPlayers } from "./outils/showGameIntroWithPlayer";
+import { showTournamentProgress } from "./tournament/tournamentProgress";
 
 let socket : WebSocket | null = null;
 
@@ -69,62 +71,25 @@ export function connectGameWebSocket(token: string): WebSocket {
           });
           break;
         case 'game_created':
-          console.log('Game created:', data.payload);
-          clientGameState.gameId = data.payload.gameId;
+          case 'game_created': {
+            const currentUser = UserState.getUser();
+            const opponentId = clientGameState.player1.id === currentUser?.id
+              ? clientGameState.player2.id
+              : clientGameState.player1.id;
+            const opponent = currentUser?.friends?.find(f => f.friend_id === opponentId);
+            if (!currentUser || !opponent) return;
           
-          // Get current user and opponent info
-          const currentUser = UserState.getUser();
-
-          console.log('Current user:', currentUser);
-          console.log('Opponent ID:', clientGameState.player2.id);
-
-          if (!currentUser) return;
-
-          // For friend games, we already have opponent info
-          if (clientGameState.player2.id) {
-
-            const opponentId = clientGameState.player1.id === currentUser.id
-            ? clientGameState.player2.id
-            : clientGameState.player1.id;
-
-              const opponent = currentUser.friends?.find(f => f.friend_id === opponentId);
-              console.log('')
-              console.log('Opponent:', opponent);
-              if (!opponent) return;
-
-              // Create and show game intro
-              const gameIntro = createGameIntro({
-                  player1: {
-                      id: currentUser.id,
-                      username: currentUser.username,
-                      avatar: "http://localhost:8080/user" + currentUser.avatar || '/images/default_avatar.png'
-                  },
-                  player2: {
-                      id: opponent.friend_id,
-                      username: opponent.friend_username,
-                      avatar: "http://localhost:8080/user" + opponent.friend_avatar || '/images/default_avatar.png'
-                  },
-                  onReady: () => {
-                      // Remove intro
-                      gameIntro.remove();
-                      // Send game_ready event
-                      const gameSocket = UserState.getGameSocket();
-                      if (gameSocket) {
-                          gameSocket.send(JSON.stringify({ 
-                              type: 'game_ready', 
-                              payload: { 
-                                  gameId: data.payload.gameId, 
-                                  userId: currentUser.id 
-                              } 
-                          }));
-                      }
-                      redirectTo('/pong');
-                  }
-              });
-              // Add intro to DOM
-              document.body.appendChild(gameIntro);
+            showGameIntroWithPlayers(data.payload.gameId, {
+              id: currentUser.id,
+              username: currentUser.username,
+              avatar: "http://localhost:8080/user" + (currentUser.avatar || '/images/default_avatar.png')
+            }, {
+              id: opponent.friend_id,
+              username: opponent.friend_username,
+              avatar: "http://localhost:8080/user" + (opponent.friend_avatar || '/images/default_avatar.png')
+            });
+            break;
           }
-          break;
         case 'game_countdown':
           const countdownTimer = document.getElementById('countdownTimer');
           if (countdownTimer) {
@@ -150,19 +115,24 @@ export function connectGameWebSocket(token: string): WebSocket {
     
         case 'game_result':
           console.log('Game result:', data);
-          showGameOverModal({
-            winnerId: data.payload.winnerId,
-            score1: data.payload.score1,
-            score2: data.payload.score2
-          });
-          UserState.notifyGameEvent({
-            type: 'game_result',
-            gameResult: {
+          if (data.payload.game_type === 'tournament') {
+            showTournamentProgress(data.payload);
+          } else {
+            showGameOverModal({
               winnerId: data.payload.winnerId,
               score1: data.payload.score1,
               score2: data.payload.score2
-            }
-          });
+            });
+            UserState.notifyGameEvent({
+              type: 'game_result',
+              gameResult: {
+                winnerId: data.payload.winnerId,
+                score1: data.payload.score1,
+                score2: data.payload.score2
+              }
+            });
+          }
+
           break;
           case 'tournament_created':
             UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
@@ -198,11 +168,24 @@ export function connectGameWebSocket(token: string): WebSocket {
               matchType: data.payload.matchType
             }
           });
+          const currentUser = UserState.getUser();
+          if (!currentUser) return;
+          const opponent = currentUser.friends?.find(f => f.friend_id === data.payload.opponentId);
+          if (!opponent) return;
           clientGameState.player1.id = data.payload.isPlayer1 ? data.payload.opponentId : UserState.getUser()!.id ;
           clientGameState.player2.id = data.payload.isPlayer1 ? UserState.getUser()!.id : data.payload.opponentId;  
           clientGameState.gameId = data.payload.gameId;
           UserState.setGameMode({ mode: 'championship' });
-          redirectTo('/pong');
+          //redirectTo('/pong');
+          showGameIntroWithPlayers(data.payload.gameId, {
+            id: currentUser.id,
+            username: currentUser.username,
+            avatar: "http://localhost:8080/user" + (currentUser.avatar || '/images/default_avatar.png')
+          }, {
+            id: opponent.friend_id,
+            username: opponent.friend_username,
+            avatar: "http://localhost:8080/user" + (opponent.friend_avatar || '/images/default_avatar.png')
+          });
           break;
 
         case 'tournament_match_complete':
@@ -213,6 +196,7 @@ export function connectGameWebSocket(token: string): WebSocket {
         case 'tournament_completed':
           UserState.notifyGameEvent({
             type: 'tournament_completed',
+
             tournamentResult: {
               place: data.payload.podium.find(p => p.userId === UserState.getUser()?.id)?.place || 0,
               podium: data.payload.podium

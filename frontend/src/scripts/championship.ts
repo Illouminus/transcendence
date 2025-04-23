@@ -367,7 +367,7 @@ export function initializeChampionship(): void {
                     console.log('Tournament match started:', event.tournamentMatch);
                     
                     // Redirect to game
-                    redirectTo('/pong');
+                    //redirectTo('/pong');
                 }
                 break;
             case 'tournament_completed':
