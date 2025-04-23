@@ -8,6 +8,7 @@ import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
 import { showGameOverModal } from "./endGame";
+import { createGameIntro } from "../components/gameIntro";
 
 let socket : WebSocket | null = null;
 
@@ -41,7 +42,7 @@ export function connectGameWebSocket(token: string): WebSocket {
               socket?.send(JSON.stringify({ type: 'game_invitation_accepted', payload: { friendId: data.payload.fromUserId } }));
               clientGameState.player1.id = data.payload.fromUserId;
               clientGameState.player2.id = UserState.getUser()!.id;
-              redirectTo('/pong');
+              //redirectTo('/pong');
             }, () => {
               socket?.send(JSON.stringify({ type: 'game_invitation_rejected', payload: { friendId: data.payload.fromUserId } }));
             });
@@ -58,7 +59,7 @@ export function connectGameWebSocket(token: string): WebSocket {
           });
           clientGameState.player1.id = UserState.getUser()!.id;
           clientGameState.player2.id = data.payload.fromUserId;
-          redirectTo('/pong');
+          //redirectTo('/pong');
           break;
         case 'game_invitation_rejected':
           showAlert(`Game invitation rejected by ${data.payload.fromUserId}`);
@@ -70,9 +71,58 @@ export function connectGameWebSocket(token: string): WebSocket {
         case 'game_created':
           console.log('Game created:', data.payload);
           clientGameState.gameId = data.payload.gameId;
-          const gameSocket = UserState.getGameSocket();
-          if (gameSocket) {
-            gameSocket.send(JSON.stringify({ type: 'game_ready', payload: { gameId: data.payload.gameId, userId: UserState.getUser()?.id } }));
+          
+          // Get current user and opponent info
+          const currentUser = UserState.getUser();
+
+          console.log('Current user:', currentUser);
+          console.log('Opponent ID:', clientGameState.player2.id);
+
+          if (!currentUser) return;
+
+          // For friend games, we already have opponent info
+          if (clientGameState.player2.id) {
+
+            const opponentId = clientGameState.player1.id === currentUser.id
+            ? clientGameState.player2.id
+            : clientGameState.player1.id;
+
+              const opponent = currentUser.friends?.find(f => f.friend_id === opponentId);
+              console.log('')
+              console.log('Opponent:', opponent);
+              if (!opponent) return;
+
+              // Create and show game intro
+              const gameIntro = createGameIntro({
+                  player1: {
+                      id: currentUser.id,
+                      username: currentUser.username,
+                      avatar: "http://localhost:8080/user" + currentUser.avatar || '/images/default_avatar.png'
+                  },
+                  player2: {
+                      id: opponent.friend_id,
+                      username: opponent.friend_username,
+                      avatar: "http://localhost:8080/user" + opponent.friend_avatar || '/images/default_avatar.png'
+                  },
+                  onReady: () => {
+                      // Remove intro
+                      gameIntro.remove();
+                      // Send game_ready event
+                      const gameSocket = UserState.getGameSocket();
+                      if (gameSocket) {
+                          gameSocket.send(JSON.stringify({ 
+                              type: 'game_ready', 
+                              payload: { 
+                                  gameId: data.payload.gameId, 
+                                  userId: currentUser.id 
+                              } 
+                          }));
+                      }
+                      redirectTo('/pong');
+                  }
+              });
+              // Add intro to DOM
+              document.body.appendChild(gameIntro);
           }
           break;
         case 'game_countdown':
@@ -100,6 +150,11 @@ export function connectGameWebSocket(token: string): WebSocket {
     
         case 'game_result':
           console.log('Game result:', data);
+          showGameOverModal({
+            winnerId: data.payload.winnerId,
+            score1: data.payload.score1,
+            score2: data.payload.score2
+          });
           UserState.notifyGameEvent({
             type: 'game_result',
             gameResult: {

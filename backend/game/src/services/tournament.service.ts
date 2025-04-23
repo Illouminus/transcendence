@@ -1,5 +1,5 @@
 import { sendNotification } from '../server';
-import { createAndStartGame } from './game.service';
+import { createAndStartGame, receiveGameReady } from './game.service';
 import {
   completeMatchDB,
   createTournamentDB,

@@ -89,13 +89,20 @@ server.register(async function (fastify: FastifyInstance) {
 						type: 'game_invitation_accepted',
 						payload: { fromUserId: userId }
 					});
+					setTimeout(() => {}, 2000);
 					sendNotification(userId, {
 						type: 'game_created',
-						payload: { gameId: gameUserId }
+						payload: { 
+							gameId: gameUserId,
+						    isPlayer1: true
+						}
 					});
 					sendNotification(data.payload.friendId, {
 						type: 'game_created',
-						payload: { gameId: gameUserId }
+						payload: { 
+							gameId: gameUserId,
+							isPlayer1: false
+						}
 					});
 					
 					break;
