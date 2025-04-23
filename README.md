@@ -21,6 +21,8 @@
 * Pourquoi pas de 'disableRequestLogging' dans gateway/src/server.ts ?
 * 'frontend/yarn.lock' n'est pas utilisé ?
 * On peut utiliser 'request.jwtVerify()' de plug-in fastityJwt à la place de la function 'verifyJWT' ?
-* Fastity de gateway verifie jwt token, pourquoi les services auth, user, game abs chat le verifient de nouveau ?
+* verifie jwt token vérifié:
+  + première fois dans gateway
+  + deuxième fois dans auth, user, game, chat ?
 * On n'utilise pas ORM ?
 
