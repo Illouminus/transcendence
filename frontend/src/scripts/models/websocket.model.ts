@@ -186,6 +186,7 @@ export interface TournamentMatchStartPayload {
   gameId: number;
   round: number; // 1 = полуфинал, 2 = финал
   matchType: 'semifinal' | 'final' | 'third_place';
+  isPlayer1: boolean;
 }
 
 export interface TournamentCompletedPayload {

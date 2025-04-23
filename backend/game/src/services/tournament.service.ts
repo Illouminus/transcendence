@@ -99,18 +99,9 @@ export async function startTournament(tournamentId: number): Promise<void> {
   if (!state) return;
 
   const players = state.players;
-  // const matches: TournamentMatch [] = [
-  //   { id: 1, player1Id: players[0].id, player2Id: players[1].id, matchType: 'semifinal' },
-  //   { id: 2, player1Id: players[2].id, player2Id: players[3].id, matchType: 'semifinal' }
-  // ];
-
-  // for (const match of matches) {
-  //   await insertMatchDB(tournamentId, match.player1Id, match.player2Id, match.matchType);
-  // }
   const match1Id = await insertMatchDB(tournamentId, players[0].id, players[1].id, 'semifinal');
   const match2Id = await insertMatchDB(tournamentId, players[2].id, players[3].id, 'semifinal');
 
-  console.log("Match IDsSSSSSSS: ", match1Id, match2Id);
   const matches: TournamentMatch[] = [
     { id: match1Id, player1Id: players[0].id, player2Id: players[1].id, matchType: 'semifinal' },
     { id: match2Id, player1Id: players[2].id, player2Id: players[3].id, matchType: 'semifinal' }
@@ -136,6 +127,7 @@ export async function startTournament(tournamentId: number): Promise<void> {
         gameId,
         opponentId: match.player2Id,
         matchType: match.matchType,
+        isPlayer1: true
       }
     });
 
@@ -145,6 +137,7 @@ export async function startTournament(tournamentId: number): Promise<void> {
         gameId,
         opponentId: match.player1Id,
         matchType: match.matchType,
+        isPlayer1: false
       }
     });
   }

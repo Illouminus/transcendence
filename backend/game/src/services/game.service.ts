@@ -453,6 +453,7 @@ export async function endGame(gameId: number, winnerId: number): Promise<void> {
 
   const payload = {
     type: 'game_result',
+    game_type: meta.game_type,
     payload: {
       winnerId,
       score1: state.player1.score,

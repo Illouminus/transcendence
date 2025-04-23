@@ -136,8 +136,8 @@ export function connectGameWebSocket(token: string): WebSocket {
               matchType: data.payload.matchType
             }
           });
-          clientGameState.player1.id = UserState.getUser()!.id;
-          clientGameState.player2.id = data.payload.opponentId;
+          clientGameState.player1.id = data.payload.isPlayer1 ? data.payload.opponentId : UserState.getUser()!.id ;
+          clientGameState.player2.id = data.payload.isPlayer1 ? UserState.getUser()!.id : data.payload.opponentId;  
           clientGameState.gameId = data.payload.gameId;
           UserState.setGameMode({ mode: 'championship' });
           redirectTo('/pong');
