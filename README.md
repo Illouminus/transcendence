@@ -17,7 +17,7 @@
 * Pourquoi 8081, 8082, 8083, 8084, 5672, 15672 sont ouverts ?
 * Pourquoi deux tables séparées : 'users' et 'profiles' ?
 * 'sendEmail' dans conteineur 'user' pas utilisé ?
-* 'module "fastify"' pas utilisé ?
+* 'declare module "fastify"' pas utilisé ?
 * Pourquoi pas de 'disableRequestLogging' dans gateway/src/server.ts ?
 * 'frontend/yarn.lock' n'est pas utilisé ?
 * On peut utiliser 'request.jwtVerify()' de plug-in fastityJwt à la place de notre propre function 'verifyJWT' ?  
