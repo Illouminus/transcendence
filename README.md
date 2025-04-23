@@ -20,3 +20,4 @@
 * 'module "fastify"' pas utilisé ?
 * Pourquoi pas de 'disableRequestLogging' dans gateway/src/server.ts ?
 * 'frontend/yarn.lock' n'est pas utilisé ?
+* On peut utiliser 'request.jwtVerify()' de plug-in fastityJwt à la place de notre propre function 'verifyJWT' ?  
