@@ -19,4 +19,4 @@
 * 'sendEmail' dans conteineur 'user' pas utilisé ?
 * 'module "fastify"' pas utilisé ?
 * Pourquoi pas de 'disableRequestLogging' dans gateway/src/server.ts ?
-* Y-a-t il deux packet managers, npm et yarn ?
+* 'frontend/yarn.lock' n'est pas utilisé ?
