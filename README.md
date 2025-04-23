@@ -16,4 +16,5 @@
 ## Questions
 * Pourquoi 8081, 8082, 8083, 8084, 5672, 15672 sont ouverts ?
 * Pourquoi deux tables séparées : 'users' et 'profiles' ?
-* 'sendEmail' dana conteiner 'user' is not used ?
+* 'sendEmail' dans conteiner 'user' pas utilisé ?
+* 'declare module "fastify"' pas utilisé ?
