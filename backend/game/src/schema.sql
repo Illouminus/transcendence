@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     status TEXT CHECK(status IN ('waiting', 'semifinals', 'final', 'completed')) NOT NULL DEFAULT 'waiting',
     host_id INTEGER NOT NULL,
+    winner_id INTEGER DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     completed_at DATETIME DEFAULT NULL
 );
@@ -42,7 +43,7 @@ CREATE TABLE IF NOT EXISTS tournament_matches (
     player2_id INTEGER NOT NULL,
     game_id INTEGER DEFAULT NULL,
     winner_id INTEGER DEFAULT NULL,
-    match_type TEXT CHECK(match_type IN ('semifinal', 'final')) NOT NULL,
+    match_type TEXT CHECK(match_type IN ('semifinal', 'final', 'third_place')) NOT NULL,
     started_at DATETIME DEFAULT NULL,
     completed_at DATETIME DEFAULT NULL,
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,

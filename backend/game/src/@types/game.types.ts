@@ -53,10 +53,10 @@ export interface GameError {
     code?: string;
 }
 
-export function initGameState(gameId: number, player1Id: number, player2Id: number): GameState {
+export function initGameState(gameId: number, player1Id: number, player2Id: number, gameType: GameType): GameState {
     return {
         gameId,
-        gameType: 'casual',
+        gameType: gameType || 'casual',
         player1: {
             userId: player1Id,
             x: 0,

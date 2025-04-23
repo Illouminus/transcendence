@@ -97,14 +97,14 @@ export function updateReadyDB(tournamentId: number, userId: number, ready: boole
   });
 }
 
-export function insertMatchDB(tournamentId: number, player1Id: number, player2Id: number, matchType: string): Promise<void> {
+export function insertMatchDB(tournamentId: number, player1Id: number, player2Id: number, matchType: string): Promise<number> {
   return new Promise((resolve, reject) => {
     db.run(
       `INSERT INTO tournament_matches (tournament_id, player1_id, player2_id, match_type) VALUES (?, ?, ?, ?)`,
       [tournamentId, player1Id, player2Id, matchType],
-      function (err: string) {
+      function (err: Error | null) {
         if (err) reject(err);
-        else resolve();
+        else resolve(this.lastID); // <== ЭТО ВАЖНО
       }
     );
   });
@@ -136,14 +136,14 @@ export function completeMatchDB(matchId: number, winnerId: number): Promise<void
   });
 }
 
-export function insertFinalMatchDB(tournamentId: number, player1Id: number, player2Id: number): Promise<void> {
+export function insertFinalMatchDB(tournamentId: number, player1Id: number, player2Id: number): Promise<number> {
   return new Promise((resolve, reject) => {
     db.run(
       `INSERT INTO tournament_matches (tournament_id, player1_id, player2_id, match_type) VALUES (?, ?, ?, 'final')`,
       [tournamentId, player1Id, player2Id],
-      function (err: string) {
+      function (err: Error | null) {
         if (err) reject(err);
-        else resolve();
+        else resolve(this.lastID); // <== ТОЖЕ СЮДА
       }
     );
   });
@@ -152,7 +152,7 @@ export function insertFinalMatchDB(tournamentId: number, player1Id: number, play
 export function getGameById(gameId: number): Promise<DbGame | undefined> {
   return new Promise((resolve, reject) => {
     db.get(
-      `SELECT id, tournament_id, match_id, game_type FROM games WHERE id = ?`,
+      `SELECT id, tournament_match_id, match_id, game_type FROM games WHERE id = ?`,
       [gameId],
       (err: string, row: DbGame) => {
         if (err) reject(err);
@@ -191,7 +191,7 @@ export function getSemifinalWinners(tournamentId: number): Promise<DbTournamentM
 export function setTournamentWinner(tournamentId: number, winnerId: number): Promise<void> {
   return new Promise((resolve, reject) => {
     db.run(
-      `UPDATE tournaments SET status = 'completed', winner_id = ? WHERE id = ?`,
+      `UPDATE tournaments SET status = 'completed', winner_id = ?,  completed_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [winnerId, tournamentId],
       function (err: string) {
         if (err) reject(err);
