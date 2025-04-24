@@ -15,7 +15,7 @@
 * Pourquoi pas de 'disableRequestLogging' dans gateway/src/server.ts ?
 * Pourquoi on n'utilise pas ORM ?
 * Pourquoi deux façons pour que les conteneurs communiquent : fetch (in server.get('/aggregated/profile') et rabbit mesages ?
-* les requêtes '/auth' (sauf '/auth/update', '/auth/enable-2fa', '/auth/disable-2fa') ne sont pas traîtées par verifyJWT
+* Pourquoi la seule '/auth' (sauf '/auth/update', '/auth/enable-2fa', '/auth/disable-2fa') est exclue de verifyJWT ?
 * Ces components ne sont pas utilisés ?
   + 'sendEmail' dans conteneur 'user'
   + 'declare module "fastify"'
