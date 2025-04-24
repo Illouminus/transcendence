@@ -75,18 +75,18 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
         }
 
         // Ajout du message a l'Array pour le sauvegarder après
-        const newMessage: ChatArray = {
-            id: Date.now(), // Identifiant unique temporaire
-            fromUserId: meId,
-            toUserId: himID,
-            content: messageText,
-            sent_at: timestamp,
-        };
+        // const newMessage: ChatArray = {
+        //     id: Date.now(), // Identifiant unique temporaire
+        //     fromUserId: meId,
+        //     toUserId: himID,
+        //     content: messageText,
+        //     sent_at: timestamp,
+        // };
 
-        // Ajouter le message au tableau local
-        ChatState.addPendingMessage(newMessage);
+        // // Ajouter le message au tableau local
+        // ChatState.addPendingMessage(newMessage);
 
-        console.log(meId ,himID); 
+        // console.log(meId ,himID); 
         if (openedChatWindow ) {
             displayMessage(meUsername, himUsername, meId, messageText, timestamp);
         }
@@ -96,41 +96,8 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
 }
 
 async function sendBufferedMessages(userId: number) {
-    // Récupérer les messages pour l'utilisateur spécifié
-    const pendingMessages = ChatState.getPendingMessages();
-    if (pendingMessages.length === 0) {
-        console.log("Aucun message à envoyer pour l'utilisateur :", userId);
-        return;
-    }
-
-    try {
-        // Construire le payload attendu par le contrôleur
-        const payload = {
-            messages: pendingMessages.map(msg => ({
-                sender_id: msg.fromUserId,
-                receiver_id: msg.toUserId,
-                content: msg.content,
-            })),
-        };
-
-        const response = await fetch("http://localhost:8084/chat/messages", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            throw new Error("Erreur lors de l'envoi des messages au serveur.");
-        }
-
-        console.log("Messages envoyés avec succès pour l'utilisateur :", userId);
-
-        // Une fois les messages envoyés, vider les messages pour cet utilisateur
-        ChatState.fetchMessagesForUser(userId);
-        ChatState.clearPendingMessages();
-    } catch (error) {
-        console.error("Erreur lors de l'envoi des messages :", error);
-    }
+    ChatState.fetchMessagesForUser(userId);
+    ChatState.clearPendingMessages();
 }
 
 const chatInviteToGame = async (friendId: number) => {
