@@ -4,8 +4,14 @@ import { loadPongPage } from "./loaders";
 import {UserState} from "../userState";
 
 
+// export async function fetchAndRender(page: string) {
+// 	const response = await fetch(`./src/pages/${page}.html`);
+// 	if (!response.ok) throw new Error(`Error loading ${page}`);
+// 	document.getElementById("app")!.innerHTML = await response.text();
+// }
+
 export async function fetchAndRender(page: string) {
-	const response = await fetch(`./src/pages/${page}.html`);
+	const response = await fetch(`/pages/${page}.html`);
 	if (!response.ok) throw new Error(`Error loading ${page}`);
 	document.getElementById("app")!.innerHTML = await response.text();
 }
