@@ -24,3 +24,4 @@
   + champ 'created_at' de la table 'tournaments'
   + champ 'created_at' de la table 'user_profile'
   + champ 'created_at' de la table 'friends'
+  + backend/game/src/rabbit/connectRabbit()
