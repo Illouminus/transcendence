@@ -126,6 +126,7 @@ async function sendBufferedMessages(userId: number) {
         console.log("Messages envoyés avec succès pour l'utilisateur :", userId);
 
         // Une fois les messages envoyés, vider les messages pour cet utilisateur
+        ChatState.fetchMessagesForUser(userId);
         ChatState.clearPendingMessages();
     } catch (error) {
         console.error("Erreur lors de l'envoi des messages :", error);
@@ -206,14 +207,20 @@ async function openChatWindow(userId: string) {
 
     if (him?.status === 'blocked') {
         showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
-        return;
+        toggleElementClass('chatInput', 'hidden', true);
     }
+    else if(!him?.online)
+    {
+        showAlert(`${himUsername} is not online, cannot send messages.`, 'warning');
+        toggleElementClass('chatInput', 'hidden', true);
+    }
+    else 
+        toggleElementClass('chatInput', 'hidden', false);
 
     // Mise à jour de l'affichage
     toggleElementClass('closeChat', 'hidden', true);
     toggleElementClass('goBack', 'hidden', false);
     toggleElementClass('chat-friends-list', 'hidden', true);
-    toggleElementClass('chatInput', 'hidden', false);
     toggleElementClass('chatMessages', 'hidden', false);
     const chatSubContainer = document.getElementById("chatSubContainer");
     if (chatSubContainer) {
