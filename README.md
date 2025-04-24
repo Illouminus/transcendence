@@ -12,9 +12,7 @@
   + sur Chrome ça fonctionne   
 
 ## Questions
-* Pourquoi deux tables séparées : 'users' et 'profiles' ?
 * Pourquoi pas de 'disableRequestLogging' dans gateway/src/server.ts ?
-* On peut utiliser 'request.jwtVerify()' de plug-in fastityJwt à la place de la function 'verifyJWT' ?
 * Pourquoi on n'utilise pas ORM ?
 * Pourquoi deux façons pour que les conteneurs communiquent : fetch (in server.get('/aggregated/profile') et rabbit mesages ?
 * Ces components ne sont pas utilisés ?
