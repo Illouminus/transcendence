@@ -21,3 +21,8 @@
   + 'sendEmail' dans conteneur 'user'
   + 'declare module "fastify"'
   + 'frontend/yarn.lock'
+  + champ 'created_at' de la table 'sessions'
+  + champ 'created_at' de la table 'conversations'
+  + champ 'created_at' de la table 'tournaments'
+  + champ 'created_at' de la table 'user_profile'
+  + champ 'created_at' de la table 'friends'
