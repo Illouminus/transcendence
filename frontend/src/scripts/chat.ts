@@ -114,34 +114,36 @@ const chatInviteToGame = async (friendId: number) => {
 
 
 // Fonction de gestion de l'affichage des messages
-export function displayMessage(user1: string, user2: string, fromUserId: number, content: string, sent_at: string ): void {
+export function displayMessage(user1: string, user2: string, fromUserId: number, content: string, sent_at: string): void {
     const { me } = getUserData();
     const meId = me?.id ?? 0;
     const chatMessagesContainer = document.getElementById("chatMessages");
+    if (!chatMessagesContainer) return;
+
     const messageContainer = document.createElement("div");
-    messageContainer.classList.add("chatMessageSingle", "flex", "items-start", "mb-5", "w-full");
+    messageContainer.classList.add("flex", "items-start", "mb-4", "w-full");
     messageContainer.setAttribute("data-user-id", fromUserId?.toString());
 
-    const username = fromUserId === meId ? user1 : user2;
-    messageContainer.classList.add(fromUserId === meId ? "justify-end" : "justify-start");
+    const isMe = fromUserId === meId;
+    messageContainer.classList.add(isMe ? "justify-end" : "justify-start");
 
     const messageHTML = `
-        <div style="width: 70%" class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-xl dark:bg-gray-700">
-            <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">${username}</span>
-                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${sent_at}</span>
+        <div class="flex flex-col max-w-[80%] ${isMe ? 'items-end' : 'items-start'}">
+            <div class="flex items-center space-x-2 mb-1">
+                <span class="text-xs font-medium text-gray-400">${isMe ? user1 : user2}</span>
+                <span class="text-xs text-gray-500">${sent_at}</span>
             </div>
-            <p class="text-sm text-left py-2.5 text-gray-900 dark:text-white">${content}</p>
-            <span class="text-sm text-right font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+            <div class="flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2">
+                <div class="${isMe ? 'bg-blue-600' : 'bg-gray-700'} text-white px-4 py-2 rounded-2xl ${isMe ? 'rounded-tr-none' : 'rounded-tl-none'}">
+                    <p class="text-sm">${content}</p>
+                </div>
+            </div>
         </div>
     `;
 
     messageContainer.innerHTML = messageHTML;
-    chatMessagesContainer?.appendChild(messageContainer);
-
-    if (chatMessagesContainer) {
-        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-    }
+    chatMessagesContainer.appendChild(messageContainer);
+    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
 }
 
 // Fonction pour créer la ligne de chat d'un utilisateur
