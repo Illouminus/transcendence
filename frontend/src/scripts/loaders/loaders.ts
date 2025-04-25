@@ -114,15 +114,56 @@ export async function fetchStat() {
 		if (!response.ok) throw new Error("Erreur lors de la récupération des stats");
 
 		const stats = await response.json();
-		console.log("Stats:", stats);
+		console.log(stats);
+		return (stats);
     } catch (error) {
         console.error('Error fetching game statistics:', error);
     }
 }
 
+export function createGameRow(player1: { username: string, avatar: string }, player2: { username: string, avatar: string }, score1: number, score2: number, date: string) {
+    const gamesList = document.getElementById('gamesList');
+    if (!gamesList) return;
+
+    const gameRow = document.createElement('div');
+    gameRow.className = 'flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
+    gameRow.innerHTML = `
+        <div class="flex items-center space-x-4">
+            <!-- Player 1 -->
+            <div class="flex items-center space-x-2">
+                <img src="${player1.avatar}" alt="${player1.username}" class="w-8 h-8 rounded-full">
+                <span class="text-gray-900 dark:text-white font-medium">${player1.username}</span>
+            </div>
+            <!-- Score -->
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl font-bold text-gray-900 dark:text-white">${score1}</span>
+                <span class="text-gray-500 dark:text-gray-400">-</span>
+                <span class="text-2xl font-bold text-gray-900 dark:text-white">${score2}</span>
+            </div>
+            <!-- Player 2 -->
+            <div class="flex items-center space-x-2">
+                <img src="${player2.avatar}" alt="${player2.username}" class="w-8 h-8 rounded-full">
+                <span class="text-gray-900 dark:text-white font-medium">${player2.username}</span>
+            </div>
+        </div>
+        <!-- Date -->
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+            ${date}
+        </div>
+    `;
+
+    gamesList.appendChild(gameRow);
+}
+
 export async function loadProfilePage() {
 	await fetchAndRender("profile");
-	await fetchStat();
+
+	const stats = await fetchStat(); // Récupérer les stats
+    if (!stats) {
+        console.error("Les statistiques n'ont pas pu être récupérées.");
+        return;
+    }
+
 	const ctx = document.getElementById('myChart');
 
 	const statusSpan = document.getElementById('verification-status') as HTMLSpanElement;
@@ -165,7 +206,12 @@ export async function loadProfilePage() {
 		  labels: ['Game', 'Wins', 'Loss', 'Tournaments'],
 		  datasets: [{
 			label: 'Statistiques',
-			data: [8, 2, 16, 5],
+			data: [
+                stats.totalGamesPlayed, // 8
+                stats.totalWins,        // 2
+                stats.totalLosses,      // 16
+                stats.totalTournamentsPlayed // 5
+            ],
 			borderWidth: 2,
 			backgroundColor: [
 				'rgba(255, 99, 132, 0.2)',
@@ -175,7 +221,6 @@ export async function loadProfilePage() {
 			  ],
 			  borderRadius: 8,
 		  }],
-
 		},
 		options: {
 		  scales: {
