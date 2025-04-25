@@ -17,7 +17,8 @@
 * Pourquoi deux façons pour que les conteneurs communiquent : fetch (in server.get('/aggregated/profile') et rabbit mesages ?
 * Pourquoi un seul endpoint '/auth' (sauf '/auth/update', '/auth/enable-2fa', '/auth/disable-2fa') est exclue de verifyJWT ?
 * Pourquoi nginx ne s'occupe pas de routage ?
-* Un service publie via Rabbit un update de données -> l'autre service met à jour sa DB, pour quel but ce deuxième service publie le messqge d'acceptation ?  
+* Un service publie via Rabbit un update de données -> l'autre service met à jour sa DB, pour quel but ce deuxième service publie le messqge d'acceptation ?
+* On peut utiliser UUID рour avoir un id commun pour deux tables 'users' et 'profiles' ?
 * Ces components ne sont pas utilisés ?
   + 'sendEmail' dans conteneur 'user'
   + 'declare module "fastify"'
