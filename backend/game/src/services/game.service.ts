@@ -2,6 +2,8 @@ import {
 	getTotalGamesPlayed, 
 	getTotalTournaments, 
 	getTournamentWins, 
+	getGameWins, 
+	getGameLosses, 
 	startOrdinaryGame 
   } from "../models/game.model";
   import db from "../database";
@@ -45,11 +47,15 @@ import {
 		getTotalGamesPlayed(id),
 		getTotalTournaments(id),
 		getTournamentWins(id),
+		getGameWins(id),
+		getGameLosses(id)
 	  ]);
 	  return {
 		totalGamesPlayed: results[0],
 		totalTournamentsPlayed: results[1],
 		totalTournamentsWins: results[2],
+		totalWins: results[3],
+		totalLosses: results[4],
 	  };
 	} catch (error) {
 	  throw new Error("Error");

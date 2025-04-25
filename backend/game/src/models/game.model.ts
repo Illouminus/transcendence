@@ -54,6 +54,39 @@ export async function getTournamentWins(userId: number): Promise<number> {
 	});
 }
 
+export async function getGameWins(userId: number): Promise<number> {
+	return new Promise((resolve, reject) => {
+		db.get(
+			"SELECT COUNT(*) AS totalWins FROM games WHERE winner_id = ?",
+			[userId],
+			(err: Error | null, row: unknown) => {
+				if (err) {
+					reject(err);
+				} else {
+					const countRow = row as CountRow;
+					resolve(countRow.totalWins || 0);
+				}
+			}
+		);
+	});
+}
+
+export async function getGameLosses(userId: number): Promise<number> {
+	return new Promise((resolve, reject) => {
+		db.get(
+			"SELECT COUNT(*) AS totalLosses FROM games WHERE (player1_id = ? OR player2_id = ?) AND winner_id != ? AND winner_id IS NOT NULL",
+			[userId, userId, userId],
+			(err: Error | null, row: unknown) => {
+				if (err) {
+					reject(err);
+				} else {
+					const countRow = row as CountRow;
+					resolve(countRow.totalLosses || 0);
+				}
+			}
+		);
+	});
+}
 
 export async function insertMatchmakingQueue(userId: number) : Promise<number> {
 	return new Promise((resolve, reject) => {
