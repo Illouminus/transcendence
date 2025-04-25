@@ -1,6 +1,8 @@
 import { displayMessage } from "./chat";
+import { ChatState } from "./chatState";
 import { UserWebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
+import { ChatArray } from "./chat";
 
 let socket : WebSocket | null = null;
 
@@ -42,6 +44,14 @@ export function connectChatWebSocket(token: string): WebSocket {
         case 'chat_receive': {
           console.log('Message received:', data.payload);
           showAlert(`New Message from ${data.payload.username}`, 'success');
+          const newMessage: ChatArray = {
+            id: Date.now(), // Identifiant unique temporaire
+            fromUserId: data.payload.fromUserId,
+            toUserId: data.payload.toUserId,
+            content: data.payload.text,
+            sent_at: data.payload.sent_at,
+          };
+          ChatState.addMessage(newMessage);
           displayMessage(data.payload.username, data.payload.username, data.payload.fromUserId,data.payload.text, data.payload.sent_at);
           break;
         }

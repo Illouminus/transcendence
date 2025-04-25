@@ -75,17 +75,18 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
         }
 
         // Ajout du message a l'Array pour le sauvegarder après
-        const newMessage: ChatArray = {
-            id: Date.now(), // Identifiant unique temporaire
-            fromUserId: meId,
-            toUserId: himID,
-            content: messageText,
-            sent_at: timestamp,
-        };
+        // const newMessage: ChatArray = {
+        //     id: Date.now(), // Identifiant unique temporaire
+        //     fromUserId: meId,
+        //     toUserId: himID,
+        //     content: messageText,
+        //     sent_at: timestamp,
+        // };
 
-        // Ajouter le message au tableau local
-        ChatState.addPendingMessage(newMessage);
+        // // Ajouter le message au tableau local
+        // ChatState.addPendingMessage(newMessage);
 
+        // console.log(meId ,himID); 
         if (openedChatWindow ) {
             displayMessage(meUsername, himUsername, meId, messageText, timestamp);
         }
@@ -94,42 +95,9 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
     }
 }
 
-async function sendBufferedMessages(userId: number, himId: number) {
-    // Récupérer les messages pour l'utilisateur spécifié
-    const pendingMessages = ChatState.getPendingMessagesForUsers(userId, himId);
-
-    console.log(pendingMessages);
-    if (pendingMessages.length === 0) {
-        console.log("Aucun message à envoyer pour l'utilisateur :", userId);
-        return;
-    }
-
-    try {
-        // Construire le payload attendu par le contrôleur
-        const payload = {
-            messages: pendingMessages.map(msg => ({
-                sender_id: msg.fromUserId,
-                receiver_id: msg.toUserId,
-                content: msg.content,
-            })),
-        };
-
-        const response = await fetch("http://localhost:8084/chat/messages", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            throw new Error("Erreur lors de l'envoi des messages au serveur.");
-        }
-
-        // Une fois les messages envoyés, vider les messages pour cet utilisateur
-        ChatState.fetchMessagesForUser(userId);
-        ChatState.clearPendingMessagesForUsers(userId, himId);
-    } catch (error) {
-        console.error("Erreur lors de l'envoi des messages :", error);
-    }
+async function sendBufferedMessages(userId: number) {
+    ChatState.fetchMessagesForUser(userId);
+    ChatState.clearPendingMessages();
 }
 
 const chatInviteToGame = async (friendId: number) => {
@@ -208,7 +176,7 @@ async function openChatWindow(userId: string) {
         showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
         toggleElementClass('chatInput', 'hidden', true);
     }
-    else if (him?.online === false)
+    else if(!him?.online)
     {
         showAlert(`${himUsername} is not online, cannot send messages.`, 'warning');
         toggleElementClass('chatInput', 'hidden', true);
@@ -280,7 +248,7 @@ function hideChatMenu(isOpen: boolean): void {
 
     if (isOpen && him) {
         // Envoi des messages non envoyés pour cet utilisateur
-        sendBufferedMessages(meId, him.id);
+        sendBufferedMessages(meId);
     }
 
     const chatSubContainer = document.getElementById("chatSubContainer");

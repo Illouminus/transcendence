@@ -27,6 +27,27 @@ export async function getMessagesController(req: FastifyRequest<{ Params: { user
   }
 }
 
+export async function sendSingleMessage(
+  sender_id: number,
+  receiver_id: number,
+  content: string
+) {
+  try {
+    console.log("Message to send:", { sender_id, receiver_id, content });
+
+    if (!sender_id || !receiver_id || !content) {
+      throw new Error("All fields (sender_id, receiver_id, content) are required.");
+    }
+
+    const savedMessage = await sendMessageService(sender_id, receiver_id, content);
+    console.log("Message saved successfully:", savedMessage);
+    return savedMessage;
+  } catch (error) {
+    logError(error, "sendSingleMessage");
+    throw error;
+  }
+}
+
 // Envoyer plusieurs messages
 export async function sendMessagesController(
   req: FastifyRequest<{ Body: { messages: { sender_id: number, receiver_id: number, content: string }[] } }>, 
