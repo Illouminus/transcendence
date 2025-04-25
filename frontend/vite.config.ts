@@ -10,7 +10,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   base: '/', // либо './' если ты хочешь использовать относительные пути
   publicDir: 'public',
-  plugins: [tailwindcss()],
+  // plugins: [tailwindcss()],
   build: {
     outDir: 'dist',
     emptyOutDir: true,

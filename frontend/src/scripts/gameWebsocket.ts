@@ -70,8 +70,7 @@ export function connectGameWebSocket(token: string): WebSocket {
             friendId: data.payload.fromUserId
           });
           break;
-        case 'game_created':
-          case 'game_created': {
+          case 'game_created': 
             const currentUser = UserState.getUser();
             const opponentId = clientGameState.player1.id === currentUser?.id
               ? clientGameState.player2.id
@@ -89,7 +88,7 @@ export function connectGameWebSocket(token: string): WebSocket {
               avatar: "http://localhost:8080/user" + (opponent.friend_avatar || '/images/default_avatar.png')
             });
             break;
-          }
+          
         case 'game_countdown':
           const countdownTimer = document.getElementById('countdownTimer');
           if (countdownTimer) {
@@ -168,23 +167,23 @@ export function connectGameWebSocket(token: string): WebSocket {
               matchType: data.payload.matchType
             }
           });
-          const currentUser = UserState.getUser();
-          if (!currentUser) return;
-          const opponent = currentUser.friends?.find(f => f.friend_id === data.payload.opponentId);
-          if (!opponent) return;
+          const currentUserI = UserState.getUser();
+          if (!currentUserI) return;
+          const opponentU = currentUserI.friends?.find(f => f.friend_id === data.payload.opponentId);
+          if (!opponentU) return;
           clientGameState.player1.id = data.payload.isPlayer1 ? data.payload.opponentId : UserState.getUser()!.id ;
           clientGameState.player2.id = data.payload.isPlayer1 ? UserState.getUser()!.id : data.payload.opponentId;  
           clientGameState.gameId = data.payload.gameId;
           UserState.setGameMode({ mode: 'championship' });
           //redirectTo('/pong');
           showGameIntroWithPlayers(data.payload.gameId, {
-            id: currentUser.id,
-            username: currentUser.username,
-            avatar: "http://localhost:8080/user" + (currentUser.avatar || '/images/default_avatar.png')
+            id: currentUserI.id,
+            username: currentUserI.username,
+            avatar: "http://localhost:8080/user" + (currentUserI.avatar || '/images/default_avatar.png')
           }, {
-            id: opponent.friend_id,
-            username: opponent.friend_username,
-            avatar: "http://localhost:8080/user" + (opponent.friend_avatar || '/images/default_avatar.png')
+            id: opponentU.friend_id,
+            username: opponentU.friend_username,
+            avatar: "http://localhost:8080/user" + (opponentU.friend_avatar || '/images/default_avatar.png')
           });
           break;
 

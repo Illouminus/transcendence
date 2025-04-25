@@ -177,6 +177,10 @@ interface GameResultPayload {
 }
 
 export function sendNotification(userId: number, data: NotificationData | GameNotificationData | GameResultPayload) {
+
+	if(!userId || userId === 999999)
+		return;
+
 	const ws = activeConnections.get(userId);
 	
 	if (ws && ws.readyState === WebSocket.OPEN) {
