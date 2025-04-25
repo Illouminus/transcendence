@@ -87,9 +87,7 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
         // ChatState.addPendingMessage(newMessage);
 
         // console.log(meId ,himID); 
-        if (openedChatWindow ) {
-            displayMessage(meUsername, himUsername, meId, messageText, timestamp);
-        }
+        displayMessage(meUsername, himUsername, meId, messageText, timestamp);
     } catch (error) {
         console.error("Erreur d'envoi du message :", error);
     }
@@ -97,7 +95,6 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
 
 async function sendBufferedMessages(userId: number) {
     ChatState.fetchMessagesForUser(userId);
-    ChatState.clearPendingMessages();
 }
 
 const chatInviteToGame = async (friendId: number) => {
@@ -164,6 +161,7 @@ function createChatUserRow(user: Friend): string {
 
 async function openChatWindow(userId: string) {
     openedChatWindow = true;
+    console.log('openchatWindow is true');
     const { me } = getUserData();
     const friends = me?.friends;
     const him = friends?.find(user => user.friend_id === parseInt(userId));

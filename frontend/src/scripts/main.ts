@@ -53,8 +53,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 		}
 	}
 	
-	await setupUI();
 	chat();
+	await setupUI();
 	handleRouting();
 });
 
