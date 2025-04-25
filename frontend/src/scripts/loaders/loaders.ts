@@ -99,11 +99,30 @@ export async function loadSettingsPage() {
 	if (email)
 		email.value = user?.email ?? "";
 }
-  
 
+
+export async function fetchStat() {
+    console.log("Fetching stats");
+    try {
+        const token = localStorage.getItem('token'); // ou autre méthode pour récupérer le token
+        const response = await fetch(`http://localhost:8080/game/gameStats`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+		if (!response.ok) throw new Error("Erreur lors de la récupération des stats");
+
+		const stats = await response.json();
+		console.log("Stats:", stats);
+    } catch (error) {
+        console.error('Error fetching game statistics:', error);
+    }
+}
 
 export async function loadProfilePage() {
 	await fetchAndRender("profile");
+	await fetchStat();
 	const ctx = document.getElementById('myChart');
 
 	const statusSpan = document.getElementById('verification-status') as HTMLSpanElement;
