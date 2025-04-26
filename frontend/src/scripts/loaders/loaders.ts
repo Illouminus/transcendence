@@ -152,7 +152,7 @@ export function createGameRow(player1: { username: string, avatar: string }, pla
         <div class="flex items-center space-x-4">
             <!-- Player 1 -->
             <div class="flex items-center space-x-2">
-                <img src="${player1.avatar}" alt="${player1.username}" class="w-8 h-8 rounded-full">
+                <img src="http://localhost:8080/user${player1.avatar}" alt="${player1.username}" class="w-8 h-8 rounded-full object-cover">
                 <span class="text-gray-900 dark:text-white font-medium">${player1.username}</span>
             </div>
             <!-- Score -->
@@ -163,7 +163,7 @@ export function createGameRow(player1: { username: string, avatar: string }, pla
             </div>
             <!-- Player 2 -->
             <div class="flex items-center space-x-2">
-                <img src="${player2.avatar}" alt="${player2.username}" class="w-8 h-8 rounded-full">
+                <img src="http://localhost:8080/user${player2.avatar}" alt="${player2.username}" class="w-8 h-8 rounded-full">
                 <span class="text-gray-900 dark:text-white font-medium">${player2.username}</span>
             </div>
         </div>
@@ -242,16 +242,16 @@ export async function loadProfilePage() {
     }
 	else {
 		games.forEach((game: any) => {
+			const opponent = user?.friends?.find(friend => friend.friend_id === game.player2_id);
 			createGameRow(
-				{ username: game.player1_username, avatar: "" },
-				{ username: game.player2_username, avatar: "" },
+				{ username: user?.username ?? 'inconnu', avatar: user?.avatar || "" },
+				{ username: opponent?.friend_username ?? 'inconnu', avatar: opponent?.friend_avatar || "" },
 				game.score_player1,
 				game.score_player2,
 				formatDate(game.started_at)
 			);
 		});
 	}
-
 
 	new Chart(ctx, {
 		type: 'bar',
