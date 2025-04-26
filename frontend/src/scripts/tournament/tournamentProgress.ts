@@ -20,9 +20,9 @@ interface TournamentState {
     matches: MatchPair[];
 }
 
-export function showTournamentProgress(gameResult: any): void {
+export function showTournamentProgress(gameResult: any): HTMLDivElement {
     const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-lg flex items-center justify-center z-[1000]';
+    modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-lg flex items-center justify-center z-[1000] opacity-100 scale-100 transition-all duration-500';
 
     const content = document.createElement('div');
     content.className = 'relative w-full max-w-7xl p-8';
@@ -148,4 +148,6 @@ export function showTournamentProgress(gameResult: any): void {
 
     modal.appendChild(content);
     document.body.appendChild(modal);
+
+    return modal;
 } 

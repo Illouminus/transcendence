@@ -1,13 +1,18 @@
 import { loadPongPageScript} from "../pong";
 import { fetchAndRender, setUpdateAvatar } from "./outils";
 import { loginHandler, renderGoogleButton, login2FA, registerHandler } from "../services/auth.service";
-import { UserState } from "../userState";
+import { GameEvent, UserState } from "../userState";
 import {succesSVG, errorSVG} from "./outils"
 import { handleUpdateProfile, handleUpdateAvatar, enable2FA, disable2FA } from "../services/user.service";
 import { fetchUsers, loadUserProfileData } from "../users";
 import { initializeFriends } from "../friends";
 import { initializeGameModeSelection } from "../gameMode";
-import { initializeChampionship } from "../championship";
+import {  disposeChampionshipPage, initializeChampionship } from "../championship";
+
+
+
+let previousDispose: (() => void) | null = null;
+export let championshipGameEventHandler: ((event: GameEvent) => void) | null = null;
 
 export async function loadHomePage() {
 	await fetchAndRender("dog");
@@ -182,9 +187,14 @@ export async function load2FAPage() {
 }
 
 export async function loadPongPage() {
+	if (previousDispose) {
+	  previousDispose();
+	  previousDispose = null;
+	}
+  
 	await fetchAndRender("pong");
-	loadPongPageScript();
-}
+	previousDispose = await loadPongPageScript(); // сохраняем новую dispose-функцию
+  }
 
 export async function loadUsersPage(): Promise<void> {
     try {
@@ -220,6 +230,8 @@ export async function loadFriendsPage(): Promise<void> {
 
 
 export async function loadChampionshipPage(): Promise<void> {
+
+	disposeChampionshipPage();
 	await fetchAndRender("championship");
 	initializeChampionship();
 }

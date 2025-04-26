@@ -1,6 +1,10 @@
-import { UserState } from './userState';
+import { GameEvent, UserState } from './userState';
 import { showAlert } from './services/alert.service';
 import { redirectTo } from './router';
+
+
+export let championshipGameEventHandler: ((event: GameEvent) => void) | null = null;
+
 
 // Tournament state interface
 interface TournamentState {
@@ -279,14 +283,12 @@ export function initializeChampionship(): void {
         return;
     }
 
-    console.log('Initializing championship...');
+    if (championshipGameEventHandler) {
+        UserState.offGameEvent(championshipGameEventHandler);
+      }
 
-    // Check if we already have a tournamentId in UserState
-
-    console.log('USER STATE GAME MODE :', UserState.getGameMode());
 
     const existingTournamentId = UserState.getGameMode()?.tournamentId;
-    console.log('Existing tournament ID:', existingTournamentId);
 
     if(!existingTournamentId) {
         gameSocket.send(JSON.stringify({
@@ -301,7 +303,6 @@ export function initializeChampionship(): void {
         }));
     }
     
-    // Initialize current player
     updateCurrentPlayer();
 
     // Setup button event handlers
@@ -320,7 +321,7 @@ export function initializeChampionship(): void {
     }
 
     // Subscribe to tournament events through UserState
-    UserState.onGameEvent((event) => {
+    championshipGameEventHandler = (event) => {
         let isFriend: boolean = false;
         
         switch (event.type) {
@@ -377,9 +378,20 @@ export function initializeChampionship(): void {
                 }
                 break;
         }
-    });
+    };
+
+    UserState.onGameEvent(championshipGameEventHandler);
 
     // Initialize initial state
-    updateUI();
+    updateUI();я 
 }
 
+
+
+
+export function disposeChampionshipPage() {
+    if (championshipGameEventHandler) {
+      UserState.offGameEvent(championshipGameEventHandler);
+      championshipGameEventHandler = null;
+    }
+  }

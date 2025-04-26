@@ -108,7 +108,7 @@ export type GameWebSocketMessage =
 | { type: 'game_created'; payload: { gameId: number, isPlayer1: boolean;} }
 | { type: 'game_update'; payload: GameUpdatePayload }
 | { type: 'game_countdown'; payload: GameCountdownPayload }
-| { type: 'game_result'; payload: GameResultPayload }
+| { type: 'game_result'; game_type: string, payload: GameResultPayload }
 | { type: 'player_joined'; payload: TournamentPlayer }
 | { type: 'player_left'; payload: number } // ID игрока
 | { type: 'player_ready'; payload: { playerId: number; ready: boolean } }
@@ -176,7 +176,6 @@ export interface GameResultPayload {
   winnerId: number;
   score1: number;
   score2: number;
-  game_type: string;
 }
 
 export interface GameCountdownPayload {

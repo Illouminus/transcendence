@@ -24,12 +24,10 @@ const currentPositions = {
   player2: { x: 0 },
   ball: { x: 0, z: 0 }
 };
-
-let userId: number | null = UserState.getUser()?.id || null;
-
 // Update scoreboard in the DOM
 function updateScoreDisplay(): void {
   const scoreDisplay = document.getElementById("scoreDisplay") as HTMLElement;
+  if (!scoreDisplay) return;
   scoreDisplay.innerHTML = `${clientGameState.player1.score} : ${clientGameState.player2.score}`;
 }
 
@@ -178,43 +176,12 @@ async function createBall(scene: Scene): Promise<Mesh> {
   return ball;
 }
 
-// Function to animate paddle hit
-function animatePaddleHit(paddle: Mesh, isPlayer1: boolean): void {
-    const scene = paddle.getScene();
-    scene.stopAnimation(paddle);
-    
-    // Get current rotation
-    const startQuat = paddle.rotationQuaternion?.clone() || Quaternion.Identity();
-    
-    // Calculate hit rotation (tilt back)
-    const hitAngle = Tools.ToRadians(isPlayer1 ? -15 : 15); // Different direction for each player
-    const hitQuat = Quaternion.FromEulerAngles(hitAngle, 0, 0);
-    const targetQuat = startQuat.multiply(hitQuat);
-    
-    // Create animation
-    const anim = new Animation(
-        "paddleHit",
-        "rotationQuaternion",
-        60,
-        Animation.ANIMATIONTYPE_QUATERNION,
-        Animation.ANIMATIONLOOPMODE_CONSTANT
-    );
-    
-    // Set key frames
-    anim.setKeys([
-        { frame: 0, value: startQuat },
-        { frame: 5, value: targetQuat },
-        { frame: 10, value: startQuat }
-    ]);
-    
-    // Start animation
-    paddle.animations = [anim];
-    scene.beginAnimation(paddle, 0, 10, false);
-}
+
 
 // Main function to initialize and run the game scene.
-export async function loadPongPageScript(): Promise<void> {
-  const { canvas, startMenu, gameOverMenu, choiseModal } = getElements();
+export async function loadPongPageScript(): Promise< ()  => void> {
+  const { canvas } = getElements();
+  
   const engine = createEngine(canvas);
   engine.displayLoadingUI();
   engine.loadingUIText = "Loading...";
@@ -248,24 +215,15 @@ export async function loadPongPageScript(): Promise<void> {
   engine.hideLoadingUI();
 
   // Keyboard events for player movement (sending updates to the server)
-  window.addEventListener("keydown", (event: KeyboardEvent) => {
-    userId = UserState.getUser()?.id || null;
+  const keyDownHandler = (event: KeyboardEvent) => {
+    const userId = UserState.getUser()?.id || null;
     if (event.key === "s") {
-      UserState.getGameSocket()?.send(JSON.stringify({
-        type: "player_move",
-        gameId: clientGameState.gameId,
-        userId,
-        direction: "LEFT"
-      }));
+      UserState.getGameSocket()?.send(JSON.stringify({ type: "player_move", gameId: clientGameState.gameId, userId, direction: "LEFT" }));
     } else if (event.key === "a") {
-      UserState.getGameSocket()?.send(JSON.stringify({
-        type: "player_move",
-        gameId: clientGameState.gameId,
-        userId,
-        direction: "RIGHT"
-      }));
+      UserState.getGameSocket()?.send(JSON.stringify({ type: "player_move", gameId: clientGameState.gameId, userId, direction: "RIGHT" }));
     }
-  });
+  };
+  window.addEventListener("keydown", keyDownHandler);
 
   //choiseModal.style.display = "block";
 
@@ -274,23 +232,6 @@ export async function loadPongPageScript(): Promise<void> {
     //startMenu.style.display = "block";
   });
 
-  function startGame(): void {
-    startMenu.style.display = "none";
-    gameOverMenu.style.display = "none";
-    updateScoreDisplay();
-  }
-
-  //startButton.onclick = startGame;
-  // restartButton.onclick = () => {
-  //   clientGameState.player1.score = 0;
-  //   clientGameState.player2.score = 0;
-  //   updateScoreDisplay();
-  //   startGame();
-  // };
-  // quitButton.onclick = () => {
-  //   alert("Merci d'avoir joué!");
-  //   gameOverMenu.style.display = "none";
-  // };
 
   // Main render loop: update scoreboard and sync mesh positions from global state.
   engine.runRenderLoop(() => {
@@ -332,4 +273,21 @@ export async function loadPongPageScript(): Promise<void> {
 
     };
   }
+
+  return () => {
+    window.removeEventListener("keydown", keyDownHandler);
+    engine.stopRenderLoop();
+    scene.dispose();
+    engine.dispose();
+
+    // Сбросить состояния игры
+    clientGameState.gameId = 0;
+    clientGameState.player1 = { ...clientGameState.player1, x: 0, y: 0, score: 0 };
+    clientGameState.player2 = { ...clientGameState.player2, x: 0, y: 0, score: 0 };
+    clientGameState.ball = { x: 0, y: 0, velX: 0, velY: 0 };
+    
+    currentPositions.player1 = { x: 0 };
+    currentPositions.player2 = { x: 0 };
+    currentPositions.ball = { x: 0, z: 0 };
+  };
 }

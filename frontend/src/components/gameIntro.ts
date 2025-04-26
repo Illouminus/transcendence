@@ -12,6 +12,7 @@ interface GameIntroProps {
 
 export function createGameIntro({ player1, player2, onReady }: GameIntroProps): HTMLDivElement {
     const container = document.createElement('div');
+    container.id = 'game-intro-modal';
     container.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50';
 
     const content = document.createElement('div');
@@ -124,3 +125,14 @@ export function createGameIntro({ player1, player2, onReady }: GameIntroProps): 
 
     return container;
 } 
+
+export function fadeOutTailwind(element: HTMLElement, callback?: () => void) {
+    element.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+    element.classList.add('opacity-0', 'scale-95', 'transition-all', 'duration-500');
+  
+    // Ждём завершения перехода
+    element.addEventListener('transitionend', () => {
+      element.remove();
+      if (callback) callback();
+    }, { once: true });
+  }

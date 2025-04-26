@@ -8,11 +8,12 @@ import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
 import { showGameOverModal } from "./endGame";
-import { createGameIntro } from "../components/gameIntro";
+import { createGameIntro, fadeOutTailwind } from "../components/gameIntro";
 import { showGameIntroWithPlayers } from "./outils/showGameIntroWithPlayer";
 import { showTournamentProgress } from "./tournament/tournamentProgress";
 
 let socket : WebSocket | null = null;
+let tournamentProgressModal: HTMLElement | null = null;
 
 export function connectGameWebSocket(token: string): WebSocket {
   
@@ -113,9 +114,11 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
     
         case 'game_result':
-          console.log('Game result:', data);
-          if (data.payload.game_type === 'tournament') {
-            showTournamentProgress(data.payload);
+          if (data.game_type === 'tournament') {
+            tournamentProgressModal = showTournamentProgress(data.payload);
+            setTimeout(() => {
+              redirectTo('/'); // очистится всё и будет готовность к новому матчу
+            }, 2000);
           } else {
             showGameOverModal({
               winnerId: data.payload.winnerId,
@@ -159,6 +162,11 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
 
         case 'tournament_match_start':
+          if (tournamentProgressModal) {
+            fadeOutTailwind(tournamentProgressModal, () => {
+              tournamentProgressModal = null;
+            });
+          }
           UserState.notifyGameEvent({
             type: 'tournament_match_start',
             tournamentMatch: {
