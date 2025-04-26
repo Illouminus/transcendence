@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { getGameStatisticsByIdService } from '../services/game.service';
+import { getGameStatisticsByIdService, getUserGamesService } from '../services/game.service';
 
 export async function gameStatisticsById(request: FastifyRequest, reply: FastifyReply) {
     try {
@@ -17,7 +17,6 @@ export async function gameStatisticsById(request: FastifyRequest, reply: Fastify
 
 }
 
-
 export async function updateGameStatistics(request: FastifyRequest, reply: FastifyReply) {
 
     try {
@@ -26,6 +25,21 @@ export async function updateGameStatistics(request: FastifyRequest, reply: Fasti
         
     }
 
+}
+
+export async function getUserGames(request: FastifyRequest, reply: FastifyReply) {
+    try {
+        const userIdHeader = request.headers['x-user-id'];
+		if (!userIdHeader) {
+		  throw new Error("UserID have to be provided")
+		}
+		const userId = parseInt(userIdHeader as string, 10);
+        const games = await getUserGamesService(userId);
+        reply.send(games);
+        
+    } catch (error) {
+        reply.status(404).send("Error retrieving user games")
+    }
 }
 
 

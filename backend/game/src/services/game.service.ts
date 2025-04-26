@@ -4,7 +4,8 @@ import {
 	getTournamentWins, 
 	getGameWins, 
 	getGameLosses, 
-	startOrdinaryGame 
+	startOrdinaryGame, 
+	getUserGames 
   } from "../models/game.model";
   import db from "../database";
   import { BallState, GameState, initGameState, PlayerState } from "../@types/game.types";
@@ -333,4 +334,13 @@ import {
 	startGameLoop(gameId);
 	
 	return gameId;
+  }
+
+  export async function getUserGamesService(userId: number) {
+	try {
+		const games = await getUserGames(userId);
+		return games;
+	} catch (error) {
+		throw new Error("Error retrieving user games");
+	}
   }

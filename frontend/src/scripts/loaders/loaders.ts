@@ -121,6 +121,27 @@ export async function fetchStat() {
     }
 }
 
+
+export async function fetchGames() {
+    console.log("Fetching stats");
+    try {
+        const token = localStorage.getItem('token'); // ou autre méthode pour récupérer le token
+        const response = await fetch(`http://localhost:8080/game/userGames`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+		if (!response.ok) throw new Error("Erreur lors de la récupération des games");
+
+		const games = await response.json();
+		console.log(games);
+		return (games);
+    } catch (error) {
+        console.error('Error fetching games history:', error);
+    }
+}
+
 export function createGameRow(player1: { username: string, avatar: string }, player2: { username: string, avatar: string }, score1: number, score2: number, date: string) {
     const gamesList = document.getElementById('gamesList');
     if (!gamesList) return;
@@ -155,14 +176,23 @@ export function createGameRow(player1: { username: string, avatar: string }, pla
     gamesList.appendChild(gameRow);
 }
 
+function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+        return "Aujourd'hui";
+    } else if (diffDays === 1) {
+        return "Hier";
+    } else {
+        return `Il y a ${diffDays} jours`;
+    }
+}
+
 export async function loadProfilePage() {
 	await fetchAndRender("profile");
-
-	const stats = await fetchStat(); // Récupérer les stats
-    if (!stats) {
-        console.error("Les statistiques n'ont pas pu être récupérées.");
-        return;
-    }
 
 	const ctx = document.getElementById('myChart');
 
@@ -198,6 +228,29 @@ export async function loadProfilePage() {
 	  }
 
 	await setUpdateAvatar();
+
+	const stats = await fetchStat(); // Récupérer les stats
+    if (!stats) {
+        console.error("Les statistiques n'ont pas pu être récupérées.");
+        return;
+    }
+
+	const games = await fetchGames(); // Récupérer les games
+    if (!games) {
+        console.error("Les statistiques n'ont pas pu être récupérées.");
+        return;
+    }
+	else {
+		games.forEach((game: any) => {
+			createGameRow(
+				{ username: game.player1_username, avatar: "" },
+				{ username: game.player2_username, avatar: "" },
+				game.score_player1,
+				game.score_player2,
+				formatDate(game.started_at)
+			);
+		});
+	}
 
 
 	new Chart(ctx, {

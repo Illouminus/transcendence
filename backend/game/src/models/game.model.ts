@@ -152,3 +152,32 @@ export async function updateGame(gameId: number, player1Score: number, player2Sc
 		);
 	});
 }
+
+export async function getUserGames(userId: number): Promise<any[]> {
+	return new Promise((resolve, reject) => {
+		db.all(
+			`
+			SELECT 
+				id as game_id,
+				game_type,
+				started_at,
+				score_player1,
+				score_player2,
+				winner_id,
+				player1_id,
+				player2_id
+			FROM games
+			WHERE player1_id = ? OR player2_id = ?
+			ORDER BY started_at DESC
+		`,
+			[userId, userId],
+			(err: Error | null, rows: any[]) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(rows);
+				}
+			}
+		);
+	});
+}
