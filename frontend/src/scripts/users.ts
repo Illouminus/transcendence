@@ -80,11 +80,19 @@ export async function loadUserProfileData(): Promise<void> {
     }
 }
 
+let usersListClickHandler: ((e: Event) => void) | null = null;
+
 function attachEventListeners(): void {
     const usersList = document.getElementById('users-list');
     if (!usersList) return;
 
-    usersList.addEventListener('click', (event: Event) => {
+    // Удаляем старый обработчик если есть
+    if (usersListClickHandler) {
+        usersList.removeEventListener('click', usersListClickHandler);
+    }
+
+    // Создаем новый обработчик
+    usersListClickHandler = (event: Event) => {
         const target = event.target as HTMLElement;
         const viewProfileBtn = target.closest('.view-profile-btn');
         const addFriendBtn = target.closest('.add-friend-btn');
@@ -103,7 +111,10 @@ function attachEventListeners(): void {
                 addFriend(parseInt(userId));
             }
         }
-    });
+    };
+
+    // Добавляем новый
+    usersList.addEventListener('click', usersListClickHandler);
 }
 
 async function fetchUsers(): Promise<void> {

@@ -1,3 +1,5 @@
+import { TournamentMatch } from "../types/tournament.types";
+
 export type UserWebSocketMessage =
   | { type: 'incoming_request'; payload: IncomingRequestPayload }
   | { type: 'friend_request_accepted'; payload: FriendRequestAcceptedPayload }
@@ -120,7 +122,7 @@ export type GameWebSocketMessage =
 | { type: 'tournament_state_update'; payload: TournamentStatePayload }
 | { type: 'tournament_match_start'; payload: TournamentMatchStartPayload }
 | { type: 'tournament_match_complete'; payload: { 
-    matchType: 'semifinal' | 'third_place' | 'final';
+    matchType: 'semifinal' | 'final';
     gameId: string;
     winnerId: number;
     score1: number;
@@ -188,6 +190,10 @@ export interface TournamentMatchStartPayload {
   round: number; // 1 = полуфинал, 2 = финал
   matchType: 'semifinal' | 'final' | 'third_place';
   isPlayer1: boolean;
+  matches: {
+    semifinals?: TournamentMatch[];
+    final?: TournamentMatch;
+  }
 }
 
 export interface TournamentCompletedPayload {
@@ -204,7 +210,7 @@ export interface TournamentCreatedPayload {
 
 export interface TournamentStatePayload {
   tournamentId: number;
-  phase: 'waiting' | 'semifinals' | 'third_place' | 'final' | 'completed';
+  phase: 'waiting' | 'semifinals' | 'final' | 'completed';
   players: TournamentPlayer[];
   matches?: {
     semifinals?: Array<{

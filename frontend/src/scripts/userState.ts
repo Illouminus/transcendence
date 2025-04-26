@@ -1,6 +1,8 @@
+import { TournamentState } from "./types/tournament.types";
 import { GameMode, GameModeSelection } from "./gameMode";
 import { User } from "./models/user.model";
 import { UserArray } from "./users";
+//import { disposeGlobalListeners } from "./main";
 
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
 
@@ -28,7 +30,7 @@ export type GameEvent = {
 	};
 	tournamentId?: number;
 	tournamentState?: {
-		phase: 'waiting' | 'semifinals' | 'third_place' | 'final' | 'completed';
+		phase: 'waiting' | 'semifinals'  | 'final' | 'completed';
 		tournamentId: number;
 		players: Array<{
 			id: number;
@@ -42,12 +44,6 @@ export type GameEvent = {
 				gameId?: string;
 				winner?: number;
 			}>;
-			thirdPlace?: {
-				player1Id: number;
-				player2Id: number;
-				gameId?: string;
-				winner?: number;
-			};
 			final?: {
 				player1Id: number;
 				player2Id: number;
@@ -97,6 +93,7 @@ export class UserState {
 	private static connectionChangeCallbacks: Set<ConnectionChangeCallback> = new Set();
 	private static gameEventCallbacks: Set<GameEventCallback> = new Set();
 	private static friendEventCallbacks: Set<FriendEventCallback> = new Set();
+	private static tournamentState : TournamentState | null = null;
 
 	static setUser(user: User) {
 		this.user = user;
@@ -134,6 +131,7 @@ export class UserState {
 		this.userSocket = null;
 		this.gameSocket = null;
 		localStorage.removeItem("token");
+		//disposeGlobalListeners();
 	}
 
 	static setAllUsers(users: UserArray[]) {
@@ -158,6 +156,13 @@ export class UserState {
 
 	static setTempEmail(email: string) {
 		this.tempEmail = email;
+	}
+
+	static setTournamentState(tournamentState: TournamentState) {
+		this.tournamentState = tournamentState;
+	}
+	static getTournamentState() {
+		return this.tournamentState;
 	}
 
 	static getTempEmail() {
@@ -210,6 +215,9 @@ export class UserState {
 	// Subscribe to connection changes
 	static onConnectionChange(callback: ConnectionChangeCallback) {
 		this.connectionChangeCallbacks.add(callback);
+		return () => {
+			this.connectionChangeCallbacks.delete(callback);
+		}
 	}
 
 	// Unsubscribe from connection changes
@@ -224,6 +232,9 @@ export class UserState {
 
 	static onGameEvent(callback: GameEventCallback) {
 		this.gameEventCallbacks.add(callback);
+		return () => {
+			this.gameEventCallbacks.delete(callback);
+		}
 	}
 
 	static offGameEvent(callback: GameEventCallback) {
@@ -236,6 +247,9 @@ export class UserState {
 
 	static onFriendEvent(callback: FriendEventCallback) {
 		this.friendEventCallbacks.add(callback);
+		return () => {
+			this.friendEventCallbacks.delete(callback);
+		}
 	}
 
 	static offFriendEvent(callback: FriendEventCallback) {

@@ -34,9 +34,12 @@ export function connectGameWebSocket(token: string): WebSocket {
     };
     socket.onmessage = async (event) => {
       const data: GameWebSocketMessage = JSON.parse(event.data);
-      showAlert(data.type);
+      if(data.type != 'game_update')
+        console.log("WebSocket game message received:", data);
+      //showAlert(data.type);
       switch (data.type) {
-        case 'game_invitation_income': {
+
+        case 'game_invitation_income': 
           const gameInvitationModal = createGameInvitationModal();
           const friend = UserState.getUser()?.friends?.find(friend => friend.friend_id === data.payload.fromUserId);
           if (friend) {
@@ -53,7 +56,8 @@ export function connectGameWebSocket(token: string): WebSocket {
           await updateUser();
           loadFriendRequests();
           break;
-        }
+        
+
         case 'game_invitation_accepted':
           showAlert(`Game invitation accepted by ${data.payload.fromUserId}`);
           UserState.notifyGameEvent({
@@ -62,8 +66,10 @@ export function connectGameWebSocket(token: string): WebSocket {
           });
           clientGameState.player1.id = UserState.getUser()!.id;
           clientGameState.player2.id = data.payload.fromUserId;
-          //redirectTo('/pong');
           break;
+
+
+
         case 'game_invitation_rejected':
           showAlert(`Game invitation rejected by ${data.payload.fromUserId}`);
           UserState.notifyGameEvent({
@@ -71,6 +77,8 @@ export function connectGameWebSocket(token: string): WebSocket {
             friendId: data.payload.fromUserId
           });
           break;
+
+
           case 'game_created': 
             const currentUser = UserState.getUser();
             const opponentId = clientGameState.player1.id === currentUser?.id
@@ -90,6 +98,7 @@ export function connectGameWebSocket(token: string): WebSocket {
             });
             break;
           
+
         case 'game_countdown':
           const countdownTimer = document.getElementById('countdownTimer');
           if (countdownTimer) {
@@ -115,7 +124,7 @@ export function connectGameWebSocket(token: string): WebSocket {
     
         case 'game_result':
           if (data.game_type === 'tournament') {
-            tournamentProgressModal = showTournamentProgress(data.payload);
+            tournamentProgressModal = showTournamentProgress();
             setTimeout(() => {
               redirectTo('/'); // очистится всё и будет готовность к новому матчу
             }, 2000);
@@ -138,6 +147,7 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
           case 'tournament_created':
             UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
+            
             UserState.notifyGameEvent({
               type: 'tournament_created',
               tournamentId: data.payload.tournamentId
@@ -162,11 +172,35 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
 
         case 'tournament_match_start':
+
           if (tournamentProgressModal) {
             fadeOutTailwind(tournamentProgressModal, () => {
               tournamentProgressModal = null;
             });
           }
+
+          const previousTournamentState = UserState.getTournamentState();
+
+
+    
+
+         
+          if (previousTournamentState) {
+            UserState.setTournamentState({
+              ...previousTournamentState,
+              matches: {
+                semifinals: data.payload.matches.semifinals,
+                final: data.payload.matches.final
+              } // <-- вот здесь обновляем матчи в состоянии
+            });
+          }
+          
+          console.log('Tournament match start:', UserState.getTournamentState());
+
+          showTournamentProgress();
+
+          setTimeout(() => {}, 2000);
+
           UserState.notifyGameEvent({
             type: 'tournament_match_start',
             tournamentMatch: {
@@ -175,6 +209,7 @@ export function connectGameWebSocket(token: string): WebSocket {
               matchType: data.payload.matchType
             }
           });
+
           const currentUserI = UserState.getUser();
           if (!currentUserI) return;
           const opponentU = currentUserI.friends?.find(f => f.friend_id === data.payload.opponentId);

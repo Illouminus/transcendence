@@ -93,7 +93,10 @@ export function createGameIntro({ player1, player2, onReady }: GameIntroProps): 
             </div>
         </div>
     `;
-    readyButton.addEventListener('click', onReady);
+    if (readyButton) {
+        readyButton.removeEventListener('click', onReady);
+        readyButton.addEventListener('click', onReady);
+    }
 
     // Add elements to container
     content.appendChild(player1Card);

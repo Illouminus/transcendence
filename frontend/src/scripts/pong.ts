@@ -276,11 +276,23 @@ export async function loadPongPageScript(): Promise< ()  => void> {
 
   return () => {
     window.removeEventListener("keydown", keyDownHandler);
+  
     engine.stopRenderLoop();
     scene.dispose();
+  
+    if (socket) {
+      socket.onmessage = null;
+    }
+  
+    engine.clearInternalTexturesCache();
+  
     engine.dispose();
-
-    // Сбросить состояния игры
+  
+    const { canvas } = getElements();
+    if (canvas && canvas.parentNode) {
+      canvas.parentNode.removeChild(canvas); // ВАЖНО!!!
+    }
+  
     clientGameState.gameId = 0;
     clientGameState.player1 = { ...clientGameState.player1, x: 0, y: 0, score: 0 };
     clientGameState.player2 = { ...clientGameState.player2, x: 0, y: 0, score: 0 };

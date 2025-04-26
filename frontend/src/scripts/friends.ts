@@ -19,7 +19,30 @@ export interface Friend {
 // DOM Elements
 let friendsContainer: HTMLElement | null = null;
 let requestsContainer: HTMLElement | null = null;
+let unsubscribeFriendEvent: (() => void) | null = null;
+let unsubscribeConnectionChange: (() => void) | null = null;
 
+
+export const disposeFriends = () => {
+    if (unsubscribeFriendEvent) {
+        unsubscribeFriendEvent();
+        unsubscribeFriendEvent = null;
+    }
+    if (unsubscribeConnectionChange) {
+        unsubscribeConnectionChange();
+        unsubscribeConnectionChange = null;
+    }
+    if (friendsContainer) {
+        friendsContainer.replaceChildren(); // очищаем без innerHTML
+        friendsContainer.removeEventListener('click', handleFriendCardClick);
+        friendsContainer = null;
+    }
+    if (requestsContainer) {
+        requestsContainer.replaceChildren();
+        requestsContainer.removeEventListener('click', handleFriendRequestClick);
+        requestsContainer = null;
+    }
+};
 // Initialize DOM elements
 const initializeContainers = () => {
     friendsContainer = document.querySelector('.friends-section .grid');
@@ -35,24 +58,25 @@ const initializeContainers = () => {
 // Load and display friends
 export const loadFriends = async () => {
     if (!friendsContainer) return;
-    
+
     try {
         const user = UserState.getUser();
-        if (!user?.friends) {
+        if (!user?.friends || user.friends.length === 0) {
             friendsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friends yet</p>';
             return;
         }
-        
-        friendsContainer.innerHTML = '';
-        
+
+        const fragment = document.createDocumentFragment();
         const filteredFriends = user.friends.filter(friend => 
             friend.status === 'accepted' || friend.status === 'blocked'
         );
-        
+
         filteredFriends.forEach(friend => {
             const card = createFriendCard(friend);
-            friendsContainer?.appendChild(card);
+            fragment.appendChild(card);
         });
+
+        friendsContainer.replaceChildren(fragment);
 
         if (filteredFriends.length === 0) {
             friendsContainer.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-4">No friends yet</p>';
@@ -273,52 +297,47 @@ const removeFriend = async (friendId: number, card: HTMLElement) => {
 
 
 
-// Attach event listeners
-const attachEventListeners = () => {
-    if (!friendsContainer || !requestsContainer) return;
-
-    friendsContainer.addEventListener('click', handleFriendCardClick);
-    requestsContainer.addEventListener('click', handleFriendRequestClick);
-};
 
 // Main initialization function
 export const initializeFriends = async () => {
     if (!initializeContainers()) return;
-    
+
     try {
         await loadFriends();
         await loadFriendRequests();
-        attachEventListeners();
 
-        // Subscribe to friend events
-        UserState.onFriendEvent((event) => {
-            switch (event.type) {
-                case 'friend_blocked':
-                case 'friend_unblocked':
-                case 'friend_deleted':
-                case 'friend_added':
-                case 'user_unblocked':
-                    loadFriends();
-                    break;
-                case 'incoming_request':
-                case 'friend_request_accepted':
-                case 'friend_request_rejected':
-                    loadFriendRequests();
-                    loadFriends();
-                    break;
-                case 'friend_connected':
-                case 'friend_disconnected':
-                case 'friend_online':
-                    loadFriends();
-                    break;
-            }
-        });
+        friendsContainer?.removeEventListener('click', handleFriendCardClick);
+        friendsContainer?.addEventListener('click', handleFriendCardClick);
+        requestsContainer?.removeEventListener('click', handleFriendRequestClick);
+        requestsContainer?.addEventListener('click', handleFriendRequestClick);
 
-        // Subscribe to connection changes
-        UserState.onConnectionChange(() => {
-            loadFriends();
-        });
+        if (!unsubscribeFriendEvent) {
+            unsubscribeFriendEvent = UserState.onFriendEvent(async (event) => {
+                switch (event.type) {
+                    case 'friend_blocked':
+                    case 'friend_unblocked':
+                    case 'friend_deleted':
+                    case 'friend_added':
+                    case 'user_unblocked':
+                    case 'incoming_request':
+                    case 'friend_request_accepted':
+                    case 'friend_request_rejected':
+                    case 'friend_connected':
+                    case 'friend_disconnected':
+                    case 'friend_online':
+                        await loadFriends();
+                        await loadFriendRequests();
+                        break;
+                }
+            });
+        }
+
+        if (!unsubscribeConnectionChange) {
+            unsubscribeConnectionChange = UserState.onConnectionChange(() => {
+                loadFriends();
+            });
+        }
     } catch (error) {
         console.error('Error initializing friends manager:', error);
     }
-}; 
+};

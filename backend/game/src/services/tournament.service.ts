@@ -108,7 +108,7 @@ export async function startTournament(tournamentId: number): Promise<void> {
   ];
 
   state.phase = 'semifinals';
-  state.matches = { semifinals: matches };
+  state.matches = { semifinals: matches, final: undefined };
 
   for (const match of matches) {
     const gameId = await createAndStartGame({
@@ -128,7 +128,8 @@ export async function startTournament(tournamentId: number): Promise<void> {
         opponentId: match.player2Id,
         matchType: match.matchType,
         isPlayer1: true,
-        pending: true
+        pending: true,
+        matches: { semifinals: matches, final: undefined }
       }
     });
 
@@ -139,7 +140,8 @@ export async function startTournament(tournamentId: number): Promise<void> {
         opponentId: match.player1Id,
         matchType: match.matchType,
         isPlayer1: false,
-        pending: true
+        pending: true,
+        matches: { semifinals: matches, final: undefined } 
       }
     });
   }
@@ -154,12 +156,9 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
   const match = toTournamentMatch(matchRaw);
   await completeMatchDB(match.id, winnerId);
 
-  
-
   const tournamentId = matchRaw.tournament_id;
   const state = activeTournaments[tournamentId];
   if (!state) return;
-
 
   if (match.matchType === 'semifinal') {
     const semifinals = await getSemifinalWinners(tournamentId);
@@ -169,13 +168,9 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
 
       const finalPlayer1 = s1.winner_id!;
       const finalPlayer2 = s2.winner_id!;
-      const loser1 = s1.player1_id === s1.winner_id ? s1.player2_id : s1.player1_id;
-      const loser2 = s2.player1_id === s2.winner_id ? s2.player2_id : s2.player1_id;
 
       const finalMatchId = await insertFinalMatchDB(tournamentId, finalPlayer1, finalPlayer2);
       await updateMatchWithGameDB(finalMatchId, tournamentId, finalPlayer1, finalPlayer2);
-      const thirdPlaceMatchId = await insertMatchDB(tournamentId, loser1, loser2, 'third_place');
-      await updateMatchWithGameDB(thirdPlaceMatchId, tournamentId, loser1, loser2);
 
       const finalGameId = await createAndStartGame({
         player_1_id: finalPlayer1,
@@ -185,80 +180,50 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
         match_id: finalMatchId
       });
 
-      const thirdPlaceGameId = await createAndStartGame({
-        player_1_id: loser1,
-        player_2_id: loser2,
-        game_type: 'tournament',
-        tournament_id: tournamentId,
-        match_id: thirdPlaceMatchId
-      });
-
-      sendNotification(finalPlayer1, {
-        type: 'tournament_match_start',
-        payload: {
-          gameId: finalGameId,
-          opponentId: finalPlayer2,
-          matchType: 'final',
-          isPlayer1: true,
-          pending: true
-        }
-      });
-
-      sendNotification(finalPlayer2, {
-        type: 'tournament_match_start',
-        payload: {
-          gameId: finalGameId,
-          opponentId: finalPlayer1,
-          matchType: 'final',
-          isPlayer1: false,
-          pending: true
-        }
-      });
-
-      sendNotification(loser1, {
-        type: 'tournament_match_start',
-        payload: {
-          gameId: thirdPlaceGameId,
-          opponentId: loser2,
-          matchType: 'third_place',
-          isPlayer1: true,
-          pending: true
-        }
-      });
-
-      sendNotification(loser2, {
-        type: 'tournament_match_start',
-        payload: {
-          gameId: thirdPlaceGameId,
-          opponentId: loser1,
-          matchType: 'third_place',
-          isPlayer1: false,
-          pending: true
-        }
-      });
-
+      for (const [playerId, opponentId, isPlayer1] of [
+        [finalPlayer1, finalPlayer2, true],
+        [finalPlayer2, finalPlayer1, false]
+      ] as const) {
+        sendNotification(playerId, {
+          type: 'tournament_match_start',
+          payload: {
+            gameId: finalGameId,
+            opponentId,
+            matchType: 'final',
+            isPlayer1,
+            matches: {
+              semifinals: state.matches?.semifinals || [],
+              final: {
+                player1Id: finalPlayer1,
+                player2Id: finalPlayer2,
+                gameId: finalGameId
+              }
+            }
+          }
+        });
+      }
       state.phase = 'final';
       broadcastTournamentState(tournamentId);
     }
   }
 
   if (match.matchType === 'final') {
-    await setTournamentWinner(tournamentId, winnerId);
-    const players = await getTournamentPlayers(tournamentId);
+    const { player1Id, player2Id } = match;
+    const loserId = player1Id === winnerId ? player2Id : player1Id;
 
-    for (const player of players) {
-      sendNotification(player.user_id, {
+    for (const userId of [winnerId, loserId]) {
+      sendNotification(userId, {
         type: 'tournament_completed',
         payload: {
-          podium: players.map((p) => ({
-            userId: p.user_id,
-            place: p.user_id === winnerId ? 1 : 0
-          }))
+          podium: [
+            { userId: winnerId, place: 1 },
+            { userId: loserId, place: 2 }
+          ]
         }
       });
     }
 
     state.phase = 'completed';
-    broadcastTournamentState(tournamentId);
+    // Не делаем broadcastTournamentState — оно бесполезно после завершения!
   }
 }
