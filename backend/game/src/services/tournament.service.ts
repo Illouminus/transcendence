@@ -180,10 +180,41 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
         match_id: finalMatchId
       });
 
+      state.phase = 'final';
+
+      state.matches = {
+        semifinals: state.matches?.semifinals || [],
+        final: {
+          id: finalMatchId,
+          gameId: finalGameId,
+          player1Id: finalPlayer1,
+          player2Id: finalPlayer2,
+          matchType: 'final'
+        }
+      };
+
       for (const [playerId, opponentId, isPlayer1] of [
         [finalPlayer1, finalPlayer2, true],
         [finalPlayer2, finalPlayer1, false]
       ] as const) {
+
+
+        console.log('Sending notification to player:', playerId, 'opponent:', opponentId);
+        console.log('Final match data:', {
+          gameId: finalGameId,
+          opponentId,
+          matchType: 'final',
+          isPlayer1,
+          matches: {
+            semifinals: state.matches?.semifinals || [],
+            final: {
+              player1Id: finalPlayer1,
+              player2Id: finalPlayer2,
+              gameId: finalGameId
+            }
+          }
+        });
+
         sendNotification(playerId, {
           type: 'tournament_match_start',
           payload: {

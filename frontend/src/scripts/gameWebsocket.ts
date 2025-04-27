@@ -48,7 +48,6 @@ export function connectGameWebSocket(token: string): WebSocket {
               socket?.send(JSON.stringify({ type: 'game_invitation_accepted', payload: { friendId: data.payload.fromUserId } }));
               clientGameState.player1.id = data.payload.fromUserId;
               clientGameState.player2.id = UserState.getUser()!.id;
-              //redirectTo('/pong');
             }, () => {
               socket?.send(JSON.stringify({ type: 'game_invitation_rejected', payload: { friendId: data.payload.fromUserId } }));
             });
@@ -124,9 +123,9 @@ export function connectGameWebSocket(token: string): WebSocket {
     
         case 'game_result':
           if (data.game_type === 'tournament') {
-            tournamentProgressModal = showTournamentProgress();
+            redirectTo('/');
             setTimeout(() => {
-              redirectTo('/'); // очистится всё и будет готовность к новому матчу
+              tournamentProgressModal = showTournamentProgress();
             }, 2000);
           } else {
             showGameOverModal({
@@ -147,7 +146,7 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
           case 'tournament_created':
             UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
-            
+  
             UserState.notifyGameEvent({
               type: 'tournament_created',
               tournamentId: data.payload.tournamentId
@@ -172,19 +171,9 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
 
         case 'tournament_match_start':
-
-          if (tournamentProgressModal) {
-            fadeOutTailwind(tournamentProgressModal, () => {
-              tournamentProgressModal = null;
-            });
-          }
-
+      
+        showAlert(`Tournament match started!`);
           const previousTournamentState = UserState.getTournamentState();
-
-
-    
-
-         
           if (previousTournamentState) {
             UserState.setTournamentState({
               ...previousTournamentState,
@@ -197,9 +186,20 @@ export function connectGameWebSocket(token: string): WebSocket {
           
           console.log('Tournament match start:', UserState.getTournamentState());
 
-          showTournamentProgress();
+          //showTournamentProgress();
 
-          setTimeout(() => {}, 2000);
+          if (tournamentProgressModal) {
+            fadeOutTailwind(tournamentProgressModal, () => {
+              tournamentProgressModal = null;
+              setTimeout(() => {
+                showTournamentProgress();
+              }, 100); // 100ms достаточно
+            });
+          } else {
+            showTournamentProgress();
+          }
+
+
 
           UserState.notifyGameEvent({
             type: 'tournament_match_start',
@@ -218,7 +218,6 @@ export function connectGameWebSocket(token: string): WebSocket {
           clientGameState.player2.id = data.payload.isPlayer1 ? UserState.getUser()!.id : data.payload.opponentId;  
           clientGameState.gameId = data.payload.gameId;
           UserState.setGameMode({ mode: 'championship' });
-          //redirectTo('/pong');
           showGameIntroWithPlayers(data.payload.gameId, {
             id: currentUserI.id,
             username: currentUserI.username,
@@ -238,13 +237,12 @@ export function connectGameWebSocket(token: string): WebSocket {
         case 'tournament_completed':
           UserState.notifyGameEvent({
             type: 'tournament_completed',
-
             tournamentResult: {
               place: data.payload.podium.find(p => p.userId === UserState.getUser()?.id)?.place || 0,
               podium: data.payload.podium
             }
           });
-          redirectTo('/game'); // Возвращаемся в главное меню
+          redirectTo('/');
           break;
       }
     };

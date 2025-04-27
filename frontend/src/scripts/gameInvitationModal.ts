@@ -75,18 +75,6 @@ export function createGameInvitationModal() {
         trackedAddEventListener(acceptButton, 'click', onAcceptClick);
     if(modal)
         trackedAddEventListener(modal, 'click', onModalClick as EventListener);
-
-    // closeButton.removeEventListener('click', onCloseClick);
-    // closeButton.addEventListener('click', onCloseClick);
-
-    // declineButton.removeEventListener('click', onDeclineClick);
-    // declineButton.addEventListener('click', onDeclineClick);
-
-    // acceptButton.removeEventListener('click', onAcceptClick);
-    // acceptButton.addEventListener('click', onAcceptClick);
-
-    // modal.removeEventListener('click', onModalClick);
-    // modal.addEventListener('click', onModalClick);
   }
 
   setupEventListeners();

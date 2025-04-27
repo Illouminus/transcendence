@@ -263,19 +263,19 @@ export async function loadPongPageScript(): Promise< ()  => void> {
   window.addEventListener("resize", () => engine.resize());
 
   // Update the WebSocket message handler
-  const socket = UserState.getGameSocket();
-  if (socket) {
-    const existingOnMessage = socket.onmessage;
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
+  // const socket = UserState.getGameSocket();
+  // if (socket) {
+  //   const existingOnMessage = socket.onmessage;
+  //   socket.onmessage = (event) => {
+  //     const message = JSON.parse(event.data);
       
-      // Вызываем существующий обработчик, если он есть
-      if (existingOnMessage) {
-        existingOnMessage.call(socket, event);
-      }
+  //     // Вызываем существующий обработчик, если он есть
+  //     if (existingOnMessage) {
+  //       existingOnMessage.call(socket, event);
+  //     }
 
-    };
-  }
+  //   };
+  // }
 
 
 
@@ -296,7 +296,7 @@ export async function loadPongPageScript(): Promise< ()  => void> {
     engine.clearInternalTexturesCache();
     engine.dispose();
 
-    if (socket) socket.onmessage = null;
+    //if (socket) socket.onmessage = null;
 
     const { canvas } = getElements();
     if (canvas && canvas.parentNode) {
