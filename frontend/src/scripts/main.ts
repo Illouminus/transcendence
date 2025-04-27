@@ -20,7 +20,7 @@ function attachListener(id: string, event: string, handler: EventListenerOrEvent
     }
 }
 
-function disposeGlobalListeners() {
+export function disposeGlobalListeners() {
     for (const { element, event, handler } of attachedListeners) {
         element.removeEventListener(event, handler);
     }

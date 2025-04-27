@@ -1,3 +1,5 @@
+import { trackedAddEventListener } from "../scripts/outils/eventManager";
+
 interface Player {
     id: number;
     username: string;
@@ -94,8 +96,7 @@ export function createGameIntro({ player1, player2, onReady }: GameIntroProps): 
         </div>
     `;
     if (readyButton) {
-        readyButton.removeEventListener('click', onReady);
-        readyButton.addEventListener('click', onReady);
+        trackedAddEventListener(readyButton, 'click', onReady);
     }
 
     // Add elements to container

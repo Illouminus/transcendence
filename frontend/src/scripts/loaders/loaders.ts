@@ -10,25 +10,55 @@ import { fetchUsers, loadUserProfileData } from "../users";
 import { disposeFriends, initializeFriends } from "../friends";
 import { initializeGameModeSelection } from "../gameMode";
 import { disposeChampionshipPage, initializeChampionship } from "../championship";
+import { disposeGlobalListeners } from "../main";
+import { removeAllTrackedEventListeners, trackedAddEventListener } from "../outils/eventManager";
 
-let pongDispose: (() => void) | null = null;
-let friendsDispose: (() => void) | null = null;
-let championshipDispose: (() => void) | null = null;
+let currentDispose: (() => void) | null = null;
+let chartInstance: any | null = null;
 
 let formSubmitHandlers: (() => void)[] = []; // для всех форм
+
+
+function disposeGoogleButton() {
+  const container = document.getElementById("google-signin-button");
+  if (container) {
+    container.replaceWith(container.cloneNode(false)); // полностью клонируем пустой элемент, обнуляя все события и ссылки
+  }
+}
+
+function clearAllDisposables() {
+  if (currentDispose) {
+    currentDispose();
+    currentDispose = null;
+  }
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+  //disposeGlobalListeners();
+  disposeGoogleButton();
+  clearFormHandlers();
+  removeAllTrackedEventListeners();
+}
+
 
 function clearFormHandlers() {
   formSubmitHandlers.forEach(dispose => dispose());
   formSubmitHandlers = [];
+  const form = document.querySelector("form");
+  if (form) {
+    form.reset();
+    form.replaceWith(form.cloneNode(false)); // заново создать пустую форму без событий
+  }
 }
 
 export async function loadHomePage() {
-  clearFormHandlers();
+  clearAllDisposables();
   await fetchAndRender("dog");
 }
 
 export async function loadLoginPage() {
-  clearFormHandlers();
+  clearAllDisposables();
   await fetchAndRender("login");
   renderGoogleButton();
 
@@ -40,24 +70,26 @@ export async function loadLoginPage() {
       const password = (document.getElementById("password") as HTMLInputElement).value;
       await loginHandler(email, password);
     };
-    form.addEventListener("submit", handler);
+    trackedAddEventListener(form, "submit", handler);
+    //form.addEventListener("submit", handler);
     formSubmitHandlers.push(() => form.removeEventListener("submit", handler));
   }
 }
 
 export async function loadSignupPage() {
-  clearFormHandlers();
+  clearAllDisposables();
   await fetchAndRender("signup");
 
   const form = document.querySelector("form");
   if (form) {
-    form.addEventListener("submit", registerHandler);
+    trackedAddEventListener(form, "submit", registerHandler);
+    //form.addEventListener("submit", registerHandler);
     formSubmitHandlers.push(() => form.removeEventListener("submit", registerHandler));
   }
 }
 
 export async function load2FAPage() {
-  clearFormHandlers();
+  clearAllDisposables();
   await fetchAndRender("2fa");
 
   const form = document.querySelector("form");
@@ -68,24 +100,27 @@ export async function load2FAPage() {
       const email = UserState.getTempEmail();
       await login2FA(email, code);
     };
-    form.addEventListener("submit", handler);
+    trackedAddEventListener(form, "submit", handler);
+    //form.addEventListener("submit", handler);
     formSubmitHandlers.push(() => form.removeEventListener("submit", handler));
   }
 }
 
 export async function loadSettingsPage() {
-  clearFormHandlers();
+  clearAllDisposables();
   await fetchAndRender("settings");
 
   const avatarForm = document.querySelector("#update-avatar-form");
   if (avatarForm) {
-    avatarForm.addEventListener("submit", handleUpdateAvatar);
+    trackedAddEventListener(avatarForm, "submit", handleUpdateAvatar);
+    //avatarForm.addEventListener("submit", handleUpdateAvatar);
     formSubmitHandlers.push(() => avatarForm.removeEventListener("submit", handleUpdateAvatar));
   }
 
   const profileForm = document.querySelector("#profile-edit-form");
   if (profileForm) {
-    profileForm.addEventListener("submit", handleUpdateProfile);
+    trackedAddEventListener(profileForm, "submit", handleUpdateProfile);
+    //profileForm.addEventListener("submit", handleUpdateProfile);
     formSubmitHandlers.push(() => profileForm.removeEventListener("submit", handleUpdateProfile));
   }
 
@@ -96,7 +131,8 @@ export async function loadSettingsPage() {
       else await disable2FA();
       loadSettingsPage();
     };
-    faInput.addEventListener("change", handler);
+    trackedAddEventListener(faInput, "change", handler);
+    //faInput.addEventListener("change", handler);
     formSubmitHandlers.push(() => faInput.removeEventListener("change", handler));
   }
 
@@ -111,7 +147,12 @@ export async function loadSettingsPage() {
 }
 
 export async function loadProfilePage() {
-  clearFormHandlers();
+  clearAllDisposables();
+  if(chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+
   await fetchAndRender("profile");
   await setUpdateAvatar();
 
@@ -124,7 +165,7 @@ export async function loadProfilePage() {
   }
 
   const ctx = document.getElementById("myChart") as HTMLCanvasElement;
-  new Chart(ctx, {
+  chartInstance = new Chart(ctx, {
 	type: 'bar',
 	data: {
 	  labels: ['Game', 'Wins', 'Loss', 'Tournaments'],
@@ -153,46 +194,40 @@ export async function loadProfilePage() {
 }
 
 export async function loadPongPage() {
-  clearFormHandlers();
-  if (pongDispose) pongDispose();
-
+  clearAllDisposables();
   await fetchAndRender("pong");
-  pongDispose = await loadPongPageScript();
+  currentDispose = await loadPongPageScript();
 }
 
 
 export async function loadFriendsPage() {
-  clearFormHandlers();
-  if (friendsDispose) friendsDispose();
-
+  clearAllDisposables();
   await fetchAndRender("friends");
   await initializeFriends();
-  friendsDispose = disposeFriends;
+  currentDispose = disposeFriends;
 }
 
 export async function loadGameModePage() {
-  clearFormHandlers();
+  clearAllDisposables();
   await fetchAndRender("game-mode");
-  await initializeGameModeSelection();
+  initializeGameModeSelection();
 }
 
 export async function loadChampionshipPage() {
-  clearFormHandlers();
-  if (championshipDispose) championshipDispose();
-
+  clearAllDisposables();
   await fetchAndRender("championship");
   initializeChampionship();
-  championshipDispose = disposeChampionshipPage;
+  currentDispose = disposeChampionshipPage;
 }
 
 export async function loadUsersPage() {
-  clearFormHandlers();
+  clearAllDisposables();
   await fetchAndRender("users");
   await fetchUsers();
 }
 
 export async function loadUserProfilePage() {
-  clearFormHandlers();
+  clearAllDisposables();
   await fetchAndRender("user-profile");
   await loadUserProfileData();
 }

@@ -2,6 +2,7 @@ import { GameEvent, UserState } from './userState';
 import { showAlert } from './services/alert.service';
 import { redirectTo } from './router';
 import { TournamentState, Player } from './types/tournament.types';
+import { trackedAddEventListener } from './outils/eventManager';
 
 export let championshipGameEventHandler: ((event: GameEvent) => void) | null = null;
 let messageListener: ((event: MessageEvent) => void) | null = null;
@@ -157,8 +158,10 @@ export function initializeChampionship(): void {
         return;
     }
 
-    leaveBtn?.addEventListener('click', leaveTournament);
-    readyBtn?.addEventListener('click', toggleReady);
+    trackedAddEventListener(leaveBtn, 'click', leaveTournament);
+    trackedAddEventListener(readyBtn, 'click', toggleReady);
+    // leaveBtn?.addEventListener('click', leaveTournament);
+    // readyBtn?.addEventListener('click', toggleReady);
 
     const tournamentId = UserState.getGameMode()?.tournamentId;
     if (tournamentId) {
@@ -194,6 +197,7 @@ export function initializeChampionship(): void {
                 break;
         }
     };
+    
     gameSocket.addEventListener('message', messageListener);
 
     championshipGameEventHandler = (event: GameEvent) => {

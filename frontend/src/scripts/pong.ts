@@ -31,6 +31,8 @@ function updateScoreDisplay(): void {
   scoreDisplay.innerHTML = `${clientGameState.player1.score} : ${clientGameState.player2.score}`;
 }
 
+const assetContainers: AssetContainer[] = [];
+
 // Get essential UI elements
 function getElements() {
   return {
@@ -52,7 +54,6 @@ function createEngine(canvas: HTMLCanvasElement): Engine {
 
 // Create and animate camera
 function createCamera(scene: Scene): ArcRotateCamera {
-
 
   const { player1, player2 } = clientGameState;
 
@@ -120,6 +121,7 @@ async function loadModel(
   physicsOptions?: any
 ): Promise<Mesh> {
   const container: AssetContainer = await LoadAssetContainerAsync(url, scene);
+  assetContainers.push(container);
   container.meshes.forEach((mesh, index) => {
     console.log(`Mesh ${index} from ${url}: ${mesh.name}, vertices: ${mesh.getTotalVertices()}`);
   });
@@ -144,6 +146,7 @@ async function loadModel(
 // Create the ground (court)
 async function createGround(scene: Scene): Promise<Mesh> {
   const groundContainer = await LoadAssetContainerAsync("models/court.glb", scene);
+  assetContainers.push(groundContainer);
   const groundMesh = groundContainer.meshes[0] as Mesh;
   groundMesh.scaling = new Vector3(10.97, 1, 23.77);
   groundMesh.position = new Vector3(0, 0, 0);
@@ -274,32 +277,41 @@ export async function loadPongPageScript(): Promise< ()  => void> {
     };
   }
 
-  return () => {
-    window.removeEventListener("keydown", keyDownHandler);
-  
+
+
+  function cleanup() {
+    window.removeEventListener('beforeunload', cleanup);
+    window.removeEventListener('popstate', cleanup);
+    window.removeEventListener('keydown', keyDownHandler);
+
+    UserState.offGameEvent(handleGameEvent);
+    
+    for (const container of assetContainers) {
+      container.dispose();
+    }
+    assetContainers.length = 0;
+
     engine.stopRenderLoop();
     scene.dispose();
-  
-    if (socket) {
-      socket.onmessage = null;
-    }
-  
     engine.clearInternalTexturesCache();
-  
     engine.dispose();
-  
+
+    if (socket) socket.onmessage = null;
+
     const { canvas } = getElements();
     if (canvas && canvas.parentNode) {
-      canvas.parentNode.removeChild(canvas); // ВАЖНО!!!
+      canvas.parentNode.removeChild(canvas);
     }
-  
+
     clientGameState.gameId = 0;
     clientGameState.player1 = { ...clientGameState.player1, x: 0, y: 0, score: 0 };
     clientGameState.player2 = { ...clientGameState.player2, x: 0, y: 0, score: 0 };
     clientGameState.ball = { x: 0, y: 0, velX: 0, velY: 0 };
-    
     currentPositions.player1 = { x: 0 };
     currentPositions.player2 = { x: 0 };
     currentPositions.ball = { x: 0, z: 0 };
-  };
+  }
+
+
+  return cleanup;
 }

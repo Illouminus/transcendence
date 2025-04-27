@@ -1,6 +1,7 @@
 import { friendCard } from "../components/friendCard";
 import { requestComponent } from "../components/requestList";
 import { updateUser } from "./loaders/outils";
+import { trackedAddEventListener } from "./outils/eventManager";
 import { showAlert } from "./services/alert.service";
 import { fetchUserProfile } from "./services/user.service";
 import { UserState } from "./userState";
@@ -306,10 +307,15 @@ export const initializeFriends = async () => {
         await loadFriends();
         await loadFriendRequests();
 
-        friendsContainer?.removeEventListener('click', handleFriendCardClick);
-        friendsContainer?.addEventListener('click', handleFriendCardClick);
-        requestsContainer?.removeEventListener('click', handleFriendRequestClick);
-        requestsContainer?.addEventListener('click', handleFriendRequestClick);
+        if (friendsContainer)
+            trackedAddEventListener(friendsContainer, 'click', handleFriendCardClick);
+        if (requestsContainer)
+            trackedAddEventListener(requestsContainer, 'click', handleFriendRequestClick);
+
+        // friendsContainer?.removeEventListener('click', handleFriendCardClick);
+        // friendsContainer?.addEventListener('click', handleFriendCardClick);
+        // requestsContainer?.removeEventListener('click', handleFriendRequestClick);
+        // requestsContainer?.addEventListener('click', handleFriendRequestClick);
 
         if (!unsubscribeFriendEvent) {
             unsubscribeFriendEvent = UserState.onFriendEvent(async (event) => {

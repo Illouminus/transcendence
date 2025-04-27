@@ -3,6 +3,7 @@ import { redirectTo } from "./router";
 import { createUserRow, generateProfileContainer } from "../components/usersRow";
 import { fetchUserProfile } from "./services/user.service";
 import { showAlert } from "./services/alert.service";
+import { trackedAddEventListener } from "./outils/eventManager";
 
 
 export interface UserArray {
@@ -113,8 +114,10 @@ function attachEventListeners(): void {
         }
     };
 
+    trackedAddEventListener(usersList, 'click', usersListClickHandler);
     // Добавляем новый
-    usersList.addEventListener('click', usersListClickHandler);
+   // usersList.addEventListener('click', usersListClickHandler);
+
 }
 
 async function fetchUsers(): Promise<void> {

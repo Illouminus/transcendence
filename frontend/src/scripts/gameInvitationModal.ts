@@ -1,4 +1,5 @@
 import { FriendsList } from '../scripts/models/user.model';
+import { trackedAddEventListener } from './outils/eventManager';
 
 export function createGameInvitationModal() {
   // Приватные (в классах) поля станут обычными переменными внутри области видимости.
@@ -65,17 +66,27 @@ export function createGameInvitationModal() {
 
   // Устанавливаем обработчики (аналог метода setupEventListeners в классе)
   function setupEventListeners() {
-    closeButton.removeEventListener('click', onCloseClick);
-    closeButton.addEventListener('click', onCloseClick);
 
-    declineButton.removeEventListener('click', onDeclineClick);
-    declineButton.addEventListener('click', onDeclineClick);
+    if(closeButton)
+        trackedAddEventListener(closeButton, 'click', onCloseClick);
+    if(declineButton)
+        trackedAddEventListener(declineButton, 'click', onDeclineClick);
+    if(acceptButton)
+        trackedAddEventListener(acceptButton, 'click', onAcceptClick);
+    if(modal)
+        trackedAddEventListener(modal, 'click', onModalClick as EventListener);
 
-    acceptButton.removeEventListener('click', onAcceptClick);
-    acceptButton.addEventListener('click', onAcceptClick);
+    // closeButton.removeEventListener('click', onCloseClick);
+    // closeButton.addEventListener('click', onCloseClick);
 
-    modal.removeEventListener('click', onModalClick);
-    modal.addEventListener('click', onModalClick);
+    // declineButton.removeEventListener('click', onDeclineClick);
+    // declineButton.addEventListener('click', onDeclineClick);
+
+    // acceptButton.removeEventListener('click', onAcceptClick);
+    // acceptButton.addEventListener('click', onAcceptClick);
+
+    // modal.removeEventListener('click', onModalClick);
+    // modal.addEventListener('click', onModalClick);
   }
 
   setupEventListeners();
