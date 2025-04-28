@@ -18,6 +18,7 @@ import {
 } from '../models/tournament.model';
 import { activeTournaments } from '../state/tournament.state';
 import { DbTournamentMatch, TournamentMatch, TournamentPlayer, TournamentState } from '../@types/tournament.types';
+import { MathType } from '../@types/game.types';
 
 function toTournamentMatch(row: DbTournamentMatch): TournamentMatch {
   return {
@@ -116,7 +117,8 @@ export async function startTournament(tournamentId: number): Promise<void> {
       player_2_id: match.player2Id,
       game_type: 'tournament',
       tournament_id: tournamentId,
-      match_id: match.id
+      match_id: match.id,
+      match_type: MathType.SEMIFINAL
     });
 
     await updateMatchWithGameDB(gameId, tournamentId, match.player1Id, match.player2Id);
@@ -177,7 +179,8 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
         player_2_id: finalPlayer2,
         game_type: 'tournament',
         tournament_id: tournamentId,
-        match_id: finalMatchId
+        match_id: finalMatchId,
+        match_type: MathType.FINAL
       });
 
       state.phase = 'final';

@@ -1,5 +1,5 @@
 import { sendNotification } from '../server';
-import { BallState, GameState, PlayerState, initGameState } from '../@types/game.types';
+import { BallState, GameResult, GameState, MathType, PlayerState, initGameState } from '../@types/game.types';
 import { GameType } from '../@types/tournament.types';
 import { handleGameComplete } from './tournament.service';
 import {
@@ -26,6 +26,7 @@ interface CreateGameParams {
   game_type?: GameType;
   tournament_id?: number;
   match_id?: number;
+  match_type?: MathType;
 }
 
 export function receiveGameReady(gameId: number, userId: number): void {
@@ -36,6 +37,7 @@ export function receiveGameReady(gameId: number, userId: number): void {
 }
 
 export async function createAndStartGame(params: CreateGameParams): Promise<number> {
+
   const gameId = await insertGameDB(
     params.player_1_id,
     params.player_2_id,
@@ -43,10 +45,12 @@ export async function createAndStartGame(params: CreateGameParams): Promise<numb
     params.match_id
   );
 
-  const state = initGameState(gameId, params.player_1_id, params.player_2_id, params.game_type || 'casual');
+  const state = initGameState(gameId, params.player_1_id, params.player_2_id, params.game_type || 'casual', params.match_type!);
   state.isRunning = false;
   state.tournamentMatchId = params.match_id;
   state.gameType = params.game_type || 'casual';
+  state.matchType = params.match_type || MathType.NORMAL;
+  
 
   activeGames[gameId] = state;
   playerReady[gameId] = new Set();
@@ -57,7 +61,8 @@ export async function createAndStartGame(params: CreateGameParams): Promise<numb
 export async function createAndStartAIGame(playerId: number, difficulty: 'easy' | 'medium' | 'hard' = 'medium'): Promise<number> {
   const gameId = await insertGameDB(playerId, AI_USER_ID, 'ai');
 
-  const state = initGameState(gameId, playerId, AI_USER_ID, 'ai');
+  const state = initGameState(gameId, playerId, AI_USER_ID, 'ai', MathType.NORMAL);
+
   state.isRunning = false;
   state.aiDifficulty = difficulty;
 
@@ -82,21 +87,35 @@ export async function endGame(gameId: number, winnerId: number): Promise<void> {
 
   await updateGameResultDB(gameId, winnerId, state.player1.score, state.player2.score);
 
-  const payload = {
-    type: 'game_result',
-    game_type: meta.game_type,
-    payload: {
-      winnerId,
-      score1: state.player1.score,
-      score2: state.player2.score
-    }
-  };
+  let payload: any; 
+
+  if(meta.game_type === 'tournament') {
+    await handleGameComplete(meta.tournament_match_id!, winnerId);
+    payload = {
+      type: 'tournament_match_complete',
+      payload: {
+        gameId,
+        winnerId,
+        score1: state.player1.score,
+        score2: state.player2.score,
+        matchType: state.matchType,
+      }
+    };
+  }
+  else {
+     payload = {
+      type: 'game_result',
+      game_type: meta.game_type,
+      payload: {
+        winnerId,
+        score1: state.player1.score,
+        score2: state.player2.score
+      }
+    };
+  }
+
   sendNotification(state.player1.userId, payload);
   sendNotification(state.player2.userId, payload);
-
-  if (meta.game_type === 'tournament') {
-    await handleGameComplete(meta.tournament_match_id!, winnerId);
-  }
 
   delete activeGames[gameId];
 }

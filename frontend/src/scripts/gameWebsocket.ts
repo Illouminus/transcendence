@@ -14,6 +14,7 @@ import { showTournamentProgress } from "./tournament/tournamentProgress";
 
 let socket : WebSocket | null = null;
 let tournamentProgressModal: HTMLElement | null = null;
+let gameReadyModal: HTMLElement | null = null;
 
 export function connectGameWebSocket(token: string): WebSocket {
   
@@ -102,12 +103,9 @@ export function connectGameWebSocket(token: string): WebSocket {
               : clientGameState.player1.id;
             const opponent = currentUser?.friends?.find(f => f.friend_id === opponentId);
 
-            console.log('Game created:', data.payload.gameId);
-            console.log('Current user:', currentUser);
-            console.log('Opponent:', opponent);
             if (!currentUser || !opponent) return;
           
-            if(data.payload.isAiGame)
+            if(data.isAiGame)
                 return;
             showGameIntroWithPlayers(data.payload.gameId, {
               id: currentUser.id,
@@ -143,14 +141,7 @@ export function connectGameWebSocket(token: string): WebSocket {
           clientGameState.ball.x = data.payload.ball.x;
           clientGameState.ball.y = data.payload.ball.y;
           break;
-    
         case 'game_result':
-          if (data.game_type === 'tournament') {
-            redirectTo('/');
-            setTimeout(() => {
-              tournamentProgressModal = showTournamentProgress();
-            }, 2000);
-          } else {
             showGameOverModal({
               winnerId: data.payload.winnerId,
               score1: data.payload.score1,
@@ -164,8 +155,8 @@ export function connectGameWebSocket(token: string): WebSocket {
                 score2: data.payload.score2
               }
             });
-          }
           resetClientGameState();
+
           break;
           case 'tournament_created':
             UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
@@ -216,7 +207,7 @@ export function connectGameWebSocket(token: string): WebSocket {
               tournamentProgressModal = null;
               setTimeout(() => {
                 showTournamentProgress();
-              }, 100); // 100ms достаточно
+              }, 1000); // 100ms достаточно
             });
           } else {
             showTournamentProgress();
@@ -253,8 +244,8 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
 
         case 'tournament_match_complete':
-          // Обработка завершения матча, но не перенаправляем пользователя
-          // Ждем следующего события tournament_match_start или tournament_completed
+          console.log('Tournament match complete:', data);
+          redirectTo('/');
           break;
 
         case 'tournament_completed':

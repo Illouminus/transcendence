@@ -9,35 +9,49 @@ interface PlayerInfo {
   avatar: string;
 }
 
-export function showGameIntroWithPlayers(gameId: number, player1: PlayerInfo, player2: PlayerInfo) {
+let gameReadyModal: HTMLElement | null = null;
 
-  console.log("showGameIntroWithPlayers BETWEEN MTACHES", player1, player2);
+export function showGameIntroWithPlayers(gameId: number, player1: PlayerInfo, player2: PlayerInfo) {
+  console.log("showGameIntroWithPlayers BETWEEN MATCHES", player1, player2);
+
+
+  console.log("The old modal is", gameReadyModal);
+
+  if (gameReadyModal) {
+    console.log("Removing old game ready modal");
+    fadeOutTailwind(gameReadyModal, () => {
+      gameReadyModal?.remove();
+      gameReadyModal = null;
+    });
+  }
+
   const intro = createGameIntro({
     player1,
     player2,
     onReady: () => {
-      fadeOutTailwind(intro, () => {
-        const socket = UserState.getGameSocket();
-        const currentUser = UserState.getUser();
-        if (socket && currentUser) {
-          socket.send(JSON.stringify({
-            type: 'game_ready',
-            payload: {
-              gameId,
-              userId: currentUser.id
-            }
-          }));
-        }
-        intro.remove();
+      const socket = UserState.getGameSocket();
+      const currentUser = UserState.getUser();
+      if (socket && currentUser) {
+        socket.send(JSON.stringify({
+          type: 'game_ready',
+          payload: {
+            gameId,
+            userId: currentUser.id
+          }
+        }));
+      }
+
+      intro.remove();
+      if (gameReadyModal === intro) {
+        gameReadyModal = null;
+      }
         redirectTo('/pong');
-      });
     }
   });
 
   document.body.appendChild(intro);
+  gameReadyModal = intro;
 }
-
-
 
 // Конвертирует матч в красивую структуру
 export function mapTournamentMatchToDisplay(match: TournamentMatch): MatchPair {

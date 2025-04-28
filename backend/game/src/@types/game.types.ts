@@ -31,6 +31,7 @@ export interface GameState {
     gameType: GameType;
     tournamentMatchId?: number;
     aiDifficulty?: 'easy' | 'medium' | 'hard';
+    matchType: string;
 }
 
 export interface GameResult {
@@ -53,10 +54,17 @@ export interface GameError {
     code?: string;
 }
 
-export function initGameState(gameId: number, player1Id: number, player2Id: number, gameType: GameType): GameState {
+export enum MathType {
+    SEMIFINAL = 'semifinal',
+    FINAL = 'final',
+    NORMAL = 'normal'
+}
+
+export function initGameState(gameId: number, player1Id: number, player2Id: number, gameType: GameType, matchType: MathType): GameState {
     return {
         gameId,
         gameType: gameType || 'casual',
+        matchType: matchType,
         player1: {
             userId: player1Id,
             x: 0,

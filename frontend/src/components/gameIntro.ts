@@ -1,4 +1,5 @@
 import { trackedAddEventListener } from "../scripts/outils/eventManager";
+import { redirectTo } from "../scripts/router";
 
 interface Player {
     id: number;
@@ -96,7 +97,9 @@ export function createGameIntro({ player1, player2, onReady }: GameIntroProps): 
         </div>
     `;
     if (readyButton) {
-        trackedAddEventListener(readyButton, 'click', onReady);
+      
+        readyButton.addEventListener('click', onReady, { once: true });
+        //trackedAddEventListener(readyButton, 'click', onReady);
     }
 
     // Add elements to container
@@ -131,12 +134,7 @@ export function createGameIntro({ player1, player2, onReady }: GameIntroProps): 
 } 
 
 export function fadeOutTailwind(element: HTMLElement, callback?: () => void) {
-    element.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
-    element.classList.add('opacity-0', 'scale-95', 'transition-all', 'duration-500');
-  
-    // Ждём завершения перехода
-    element.addEventListener('transitionend', () => {
-      element.remove();
-      if (callback) callback();
-    }, { once: true });
-  }
+    element.style.pointerEvents = 'none'; // Всё равно блокируем клики
+    if (callback) callback();
+    element.remove();
+}

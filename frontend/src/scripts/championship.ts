@@ -1,8 +1,17 @@
 import { GameEvent, UserState } from './userState';
 import { showAlert } from './services/alert.service';
 import { redirectTo } from './router';
-import { TournamentState, Player } from './types/tournament.types';
+import { TournamentState } from './types/tournament.types';
 import { trackedAddEventListener } from './outils/eventManager';
+import { getFriendById } from './outils/outils';
+
+interface Player {
+    id: number;
+    username: string;
+    avatar: string;
+    ready: boolean;
+    isHost: boolean;
+}
 
 export let championshipGameEventHandler: ((event: GameEvent) => void) | null = null;
 let messageListener: ((event: MessageEvent) => void) | null = null;
@@ -36,11 +45,14 @@ function updateCurrentPlayer(): void {
     const user = UserState.getUser();
     if (!user) return;
 
+    // Получаем актуального игрока из состояния турнира
+    const playerFromState = getTournamentState().players.find(p => p.id === user.id);
+
     currentPlayer = {
         id: user.id,
         username: user.username,
         avatar: user.avatar || '/images/default_avatar.png',
-        ready: false,
+        ready: playerFromState ? playerFromState.ready : false,
         isHost: false,
     };
 
@@ -51,8 +63,13 @@ function updateCurrentPlayer(): void {
 
     if (avatar) avatar.src = "http://localhost:8080/user" + currentPlayer.avatar;
     if (name) name.textContent = currentPlayer.username;
-    if (ready) ready.textContent = 'Not Ready';
-    if (status) status.className = `absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-800 bg-yellow-500`;
+    if (ready) {
+        ready.textContent = currentPlayer.ready ? 'Ready' : 'Not Ready';
+        ready.className = `px-3 py-1 rounded-full text-sm font-medium ${currentPlayer.ready ? 'bg-green-500' : 'bg-yellow-500'} text-gray-900`;
+    }
+    if (status) {
+        status.className = `absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-800 ${currentPlayer.ready ? 'bg-green-500' : 'bg-yellow-500'}`;
+    }
 }
 
 function updatePlayersList(): void {
@@ -62,25 +79,34 @@ function updatePlayersList(): void {
 
     playersList.innerHTML = '';
     const players = getTournamentState().players;
-    for (const player of players) {
+    
+    // Фильтруем текущего игрока из списка
+    const otherPlayers = players.filter(p => p.id !== currentPlayer?.id);
+    
+    for (const player of otherPlayers) {
+        const playerInfo = getFriendById(player.id);
+        if (!playerInfo) continue;
+
         const card = template.content.cloneNode(true) as DocumentFragment;
         const img = card.querySelector('img');
         const name = card.querySelector('h3');
         const status = card.querySelector('.player-status');
         const indicator = card.querySelector('.status-indicator');
 
-        if (img) img.src = player.avatar;
-        if (name) name.textContent = player.username;
+        if (img) img.src =  'http://localhost:8080/user' + playerInfo.friend_avatar || '/images/default_avatar.png';
+        if (name) name.textContent = playerInfo.friend_username || "Anonymous";
         if (status) status.textContent = player.ready ? 'Ready' : 'Not Ready';
-        if (indicator) indicator.classList.add(player.ready ? 'bg-green-500' : 'bg-yellow-500');
-
+        if (indicator) {
+            indicator.classList.remove('bg-green-500', 'bg-yellow-500');
+            indicator.classList.add(player.ready ? 'bg-green-500' : 'bg-yellow-500');
+        }
         playersList.appendChild(card);
     }
 }
 
 function updatePlayersCount(): void {
     const count = document.getElementById('players-count');
-    const totalPlayers = getTournamentState().players.length + (currentPlayer ? 1 : 0);
+    const totalPlayers = getTournamentState().players.length;
     if (count) count.textContent = `${totalPlayers}/4`;
 }
 
@@ -112,8 +138,6 @@ function updateUI(): void {
 
 function toggleReady(): void {
     const tournamentId = getTournamentState().tournamentId;
-
-    console.log('Toggle ready', tournamentId);
     if (!currentPlayer || !gameSocket || !tournamentId) return;
 
     const newReady = !currentPlayer.ready;
@@ -124,7 +148,12 @@ function toggleReady(): void {
 
     currentPlayer.ready = newReady;
     updateCurrentPlayer();
-    updateTournamentStatus();
+    
+    // Отключаем кнопки после нажатия
+    const readyBtn = document.getElementById('ready-btn') as HTMLButtonElement;
+    const leaveBtn = document.getElementById('leave-btn') as HTMLButtonElement;
+    if (readyBtn) readyBtn.disabled = true;
+    if (leaveBtn) leaveBtn.disabled = true;
 }
 
 function leaveTournament(): void {
@@ -134,6 +163,12 @@ function leaveTournament(): void {
             type: 'leave_tournament',
             payload: { tournamentId }
         }));
+        
+        // Отключаем кнопки после нажатия
+        const readyBtn = document.getElementById('ready-btn') as HTMLButtonElement;
+        const leaveBtn = document.getElementById('leave-btn') as HTMLButtonElement;
+        if (readyBtn) readyBtn.disabled = true;
+        if (leaveBtn) leaveBtn.disabled = true;
     }
     redirectTo('/');
 }
