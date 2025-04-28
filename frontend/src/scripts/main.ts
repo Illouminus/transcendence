@@ -45,6 +45,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 				UserState.updateUser(user);
 			UserState.setUser(user);
 			ChatState.fetchMessagesForUser(user.id);
+			setTimeout(() => {chat()}, 1000);
+
 		}
 		else
 		{
@@ -53,7 +55,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 		}
 	}
 	
-	chat();
 	await setupUI();
 	handleRouting();
 });
