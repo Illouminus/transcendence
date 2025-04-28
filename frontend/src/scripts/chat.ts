@@ -287,11 +287,13 @@ type Friend = {
 
 // Fonction d'initialisation du chat
 export function chat(): void {
+    console.log('Chat - Initialisation');
     const { me } = getUserData();
     const friends = me?.friends;
 
     // Gestion de l'affichage du chat menu (ouverture/fermeture)
     const chatButton = document.getElementById('chatButton');
+    console.log('Chat Button',  chatButton);
     const closeChatButton = document.getElementById('closeChat');
     
     chatButton?.addEventListener('click', () => toggleChatMenu(true));

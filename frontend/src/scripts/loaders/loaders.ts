@@ -102,7 +102,6 @@ export async function loadSettingsPage() {
 
 
 export async function fetchStat() {
-    console.log("Fetching stats");
     try {
         const token = localStorage.getItem('token'); // ou autre méthode pour récupérer le token
         const response = await fetch(`http://localhost:8080/game/gameStats`, {
@@ -123,7 +122,6 @@ export async function fetchStat() {
 
 
 export async function fetchGames() {
-    console.log("Fetching stats");
     try {
         const token = localStorage.getItem('token'); // ou autre méthode pour récupérer le token
         const response = await fetch(`http://localhost:8080/game/userGames`, {
