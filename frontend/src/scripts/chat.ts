@@ -277,25 +277,24 @@ export function chat(): void {
     const { me } = getUserData();
     const friends = me?.friends;
 
-    // Gestion de l'affichage du chat menu (ouverture/fermeture)
+    // Éléments du DOM
     const chatButton = document.getElementById('chatButton');
     const closeChatButton = document.getElementById('closeChat');
-    // Remplit le menu des utilisateurs
-    const friendsListContainer = document.getElementById("chat-friends-list");
+       const friendsListContainer = document.getElementById("chat-friends-list");
 
     if (!chatButton || !closeChatButton || !friendsListContainer) {
         console.error("Éléments du DOM manquants pour initialiser le chat.");
         return;
     }
 
-    console.log("Initialisation des événements du chat...");
+    // Ajout des événements sur les boutons
     chatButton?.addEventListener('click', () => toggleChatMenu(true));
     chatButton?.classList.remove('hidden');
     closeChatButton?.addEventListener('click', () => {
         toggleChatMenu(false);
     });
 
-
+    
     friends?.forEach((friend) => {
         if (friend.friend_id !== UserState.getUser()?.id) {
             const userRow = createChatUserRow(friend);

@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 			if(UserState.getUser() === null)
 				UserState.updateUser(user);
 			UserState.setUser(user);
-			ChatState.fetchMessagesForUser(user.id);
+			await ChatState.fetchMessagesForUser(user.id);
 			chat();
 		}
 		else

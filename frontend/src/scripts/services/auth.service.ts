@@ -174,6 +174,12 @@ export async function registerHandler(e: Event): Promise<void> {
 	const email = (document.getElementById("email") as HTMLInputElement).value;
 	const password = (document.getElementById("password") as HTMLInputElement).value;
 
+	// Validation du mot de passe
+	if (!isPasswordValid(password)) {
+		showAlert("Le mot de passe doit contenir au moins 7 caractères, une majuscule et une minuscule.", "danger");
+		(document.getElementById("password") as HTMLInputElement).focus();
+		return; // Arrête l'exécution si le mot de passe est invalide
+	}
 
 	const formData = new FormData();
 	formData.append("username", username);
@@ -192,16 +198,26 @@ export async function registerHandler(e: Event): Promise<void> {
 		}
 		const data = await res.json();
 		console.log("Registration response:", data);
-		if (data.message === "User registered!")
+		if (data.message === "User registered!") {
 			showAlert("Registration successful", "success");
-		else
+		} else {
 			showAlert("Registration failed: " + data.error, "danger");
+		}
 		await setupUI();
 		redirectTo("/login");
 	} catch (error: any) {
 		showAlert("Registration error: " + error.message, "danger");
 	}
 }
+
+function isPasswordValid(password: string): boolean {
+	const minLength = 7;
+	const hasUpperCase = /[A-Z]/.test(password);
+	const hasLowerCase = /[a-z]/.test(password);
+
+	return password.length >= minLength && hasUpperCase && hasLowerCase;
+}
+
 
 
 
