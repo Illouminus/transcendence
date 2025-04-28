@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 			UserState.setAllUsers(allUsers);
 	
 		if (user) {
+			console.log("gougoug gaga");
 			if(UserState.getUser() === null)
 				UserState.updateUser(user);
 			UserState.setUser(user);

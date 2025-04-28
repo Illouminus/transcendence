@@ -74,19 +74,6 @@ async function sendMessage(meId: number, himID: number, messageText: string): Pr
             }));
         }
 
-        // Ajout du message a l'Array pour le sauvegarder après
-        // const newMessage: ChatArray = {
-        //     id: Date.now(), // Identifiant unique temporaire
-        //     fromUserId: meId,
-        //     toUserId: himID,
-        //     content: messageText,
-        //     sent_at: timestamp,
-        // };
-
-        // // Ajouter le message au tableau local
-        // ChatState.addPendingMessage(newMessage);
-
-        // console.log(meId ,himID); 
         displayMessage(meUsername, himUsername, meId, messageText, timestamp);
     } catch (error) {
         console.error("Erreur d'envoi du message :", error);
@@ -287,22 +274,28 @@ type Friend = {
 
 // Fonction d'initialisation du chat
 export function chat(): void {
-    console.log('Chat - Initialisation');
     const { me } = getUserData();
     const friends = me?.friends;
 
     // Gestion de l'affichage du chat menu (ouverture/fermeture)
     const chatButton = document.getElementById('chatButton');
-    console.log('Chat Button',  chatButton);
     const closeChatButton = document.getElementById('closeChat');
-    
+    // Remplit le menu des utilisateurs
+    const friendsListContainer = document.getElementById("chat-friends-list");
+
+    if (!chatButton || !closeChatButton || !friendsListContainer) {
+        console.error("Éléments du DOM manquants pour initialiser le chat.");
+        return;
+    }
+
+    console.log("Initialisation des événements du chat...");
     chatButton?.addEventListener('click', () => toggleChatMenu(true));
+    chatButton?.classList.remove('hidden');
     closeChatButton?.addEventListener('click', () => {
         toggleChatMenu(false);
     });
 
-    // Remplit le menu des utilisateurs
-    const friendsListContainer = document.getElementById("chat-friends-list");
+
     friends?.forEach((friend) => {
         if (friend.friend_id !== UserState.getUser()?.id) {
             const userRow = createChatUserRow(friend);

@@ -113,7 +113,6 @@ export async function fetchStat() {
 		if (!response.ok) throw new Error("Erreur lors de la récupération des stats");
 
 		const stats = await response.json();
-		console.log(stats);
 		return (stats);
     } catch (error) {
         console.error('Error fetching game statistics:', error);
@@ -133,7 +132,6 @@ export async function fetchGames() {
 		if (!response.ok) throw new Error("Erreur lors de la récupération des games");
 
 		const games = await response.json();
-		console.log(games);
 		return (games);
     } catch (error) {
         console.error('Error fetching games history:', error);
