@@ -244,20 +244,32 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
   if (match.matchType === 'final') {
     const { player1Id, player2Id } = match;
     const loserId = player1Id === winnerId ? player2Id : player1Id;
+  
+    // Получаем всех участников турнира
+    const players = await getTournamentPlayers(tournamentId); // [ { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 } ]
+  
+    // Убираем из массива тех, кто победил или проиграл в финале => остаются полуфиналисты
+    const thirdAndFourth = players.filter(p => p.user_id !== winnerId && p.user_id!== loserId);
+  
+    const podium = [
+      { userId: winnerId, place: 1 },
+      { userId: loserId, place: 2 },
+      { userId: thirdAndFourth[0]?.user_id ?? 0, place: 3 },
+      { userId: thirdAndFourth[1]?.user_id ?? 0, place: 4 }
+    ];
+  
 
-    for (const userId of [winnerId, loserId]) {
-      sendNotification(userId, {
+    console.log('Tournament completed: ', podium);
+    // Рассылаем всем 4 участникам уведомление
+    for (const player of players) {
+      sendNotification(player.user_id, {
         type: 'tournament_completed',
         payload: {
-          podium: [
-            { userId: winnerId, place: 1 },
-            { userId: loserId, place: 2 }
-          ]
+          podium
         }
       });
     }
-
+  
     state.phase = 'completed';
-    // Не делаем broadcastTournamentState — оно бесполезно после завершения!
   }
 }

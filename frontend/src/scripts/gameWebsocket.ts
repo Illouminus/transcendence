@@ -11,6 +11,8 @@ import { showGameOverModal } from "./endGame";
 import { createGameIntro, fadeOutTailwind } from "../components/gameIntro";
 import { showGameIntroWithPlayers } from "./outils/showGameIntroWithPlayer";
 import { showTournamentProgress } from "./tournament/tournamentProgress";
+import { renderPodium } from "./components/podium";
+import { removeEliminationWait, renderEliminationWait } from "./components/eliminationWait";
 
 let socket : WebSocket | null = null;
 let tournamentProgressModal: HTMLElement | null = null;
@@ -244,19 +246,24 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
 
         case 'tournament_match_complete':
-          console.log('Tournament match complete:', data);
           redirectTo('/');
+          renderEliminationWait({ ...data.payload, gameId: Number(data.payload.gameId) });
           break;
 
         case 'tournament_completed':
-          UserState.notifyGameEvent({
-            type: 'tournament_completed',
-            tournamentResult: {
-              place: data.payload.podium.find(p => p.userId === UserState.getUser()?.id)?.place || 0,
-              podium: data.payload.podium
-            }
-          });
-          redirectTo('/');
+          // UserState.notifyGameEvent({
+          //   type: 'tournament_completed',
+          //   tournamentResult: {
+          //     place: data.payload.podium.find(p => p.userId === UserState.getUser()?.id)?.place || 0,
+          //     podium: data.payload.podium
+          //   }
+          // });
+          removeEliminationWait();
+          renderPodium(data.payload.podium);
+          setTimeout(() => {
+            redirectTo('/');
+          }, 1000);
+          
           break;
       }
     };

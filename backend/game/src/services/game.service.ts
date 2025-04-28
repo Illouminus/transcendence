@@ -89,18 +89,23 @@ export async function endGame(gameId: number, winnerId: number): Promise<void> {
 
   let payload: any; 
 
-  if(meta.game_type === 'tournament') {
+  if(meta.game_type === 'tournament' ) {
     await handleGameComplete(meta.tournament_match_id!, winnerId);
-    payload = {
-      type: 'tournament_match_complete',
-      payload: {
-        gameId,
-        winnerId,
-        score1: state.player1.score,
-        score2: state.player2.score,
-        matchType: state.matchType,
-      }
-    };
+
+    if(state.matchType !== MathType.FINAL) {
+      payload = {
+        type: 'tournament_match_complete',
+        payload: {
+          gameId,
+          winnerId,
+          score1: state.player1.score,
+          score2: state.player2.score,
+          matchType: state.matchType,
+        }
+      };
+      sendNotification(state.player1.userId, payload);
+      sendNotification(state.player2.userId, payload);
+    }
   }
   else {
      payload = {
