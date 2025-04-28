@@ -310,20 +310,20 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
                 startButton.disabled = true;
                 startButton.classList.add('bg-gray-600', 'cursor-not-allowed');
 
-                // Wait for game creation confirmation
-                await new Promise<void>((resolve) => {
-                    const listener = (event: MessageEvent) => {
-                        const data = JSON.parse(event.data);
-                        if (data.type === 'game_created') {
-                            gameSocket.removeEventListener('message', listener);
-                            resolve();
-                        }
-                    };
-                    gameSocket.addEventListener('message', listener);
-                });
+                // // Wait for game creation confirmation
+                // await new Promise<void>((resolve) => {
+                //     const listener = (event: MessageEvent) => {
+                //         const data = JSON.parse(event.data);
+                //         if (data.type === 'game_created') {
+                //             gameSocket.removeEventListener('message', listener);
+                //             resolve();
+                //         }
+                //     };
+                //     gameSocket.addEventListener('message', listener);
+                // });
 
-                // Redirect to game
-                redirectTo('/pong');
+                // // Redirect to game
+                // redirectTo('/pong');
             } catch (error) {
                 console.error('Error starting AI game:', error);
                 showAlert('Failed to start game', 'danger');

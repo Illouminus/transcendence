@@ -107,7 +107,7 @@ export type GameWebSocketMessage =
 | { type: 'game_invitation_rejected'; payload: GameInvitationRejectedPayload }
 | { type: 'game_started'; payload: GameStartedPayload }
 | { type: 'game_error'; payload: GameErrorPayload }
-| { type: 'game_created'; payload: { gameId: number, isPlayer1: boolean;} }
+| { type: 'game_created'; isAiGame?: boolean,  payload: { gameId: number, isPlayer1: boolean; } }
 | { type: 'game_update'; payload: GameUpdatePayload }
 | { type: 'game_countdown'; payload: GameCountdownPayload }
 | { type: 'game_result'; game_type: string, payload: GameResultPayload }

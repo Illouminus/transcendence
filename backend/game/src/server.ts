@@ -74,7 +74,8 @@ server.register(async function (fastify: FastifyInstance) {
 					const gameId = await createAndStartAIGame(userId, data.payload.difficulty);
 					connection.send(JSON.stringify({
 						type: 'game_created',
-						payload: { gameId }
+						payload: { gameId },
+						isAiGame: true
 					}));
 					break;
 				case 'game_invite': 

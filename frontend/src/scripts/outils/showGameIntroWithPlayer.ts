@@ -28,6 +28,7 @@ export function showGameIntroWithPlayers(gameId: number, player1: PlayerInfo, pl
             }
           }));
         }
+        intro.remove();
         redirectTo('/pong');
       });
     }

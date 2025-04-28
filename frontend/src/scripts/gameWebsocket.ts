@@ -77,15 +77,38 @@ export function connectGameWebSocket(token: string): WebSocket {
           });
           break;
 
-
           case 'game_created': 
+          console.log('Game created:', data);
             const currentUser = UserState.getUser();
+            if (!currentUser) return;
+            if (data.isAiGame) {
+              console.log('AI game created:', data.payload.gameId);
+              resetClientGameState(); // Только для AI обнуляем стейт сразу
+              clientGameState.player1.id = 0;
+              clientGameState.player2.id = currentUser.id;
+              clientGameState.player1.score = 0;
+              clientGameState.player2.score = 0;
+              clientGameState.ball.x = 0;
+              clientGameState.ball.y = 0;
+              clientGameState.gameId = data.payload.gameId;
+              redirectTo('/pong');
+              return;
+            }
+            
+
+
             const opponentId = clientGameState.player1.id === currentUser?.id
               ? clientGameState.player2.id
               : clientGameState.player1.id;
             const opponent = currentUser?.friends?.find(f => f.friend_id === opponentId);
+
+            console.log('Game created:', data.payload.gameId);
+            console.log('Current user:', currentUser);
+            console.log('Opponent:', opponent);
             if (!currentUser || !opponent) return;
           
+            if(data.payload.isAiGame)
+                return;
             showGameIntroWithPlayers(data.payload.gameId, {
               id: currentUser.id,
               username: currentUser.username,
@@ -142,7 +165,7 @@ export function connectGameWebSocket(token: string): WebSocket {
               }
             });
           }
-
+          resetClientGameState();
           break;
           case 'tournament_created':
             UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
@@ -251,4 +274,11 @@ export function connectGameWebSocket(token: string): WebSocket {
   
 export function getWebSocket(): WebSocket | null {
   return socket;
+}
+
+function resetClientGameState() {
+  clientGameState.gameId = 0;
+  clientGameState.player1 = { id: 0, x: 0, y: 0, score: 0 };
+  clientGameState.player2 = { id: 0, x: 0, y: 0, score: 0 };
+  clientGameState.ball = { x: 0, y: 0, velX: 0, velY: 0 };
 }
