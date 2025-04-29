@@ -78,19 +78,3 @@ export function removeEliminationWait() {
   }
 }
 
-// For best effect, add to tailwind.config.js:
-// animation: {
-//   ...
-//   'spin-slow': 'spin 2.5s linear infinite',
-//   'dot-bounce1': 'dotBounce 1.2s infinite 0s',
-//   'dot-bounce2': 'dotBounce 1.2s infinite 0.2s',
-//   'dot-bounce3': 'dotBounce 1.2s infinite 0.4s',
-//   'pulse-slow': 'pulse 2.5s infinite',
-// },
-// keyframes: {
-//   ...
-//   dotBounce: {
-//     '0%, 80%, 100%': { transform: 'translateY(0)', opacity: 0.3 },
-//     '40%': { transform: 'translateY(-10px)', opacity: 1 },
-//   },
-// } 

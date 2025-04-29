@@ -54,9 +54,11 @@ async function initializeApp() {
 
             UserState.setUserSocket(connectUserWebSocket(token));
             UserState.setGameSocket(connectGameWebSocket(token));
+            await setupUI();
         } else {
             UserState.logout();
             localStorage.removeItem("token");
+            await setupUI();
         }
     }
 
@@ -67,5 +69,3 @@ async function initializeApp() {
 
 document.addEventListener("DOMContentLoaded", initializeApp);
 
-// === Если нужно будет очистить слушатели, можно вызвать ===
-// disposeGlobalListeners();

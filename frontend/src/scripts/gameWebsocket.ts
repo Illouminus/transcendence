@@ -251,13 +251,6 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
 
         case 'tournament_completed':
-          // UserState.notifyGameEvent({
-          //   type: 'tournament_completed',
-          //   tournamentResult: {
-          //     place: data.payload.podium.find(p => p.userId === UserState.getUser()?.id)?.place || 0,
-          //     podium: data.payload.podium
-          //   }
-          // });
           removeEliminationWait();
           renderPodium(data.payload.podium);
           setTimeout(() => {
