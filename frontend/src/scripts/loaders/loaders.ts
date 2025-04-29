@@ -246,12 +246,25 @@ export async function loadProfilePage() {
     }
 	else {
 		games.forEach((game: any) => {
-			const opponent = user?.friends?.find(friend => friend.friend_id === game.player2_id);
+			console.log(game);
+			console.log(user);
+		
+			// Déterminer qui est l'opponent
+			const isPlayer1 = user?.id === game.player1_id;
+			const opponentId = isPlayer1 ? game.player2_id : game.player1_id;
+		
+			const opponent = user?.friends?.find(friend => friend.friend_id === opponentId);
+		
+			// Définir les scores selon le joueur actuel
+			const playerScore = isPlayer1 ? game.score_player1 : game.score_player2;
+			const opponentScore = isPlayer1 ? game.score_player2 : game.score_player1;
+		
+			// Créer la ligne du jeu avec les informations correctement ordonnées
 			createGameRow(
 				{ username: user?.username ?? 'inconnu', avatar: user?.avatar || "" },
 				{ username: opponent?.friend_username ?? 'inconnu', avatar: opponent?.friend_avatar || "" },
-				game.score_player1,
-				game.score_player2,
+				playerScore,
+				opponentScore,
 				formatDate(game.started_at)
 			);
 		});
