@@ -9,22 +9,42 @@ import { sendNotification } from "../server";
 import { getErrorMessage, getErrorStatusCode, logError } from "../utils/errorHandler";
 
 // Récupérer les messages entre deux utilisateurs
-export async function getMessagesController(req: FastifyRequest<{ Params: { user1: string, user2: string } }>, reply: FastifyReply) {
+export async function getMessagesController(req: FastifyRequest<{ Params: { user1: string } }>, reply: FastifyReply) {
   try {
-    const { user1, user2 } = req.params;
+    const { user1 } = req.params;
     // Vérification que les paramètres sont bien convertis en number
     const user1Id = parseInt(user1);
-    const user2Id = parseInt(user2);
     
-    if (isNaN(user1Id) || isNaN(user2Id)) {
+    if (isNaN(user1Id)) {
       return reply.status(400).send({ error: "Invalid user IDs" });
     }
 
-    const messages = await getMessagesService(user1Id, user2Id);
+    const messages = await getMessagesService(user1Id);
     return messages;
   } catch (error) {
     logError(error, "getMessagesController");
     return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });
+  }
+}
+
+export async function sendSingleMessage(
+  sender_id: number,
+  receiver_id: number,
+  content: string
+) {
+  try {
+    console.log("Message to send:", { sender_id, receiver_id, content });
+
+    if (!sender_id || !receiver_id || !content) {
+      throw new Error("All fields (sender_id, receiver_id, content) are required.");
+    }
+
+    const savedMessage = await sendMessageService(sender_id, receiver_id, content);
+    console.log("Message saved successfully:", savedMessage);
+    return savedMessage;
+  } catch (error) {
+    logError(error, "sendSingleMessage");
+    throw error;
   }
 }
 

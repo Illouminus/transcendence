@@ -8,9 +8,11 @@ import config from "./config";
 import { connectRabbit } from "./rabbit/rabbit";
 import { WebSocket } from "ws";
 import { JwtPayload } from "./@types/chat.types";
+import { sendSingleMessage } from './controllers/chat.controller'
 
 // Importation de la base de données
 import "./database";
+import { stringify } from "querystring";
 
 // Connexion à RabbitMQ
 connectRabbit();
@@ -64,13 +66,19 @@ server.register(async function (fastify: FastifyInstance) {
 				// Vérification du type de message
 				if (data.type == "chat_send") {
 					console.log('Message envoyé:', data.payload);
+					sendSingleMessage(
+						data.payload.fromUserId, 
+						data.payload.toUserId, 
+						data.payload.text)
+						
 					sendNotification(data.payload.toUserId, {
 						type: "chat_receive",
 						payload: { 
 							username: data.payload.username,
 							fromUserId: data.payload.fromUserId, 
 							toUserId: data.payload.toUserId, 
-							text: data.payload.text},
+							text: data.payload.text,
+							sent_at: data.payload.sent_at},
 					});
 				}
 			});

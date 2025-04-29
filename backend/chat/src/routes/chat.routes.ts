@@ -6,7 +6,7 @@ import { getMessagesController,
 } from "../controllers/chat.controller";
 
 export default async function chatRoutes(fastify: FastifyInstance) {
-  fastify.get("/messages/:user1/:user2", getMessagesController);
+  fastify.get("/messages/:user1/", getMessagesController);
   fastify.post("/messages", sendMessagesController);
   fastify.get("/conversations/:userId", getConversationsController);
   fastify.delete("/messages/:id", deleteMessageController);

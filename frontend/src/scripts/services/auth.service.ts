@@ -174,6 +174,24 @@ export async function registerHandler(e: Event): Promise<void> {
 	const email = (document.getElementById("email") as HTMLInputElement).value;
 	const password = (document.getElementById("password") as HTMLInputElement).value;
 
+	// Validation des entrées utilisateur
+	if (!isUsernameValid(username)) {
+		showAlert("Le nom d'utilisateur ne doit contenir que des lettres, des chiffres, et des underscores, et être compris entre 3 et 20 caractères.", "danger");
+		(document.getElementById("username") as HTMLInputElement).focus();
+		return; // Arrête l'exécution si le nom d'utilisateur est invalide
+	}
+
+	if (!isEmailValid(email)) {
+		showAlert("Veuillez entrer une adresse email valide.", "danger");
+		(document.getElementById("email") as HTMLInputElement).focus();
+		return; // Arrête l'exécution si l'email est invalide
+	}
+
+	if (!isPasswordValid(password)) {
+		showAlert("Le mot de passe doit contenir au moins 7 caractères, une majuscule et une minuscule.", "danger");
+		(document.getElementById("password") as HTMLInputElement).focus();
+		return; // Arrête l'exécution si le mot de passe est invalide
+	}
 
 	const formData = new FormData();
 	formData.append("username", username);
@@ -192,10 +210,11 @@ export async function registerHandler(e: Event): Promise<void> {
 		}
 		const data = await res.json();
 		console.log("Registration response:", data);
-		if (data.message === "User registered!")
+		if (data.message === "User registered!") {
 			showAlert("Registration successful", "success");
-		else
+		} else {
 			showAlert("Registration failed: " + data.error, "danger");
+		}
 		await setupUI();
 		redirectTo("/login");
 	} catch (error: any) {
@@ -203,6 +222,24 @@ export async function registerHandler(e: Event): Promise<void> {
 	}
 }
 
+// Fonction de validation du mot de passe
+function isPasswordValid(password: string): boolean {
+	const minLength = 7;
+	const hasUpperCase = /[A-Z]/.test(password);
+	const hasLowerCase = /[a-z]/.test(password);
+	return password.length >= minLength && hasUpperCase && hasLowerCase;
+}
 
+// Fonction de validation de l'email
+function isEmailValid(email: string): boolean {
+	// Utilise une regex pour vérifier la validité de l'email
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	return emailRegex.test(email);
+}
 
-
+// Fonction de validation du nom d'utilisateur
+function isUsernameValid(username: string): boolean {
+	// Le nom d'utilisateur doit avoir entre 3 et 20 caractères, et contenir uniquement lettres, chiffres, et underscores
+	const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+	return usernameRegex.test(username);
+}

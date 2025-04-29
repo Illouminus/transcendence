@@ -90,7 +90,7 @@ export async function loadSettingsPage() {
 		faInput.checked = false;
 	}
 
-	
+
 	await setUpdateAvatar();
 	if (username)
 		username.innerHTML = user?.username ?? "";
@@ -99,11 +99,105 @@ export async function loadSettingsPage() {
 	if (email)
 		email.value = user?.email ?? "";
 }
-  
 
+
+export async function fetchStat() {
+    try {
+        const token = localStorage.getItem('token'); // ou autre méthode pour récupérer le token
+        const response = await fetch(`http://localhost:8080/game/gameStats`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+		if (!response.ok) throw new Error("Erreur lors de la récupération des stats");
+
+		const stats = await response.json();
+		return (stats);
+    } catch (error) {
+        console.error('Error fetching game statistics:', error);
+    }
+}
+
+
+export async function fetchGames() {
+    try {
+        const token = localStorage.getItem('token'); // ou autre méthode pour récupérer le token
+        const response = await fetch(`http://localhost:8080/game/userGames`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+		if (!response.ok) throw new Error("Erreur lors de la récupération des games");
+
+		const games = await response.json();
+		return (games);
+    } catch (error) {
+        console.error('Error fetching games history:', error);
+    }
+}
+
+export function createGameRow(player1: { username: string, avatar: string }, player2: { username: string, avatar: string }, score1: number, score2: number, date: string) {
+    const gamesList = document.getElementById('gamesList');
+    if (!gamesList) return;
+
+    const gameRow = document.createElement('div');
+    gameRow.className = 'flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-3 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-600 hover:shadow-md';
+    gameRow.innerHTML = `
+        <div class="flex items-center space-x-4 w-full">
+            <!-- Player 1 -->
+            <div class="flex items-center space-x-2 flex-1">
+                <div class="relative group">
+                    <img src="http://localhost:8080/user${player1.avatar}" alt="${player1.username}" 
+                         class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
+                </div>
+                <span class="text-gray-900 dark:text-white font-medium">${player1.username}</span>
+            </div>
+            
+            <!-- Score -->
+            <div class="flex items-center space-x-2 bg-gray-200 dark:bg-gray-800 px-4 py-2 rounded-lg">
+                <span class="text-2xl font-bold ${score1 > score2 ? 'text-green-500' : 'text-gray-500'}">${score1}</span>
+                <span class="text-gray-500 dark:text-gray-400">-</span>
+                <span class="text-2xl font-bold ${score2 > score1 ? 'text-green-500' : 'text-gray-500'}">${score2}</span>
+            </div>
+            
+            <!-- Player 2 -->
+            <div class="flex items-center space-x-2 flex-1 justify-end">
+                <span class="text-gray-900 dark:text-white font-medium">${player2.username}</span>
+                <div class="relative group">
+                    <img src="http://localhost:8080/user${player2.avatar}" alt="${player2.username}" 
+                         class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
+                </div>
+            </div>
+        </div>
+        <!-- Date -->
+        <div class="text-sm text-gray-500 dark:text-gray-400 ml-4 whitespace-nowrap">
+            ${date}
+        </div>
+    `;
+
+    gamesList.appendChild(gameRow);
+}
+
+function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+        return "Aujourd'hui";
+    } else if (diffDays === 1) {
+        return "Hier";
+    } else {
+        return `Il y a ${diffDays} jours`;
+    }
+}
 
 export async function loadProfilePage() {
 	await fetchAndRender("profile");
+
 	const ctx = document.getElementById('myChart');
 
 	const statusSpan = document.getElementById('verification-status') as HTMLSpanElement;
@@ -139,6 +233,29 @@ export async function loadProfilePage() {
 
 	await setUpdateAvatar();
 
+	const stats = await fetchStat(); // Récupérer les stats
+    if (!stats) {
+        console.error("Les statistiques n'ont pas pu être récupérées.");
+        return;
+    }
+
+	const games = await fetchGames(); // Récupérer les games
+    if (!games) {
+        console.error("Les statistiques n'ont pas pu être récupérées.");
+        return;
+    }
+	else {
+		games.forEach((game: any) => {
+			const opponent = user?.friends?.find(friend => friend.friend_id === game.player2_id);
+			createGameRow(
+				{ username: user?.username ?? 'inconnu', avatar: user?.avatar || "" },
+				{ username: opponent?.friend_username ?? 'inconnu', avatar: opponent?.friend_avatar || "" },
+				game.score_player1,
+				game.score_player2,
+				formatDate(game.started_at)
+			);
+		});
+	}
 
 	new Chart(ctx, {
 		type: 'bar',
@@ -146,7 +263,12 @@ export async function loadProfilePage() {
 		  labels: ['Game', 'Wins', 'Loss', 'Tournaments'],
 		  datasets: [{
 			label: 'Statistiques',
-			data: [8, 2, 16, 5],
+			data: [
+                stats.totalGamesPlayed, // 8
+                stats.totalWins,        // 2
+                stats.totalLosses,      // 16
+                stats.totalTournamentsPlayed // 5
+            ],
 			borderWidth: 2,
 			backgroundColor: [
 				'rgba(255, 99, 132, 0.2)',
@@ -156,7 +278,6 @@ export async function loadProfilePage() {
 			  ],
 			  borderRadius: 8,
 		  }],
-
 		},
 		options: {
 		  scales: {

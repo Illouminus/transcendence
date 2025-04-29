@@ -12,42 +12,59 @@
 
 <body class="bg-stone-900">
 	<!-- Chat SECTION -->
-	<button id="chatButton" style="position: absolute; right: 2%; bottom: 2%;" class="z-400 p-2 text-gray-900 rounded-xl dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+	<button id="chatButton" style="position: absolute; right: 2%; bottom: 2%;" class="hidden z-400 p-3 text-gray-900 rounded-full dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl">
 		<svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
 			<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
 		</svg>
 	</button>
 
-	<div id="chatMenu" class=" hidden flex h-100 flex-col w-200 absolute bottom-5 right-10 z-400 p-5 rounded-md text-center" style="background-color: rgba(0, 0, 0, 0.9); color: white;">
-        <div class="flex justify-between items-center mb-4">
-            <h1 id="chatTitle">CHAT</h1>
-            <button id="closeChat" class="text-white hover:text-gray-300">
-                <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-            <button id="goBack" class="hidden text-white hover:text-gray-300">
-				<svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-					<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-				</svg>
-            </button>
-        </div>
-		<div class="flex w-full flex-col grow items-end justify-start overflow-hidden">
+	<div id="chatMenu" class="hidden flex h-[600px] flex-col w-[400px] absolute bottom-5 right-10 z-400 rounded-xl shadow-2xl transition-all duration-300" style="background-color: rgba(17, 24, 39, 0.95); color: white;">
+		<div class="flex justify-between items-center p-4 border-b border-gray-700">
+			<h1 id="chatTitle" class="text-xl font-semibold hover:text-blue-400 transition-colors duration-200 cursor-pointer">CHAT</h1>
+			<div class="flex space-x-2">
+				<button id="goBack" class="hidden p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition-colors duration-200">
+					<svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+						<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+					</svg>
+				</button>
+				<button id="closeChat" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition-colors duration-200">
+					<svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+						<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+					</svg>
+				</button>
+			</div>
+		</div>
+		<div id="chatSubContainer" class="flex w-full flex-col grow items-end justify-start overflow-hidden">
 			<!-- Users List -->
-			<div id="chat-friends-list" class="flex flex-col scroll-y-auto overflow-y-auto max-h-96 w-full">
-				<h1 id="noFriendsOnline" class="hidden">No friends are online</h1>
+			<div id="chat-friends-list" class="flex flex-col scroll-y-auto overflow-y-auto max-h-[500px] w-full p-2 space-y-2">
+				<h1 id="noFriendsOnline" class="hidden text-gray-400 text-center py-4">No friends are online</h1>
 			</div>
 			
 			<!-- Conversation -->
-			<div id="chatMessages" class="w-full scroll-y-auto overflow-y-auto"></div>
+			<div id="chatMessages" class="w-full scroll-y-auto overflow-y-auto hidden p-4 space-y-4"></div>
 			
 			<!-- Input -->
-			<div id="chatInput" class="hidden flex flex-row w-full items-end justify-center">
-				<input id="chatMessage" placeholder="Écrivez un message" type="text" style="color: black; background-color: white; width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; margin-top: 10px;">
-				<button id="sendButton" style="margin-left: 10px; padding: 10px; font-size: 16px; cursor: pointer;">Envoyer</button>
+			<div id="chatInput" class="hidden flex flex-col w-full p-4 border-t border-gray-700">
+				<div class="flex items-center space-x-2 mb-2">
+					<button id="chatInviteGameButton" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2">
+						<svg class="w-5 h-5 group-hover:text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+							<path fill="currentColor" d="M512 0C229.2 0 0 229.2 0 512s229.2 512 512 512 512-229.2 512-512S794.8 0 512 0zM512 960C264.6 960 64 759.4 64 512S264.6 64 512 64s448 200.6 448 448-200.6 448-448 448z"></path>
+							<path fill="currentColor" d="M704 320c-17.7 0-32 14.3-32 32v288c0 17.7 14.3 32 32 32s32-14.3 32-32V352c0-17.7-14.3-32-32-32zM320 320c-17.7 0-32 14.3-32 32v288c0 17.7 14.3 32 32 32s32-14.3 32-32V352c0-17.7-14.3-32-32-32z"></path>
+						</svg>
+						<span>Invite to Pong</span>
+					</button>
+				</div>
+				<div class="flex space-x-2">
+					<input id="chatMessage" placeholder="Type a message..." type="text" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+					<button id="sendButton" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center">
+						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+						</svg>
+					</button>
+				</div>
 			</div>
 		</div>
-    </div>
+	</div>
 
 
 	<nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">

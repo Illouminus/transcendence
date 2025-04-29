@@ -1,5 +1,6 @@
 import { GameMode, GameModeSelection } from "./gameMode";
 import { User } from "./models/user.model";
+import { showAlert } from "./services/alert.service";
 import { UserArray } from "./users";
 
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
@@ -202,16 +203,20 @@ export class UserState {
 	static notifyFriendEvent(event: FriendEvent) {
 		if (this.user && this.user.friends) {
 			const friend = this.user.friends.find(f => f.friend_id === event.friendId || f.friend_email === event.friendEmail);
+			const chatInput = document.getElementById('chatInput');
 			
 			if (friend) {
 				switch (event.type) {
 					case 'friend_blocked':
 						friend.status = 'blocked';
 						friend.online = false;
+						chatInput?.classList.add('hidden');
+						showAlert(`${friend.friend_username} is blocked, cannot send messages.`, 'warning');
 						break;
 					case 'friend_unblocked':
 						friend.status = 'accepted';
 						friend.online = event.isOnline ?? false;
+						chatInput?.classList.remove('hidden');
 						break;
 					case 'user_unblocked':
 						console.log("Event in unblocked case", event);

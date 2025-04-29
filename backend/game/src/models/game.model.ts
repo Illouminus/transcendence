@@ -54,6 +54,39 @@ export async function getTournamentWins(userId: number): Promise<number> {
 	});
 }
 
+export async function getGameWins(userId: number): Promise<number> {
+	return new Promise((resolve, reject) => {
+		db.get(
+			"SELECT COUNT(*) AS totalWins FROM games WHERE winner_id = ?",
+			[userId],
+			(err: Error | null, row: unknown) => {
+				if (err) {
+					reject(err);
+				} else {
+					const countRow = row as CountRow;
+					resolve(countRow.totalWins || 0);
+				}
+			}
+		);
+	});
+}
+
+export async function getGameLosses(userId: number): Promise<number> {
+	return new Promise((resolve, reject) => {
+		db.get(
+			"SELECT COUNT(*) AS totalLosses FROM games WHERE (player1_id = ? OR player2_id = ?) AND winner_id != ? AND winner_id IS NOT NULL",
+			[userId, userId, userId],
+			(err: Error | null, row: unknown) => {
+				if (err) {
+					reject(err);
+				} else {
+					const countRow = row as CountRow;
+					resolve(countRow.totalLosses || 0);
+				}
+			}
+		);
+	});
+}
 
 export async function insertMatchmakingQueue(userId: number) : Promise<number> {
 	return new Promise((resolve, reject) => {
@@ -114,6 +147,35 @@ export async function updateGame(gameId: number, player1Score: number, player2Sc
 				} else {
 					console.log(`Game with ID ${gameId} updated`);
 					resolve();
+				}
+			}
+		);
+	});
+}
+
+export async function getUserGames(userId: number): Promise<any[]> {
+	return new Promise((resolve, reject) => {
+		db.all(
+			`
+			SELECT 
+				id as game_id,
+				game_type,
+				started_at,
+				score_player1,
+				score_player2,
+				winner_id,
+				player1_id,
+				player2_id
+			FROM games
+			WHERE player1_id = ? OR player2_id = ?
+			ORDER BY started_at DESC
+		`,
+			[userId, userId],
+			(err: Error | null, rows: any[]) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(rows);
 				}
 			}
 		);

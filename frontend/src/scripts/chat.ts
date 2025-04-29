@@ -1,15 +1,19 @@
 import { UserState } from "./userState";
 import { ChatState} from "./chatState";
-import { ParseUint16 } from "babylonjs";
 import { showAlert } from "./services/alert.service";
+import { redirectTo } from "./router";
+
 
 export interface ChatArray {
     id: number;
     fromUserId: number;
-    toUserId: string;
+    toUserId: number;
     content: string;
     sent_at: string;
 }
+
+// Variable pour suivre l'utilisateur de la fenêtre de chat ouverte
+let openedChatWindow: boolean = false; 
 
 // Fonction pour récupérer l'utilisateur courant et les utilisateurs
 const getUserData = () => {
@@ -44,10 +48,10 @@ function addEventListenerToElement(elementId: string, event: string, handler: Ev
 }
 
 // Fonction pour envoyer un message
-async function sendMessage(meId: number, himID: number, messageText: string): void {
+async function sendMessage(meId: number, himID: number, messageText: string): Promise<void> {
     if (!messageText || messageText.trim() === "") return;
 
-    const timestamp = new Date().toISOString(); // Horodatage
+    const timestamp = new Date().toLocaleTimeString(); // Horodatage
 
     // Affichage immédiat (pas d'envoi au backend ici)
     const { me, allUsers } = getUserData();
@@ -65,98 +69,68 @@ async function sendMessage(meId: number, himID: number, messageText: string): vo
                     fromUserId: meId,
                     toUserId: himID,
                     text: messageText,
+                    sent_at: timestamp,
                 },
             }));
         }
 
-        // Ajout du message a l'Array pour le sauvegarder après
-        const newMessage: ChatArray = {
-            id: Date.now(), // Identifiant unique temporaire
-            fromUserId: meId,
-            toUserId: himID.toString(),
-            content: messageText,
-            sent_at: timestamp,
-        };
-
-        // Ajouter le message au tableau local
-        ChatState.addMessage(newMessage);
-            
-        displayMessage(himUsername, meUsername, meId, himID, messageText, new Date().toLocaleTimeString());
+        displayMessage(meUsername, himUsername, meId, messageText, timestamp);
     } catch (error) {
         console.error("Erreur d'envoi du message :", error);
     }
 }
 
 async function sendBufferedMessages(userId: number) {
-    // Récupérer les messages pour l'utilisateur spécifié
-    const bufferedMessages = ChatState.getMessagesForUser(userId);
-
-    if (bufferedMessages.length === 0) {
-        console.log("Aucun message à envoyer pour l'utilisateur :", userId);
-        return;
-    }
-
-    try {
-        // Construire le payload attendu par le contrôleur
-        const payload = {
-            messages: bufferedMessages.map(msg => ({
-                sender_id: msg.fromUserId,
-                receiver_id: parseInt(msg.toUserId), // Conversion en nombre si nécessaire
-                content: msg.content,
-            })),
-        };
-
-        const response = await fetch("http://localhost:8084/chat/messages", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            throw new Error("Erreur lors de l'envoi des messages au serveur.");
-        }
-
-        console.log("Messages envoyés avec succès pour l'utilisateur :", userId);
-
-        // Une fois les messages envoyés, vider les messages pour cet utilisateur
-        ChatState.clearMessagesForUser(userId);
-    } catch (error) {
-        console.error("Erreur lors de l'envoi des messages :", error);
-    }
+    ChatState.fetchMessagesForUser(userId);
 }
 
-
-  
+const chatInviteToGame = async (friendId: number) => {
+    try {
+        const gameSocket = UserState.getGameSocket();
+        if (!gameSocket) {
+            console.error('Game socket not available');
+            showAlert('Game socket not available', 'danger');
+            return;
+        }
+        gameSocket.send(JSON.stringify({ type: 'game_invite', payload: {friendId: friendId}}));
+    } catch (error) {
+        console.error('Error inviting to game:', error);
+        showAlert('Failed to send game invitation', 'danger');
+    }
+};
 
 
 // Fonction de gestion de l'affichage des messages
-export function displayMessage(himUsername: string, meUsername: string, himId: number, senderId: number, content: string, time: string) {
+export function displayMessage(user1: string, user2: string, fromUserId: number, content: string, sent_at: string): void {
+    const { me } = getUserData();
+    const meId = me?.id ?? 0;
     const chatMessagesContainer = document.getElementById("chatMessages");
+    if (!chatMessagesContainer) return;
+
     const messageContainer = document.createElement("div");
-    messageContainer.classList.add("chatMessageSingle", "flex", "items-start", "mb-5", "w-full");
-    messageContainer.setAttribute("data-user-id", senderId?.toString());
+    messageContainer.classList.add("flex", "items-start", "mb-4", "w-full");
+    messageContainer.setAttribute("data-user-id", fromUserId?.toString());
 
-    const username = senderId === himId ? himUsername : meUsername;
-
-    messageContainer.classList.add(senderId === himId ? "justify-start" : "justify-end");
+    const isMe = fromUserId === meId;
+    messageContainer.classList.add(isMe ? "justify-end" : "justify-start");
 
     const messageHTML = `
-        <div style="width: 70%" class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-xl dark:bg-gray-700">
-            <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">${username}</span>
-                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${time}</span>
+        <div class="flex flex-col max-w-[80%] ${isMe ? 'items-end' : 'items-start'}">
+            <div class="flex items-center space-x-2 mb-1">
+                <span class="text-xs font-medium text-gray-400">${isMe ? user1 : user2}</span>
+                <span class="text-xs text-gray-500">${sent_at}</span>
             </div>
-            <p class="text-sm text-left py-2.5 text-gray-900 dark:text-white">${content}</p>
-            <span class="text-sm text-right font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+            <div class="flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2">
+                <div class="${isMe ? 'bg-blue-600' : 'bg-gray-700'} text-white px-4 py-2 rounded-2xl ${isMe ? 'rounded-tr-none' : 'rounded-tl-none'}">
+                    <p class="text-sm">${content}</p>
+                </div>
+            </div>
         </div>
     `;
 
     messageContainer.innerHTML = messageHTML;
-    chatMessagesContainer?.appendChild(messageContainer);
-
-    if (chatMessagesContainer) {
-        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-    }
+    chatMessagesContainer.appendChild(messageContainer);
+    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
 }
 
 // Fonction pour créer la ligne de chat d'un utilisateur
@@ -165,6 +139,7 @@ function createChatUserRow(user: Friend): string {
         <div data-user-id="${user.friend_id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
             <div class="relative flex-shrink-0 h-10 w-10">
                 <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.friend_avatar}`} alt="">
+                <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-gray-800 ${user.online ? 'bg-green-500' : 'bg-yellow-500'}"></span>
             </div>
             <div class="ml-4">
                 <div class="text-left text-sm font-medium text-gray-900 dark:text-white">${user.friend_username}</div>
@@ -175,6 +150,8 @@ function createChatUserRow(user: Friend): string {
 }
 
 async function openChatWindow(userId: string) {
+    openedChatWindow = true;
+    console.log('openchatWindow is true');
     const { me } = getUserData();
     const friends = me?.friends;
     const him = friends?.find(user => user.friend_id === parseInt(userId));
@@ -185,35 +162,50 @@ async function openChatWindow(userId: string) {
 
     if (him?.status === 'blocked') {
         showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
-        return;
+        toggleElementClass('chatInput', 'hidden', true);
     }
+    else if(!him?.online)
+    {
+        showAlert(`${himUsername} is not online, cannot send messages.`, 'warning');
+        toggleElementClass('chatInput', 'hidden', true);
+    }
+    else 
+        toggleElementClass('chatInput', 'hidden', false);
 
     // Mise à jour de l'affichage
     toggleElementClass('closeChat', 'hidden', true);
     toggleElementClass('goBack', 'hidden', false);
     toggleElementClass('chat-friends-list', 'hidden', true);
-    toggleElementClass('chatInput', 'hidden', false);
     toggleElementClass('chatMessages', 'hidden', false);
-
+    const chatSubContainer = document.getElementById("chatSubContainer");
+    if (chatSubContainer) {
+        chatSubContainer.classList.remove("justify-start");
+        chatSubContainer.classList.add("justify-end");
+    }
     updateElementContent('chatTitle', himUsername);
     updateElementContent('chatMessages', "");
 
     // Gestion du bouton "Retour"
     addEventListenerToElement('goBack', 'click', () => hideChatMenu(true));
+    
+    // Gestion du bouton "Invite to Game"
+    addEventListenerToElement('chatInviteGameButton', 'click', () => {
+        chatInviteToGame(himId);
+        toggleChatMenu(false);
+    });
 
-    // Chargement des messages
-    try {
-        const response = await fetch(`http://localhost:8084/chat/messages/${himId}/${meId}`);
-        if (!response.ok) throw new Error("Erreur lors de la récupération des messages");
+    // Gestion du bouton "Profile"
+    addEventListenerToElement('chatTitle', 'click', () => {
+        redirectTo(`/user-profile?id=${himId}`);
+    });
 
-        const messages = await response.json();
-        messages.forEach((message: any) => {
-            displayMessage(himUsername, meUsername, himId, message.sender_id, message.content, message.sent_at);
-        });
-    } catch (error) {
-        console.error("Erreur de chargement des messages :", error);
-    }
+    console.log('Chat - Retrieving Messages');
+    const messages = ChatState.filterMessages(meId, himId);
+    messages.forEach(message => {
+        displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sent_at);
+    });
 
+  
     // Gestion de l'envoi des messages
     addEventListenerToElement("sendButton", "click", () => {
         const chatMessageInput = document.getElementById("chatMessage") as HTMLInputElement;
@@ -238,14 +230,20 @@ function attachChatEventListeners(): void {
 
 function hideChatMenu(isOpen: boolean): void {
     const { me, allUsers } = getUserData();
+    const meId = me?.id ?? 0;
     const currentChatUser = document.getElementById("chatTitle")?.textContent;
     const him = allUsers.find(user => user.username === currentChatUser);
 
     if (isOpen && him) {
         // Envoi des messages non envoyés pour cet utilisateur
-        sendBufferedMessages(him.id);
+        sendBufferedMessages(meId);
     }
 
+    const chatSubContainer = document.getElementById("chatSubContainer");
+    if (chatSubContainer) {
+        chatSubContainer.classList.remove("justify-end");
+        chatSubContainer.classList.add("justify-start");
+    }
     toggleElementClass('chatMessages', 'hidden', isOpen);
     toggleElementClass('chatInput', 'hidden', isOpen);
     toggleElementClass('chat-friends-list', 'hidden', false);
@@ -255,6 +253,7 @@ function hideChatMenu(isOpen: boolean): void {
     toggleElementClass('goBack', 'hidden', true);
     toggleElementClass('closeChat', 'hidden', false);
 }
+
 
 
 
@@ -278,15 +277,24 @@ export function chat(): void {
     const { me } = getUserData();
     const friends = me?.friends;
 
-    // Gestion de l'affichage du chat menu (ouverture/fermeture)
+    // Éléments du DOM
     const chatButton = document.getElementById('chatButton');
     const closeChatButton = document.getElementById('closeChat');
-    
-    chatButton?.addEventListener('click', () => toggleChatMenu(true));
-    closeChatButton?.addEventListener('click', () => toggleChatMenu(false));
+       const friendsListContainer = document.getElementById("chat-friends-list");
 
-    // Remplit le menu des utilisateurs
-    const friendsListContainer = document.getElementById("chat-friends-list");
+    if (!chatButton || !closeChatButton || !friendsListContainer) {
+        console.error("Éléments du DOM manquants pour initialiser le chat.");
+        return;
+    }
+
+    // Ajout des événements sur les boutons
+    chatButton?.addEventListener('click', () => toggleChatMenu(true));
+    chatButton?.classList.remove('hidden');
+    closeChatButton?.addEventListener('click', () => {
+        toggleChatMenu(false);
+    });
+
+    
     friends?.forEach((friend) => {
         if (friend.friend_id !== UserState.getUser()?.id) {
             const userRow = createChatUserRow(friend);

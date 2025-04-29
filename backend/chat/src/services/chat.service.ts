@@ -3,16 +3,16 @@ import { getConversationId, createConversation, getMessagesBetweenUsers,  saveMe
   import { createNotFoundError, createDatabaseError, logError } from "../utils/errorHandler";
   
   // Service pour récupérer les messages entre deux utilisateurs
-  export async function getMessagesService(user1: number, user2: number) {
+  export async function getMessagesService(user1: number) {
     try {
-      const messages = await getMessagesBetweenUsers(user1, user2);
+      const messages = await getMessagesBetweenUsers(user1);
       if (!messages) {
         throw createNotFoundError("Messages");
       }
       return messages;
     } catch (error) {
       logError(error, "getMessagesService");
-      throw createDatabaseError("Failed to fetch messages", { user1, user2 });
+      throw createDatabaseError("Failed to fetch messages", { user1 });
     }
   }
   
