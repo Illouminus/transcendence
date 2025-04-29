@@ -1,0 +1,33 @@
+# Билд-этап: собираем фронт
+FROM node:18 AS builder
+WORKDIR /app
+
+# Копируем package.json и lock, чтобы кэшировать слои
+COPY package*.json ./
+RUN npm install
+
+# Копируем оставшиеся файлы
+COPY . .
+
+# Сборка Vite
+RUN npm run build
+
+# Продакшн-этап: NGINX с готовой статикой
+FROM nginx:alpine
+
+# Устанавливаем openssl для генерации самоподписанного сертификата
+RUN apk add --no-cache openssl
+
+# Копируем билд Vite
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Копируем кастомный конфиг nginx и скрипт запуска
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx/entrypoint.sh /entrypoint.sh
+
+# Делаем скрипт исполняемым
+RUN chmod +x /entrypoint.sh
+
+# Устанавливаем рабочий каталог и команду по умолчанию
+WORKDIR /
+ENTRYPOINT ["/entrypoint.sh"]

@@ -1,0 +1,87 @@
+<div class="w-full text-white py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold mb-2 opacity-0 animate-[fadeIn_0.5s_ease-in-out_forwards]">Select Game Mode</h1>
+            <p class="text-gray-400 opacity-0 animate-[fadeIn_0.5s_ease-in-out_0.2s_forwards]">Choose how you want to play</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- VS Computer -->
+            <div class="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/20 hover:border-cyan-500 group cursor-pointer relative" data-mode="vsComputer">
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-4 transition-colors duration-300 group-hover:bg-cyan-500/20">
+                        <i class="fas fa-robot text-4xl group-hover:text-cyan-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold mb-2 group-hover:text-cyan-400">VS Computer</h2>
+                    <p class="text-gray-400 mb-4">Challenge our AI opponent</p>
+                    <div class="w-full hidden group-hover:block space-y-4">
+                        <select class="w-full bg-gray-800 text-white rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                        <button class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105 flex items-center justify-center space-x-2 opacity-0 animate-[fadeIn_0.3s_ease-in-out_forwards]">
+                            <span>Start Game</span>
+                            <i class="fas fa-play text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Selected State Indicator -->
+                <div class="absolute top-2 right-2 opacity-0 scale-0 transition-all duration-300 group-[.selected]:opacity-100 group-[.selected]:scale-100">
+                    <div class="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center">
+                        <i class="fas fa-check text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VS Friend -->
+            <div class="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 hover:border-green-500 group cursor-pointer relative" data-mode="vsFriend">
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-4 transition-colors duration-300 group-hover:bg-green-500/20">
+                        <i class="fas fa-user-friends text-4xl group-hover:text-green-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold mb-2 group-hover:text-green-400">VS Friend</h2>
+                    <p class="text-gray-400 mb-4">Play against a friend</p>
+                    <div class="w-full hidden group-hover:block space-y-4">
+                        <select class="w-full bg-gray-800 text-white rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer">
+                            <option value="">Select a friend</option>
+                        </select>
+                        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105 flex items-center justify-center space-x-2 opacity-0 animate-[fadeIn_0.3s_ease-in-out_forwards]">
+                            <span>Start Game</span>
+                            <i class="fas fa-play text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Selected State Indicator -->
+                <div class="absolute top-2 right-2 opacity-0 scale-0 transition-all duration-300 group-[.selected]:opacity-100 group-[.selected]:scale-100">
+                    <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                        <i class="fas fa-check text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Championship -->
+            <div class="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/20 hover:border-amber-500 group cursor-pointer relative" data-mode="championship">
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-4 transition-colors duration-300 group-hover:bg-amber-500/20">
+                        <i class="fas fa-trophy text-4xl group-hover:text-amber-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold mb-2 group-hover:text-amber-400">Championship</h2>
+                    <p class="text-gray-400 mb-4">Compete in a tournament</p>
+                    <div class="w-full hidden group-hover:block space-y-4">
+                        <button class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105 flex items-center justify-center space-x-2 opacity-0 animate-[fadeIn_0.3s_ease-in-out_forwards]">
+                            <span>Start Game</span>
+                            <i class="fas fa-play text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Selected State Indicator -->
+                <div class="absolute top-2 right-2 opacity-0 scale-0 transition-all duration-300 group-[.selected]:opacity-100 group-[.selected]:scale-100">
+                    <div class="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
+                        <i class="fas fa-check text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

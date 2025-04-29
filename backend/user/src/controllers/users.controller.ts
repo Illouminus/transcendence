@@ -4,6 +4,7 @@ import { getErrorMessage, getErrorStatusCode, logError, createValidationError, c
 import { getUserById } from "../models/user.model";
 import { getUserIdFromHeader } from "../utils/outils";
 import { sendNotification } from "../server";
+import { publishToQueue } from "../rabbit/rabbit";
 
 
 interface UpdateProfileFileds {
@@ -35,6 +36,14 @@ export async function updateAvatarController(req: FastifyRequest<{Body: UpdatePr
 	try {
 		const response = await registerUserService(userId, username, email);
 		console.log("User registered", response);
+		if (!response) {
+			throw createValidationError("User registration failed");
+		}
+		publishToQueue("user.registered", {
+			userId: response.id,
+			username: response.username,
+			email : response.email,
+		});
 	} catch (error) {
 		logError(error, "registerUser");
 		throw createAuthenticationError("Error registering user");

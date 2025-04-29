@@ -8,8 +8,15 @@ import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
 import { showGameOverModal } from "./endGame";
+import { createGameIntro, fadeOutTailwind } from "../components/gameIntro";
+import { showGameIntroWithPlayers } from "./outils/showGameIntroWithPlayer";
+import { showTournamentProgress } from "./tournament/tournamentProgress";
+import { renderPodium } from "./components/podium";
+import { removeEliminationWait, renderEliminationWait } from "./components/eliminationWait";
 
 let socket : WebSocket | null = null;
+let tournamentProgressModal: HTMLElement | null = null;
+let gameReadyModal: HTMLElement | null = null;
 
 export function connectGameWebSocket(token: string): WebSocket {
   
@@ -30,9 +37,12 @@ export function connectGameWebSocket(token: string): WebSocket {
     };
     socket.onmessage = async (event) => {
       const data: GameWebSocketMessage = JSON.parse(event.data);
-      showAlert(data.type);
+      if(data.type != 'game_update')
+        console.log("WebSocket game message received:", data);
+      //showAlert(data.type);
       switch (data.type) {
-        case 'game_invitation_income': {
+
+        case 'game_invitation_income': 
           const gameInvitationModal = createGameInvitationModal();
           const friend = UserState.getUser()?.friends?.find(friend => friend.friend_id === data.payload.fromUserId);
           if (friend) {
@@ -41,7 +51,6 @@ export function connectGameWebSocket(token: string): WebSocket {
               socket?.send(JSON.stringify({ type: 'game_invitation_accepted', payload: { friendId: data.payload.fromUserId } }));
               clientGameState.player1.id = data.payload.fromUserId;
               clientGameState.player2.id = UserState.getUser()!.id;
-              redirectTo('/pong');
             }, () => {
               socket?.send(JSON.stringify({ type: 'game_invitation_rejected', payload: { friendId: data.payload.fromUserId } }));
             });
@@ -49,7 +58,8 @@ export function connectGameWebSocket(token: string): WebSocket {
           await updateUser();
           loadFriendRequests();
           break;
-        }
+        
+
         case 'game_invitation_accepted':
           showAlert(`Game invitation accepted by ${data.payload.fromUserId}`);
           UserState.notifyGameEvent({
@@ -58,8 +68,10 @@ export function connectGameWebSocket(token: string): WebSocket {
           });
           clientGameState.player1.id = UserState.getUser()!.id;
           clientGameState.player2.id = data.payload.fromUserId;
-          redirectTo('/pong');
           break;
+
+
+
         case 'game_invitation_rejected':
           showAlert(`Game invitation rejected by ${data.payload.fromUserId}`);
           UserState.notifyGameEvent({
@@ -67,6 +79,47 @@ export function connectGameWebSocket(token: string): WebSocket {
             friendId: data.payload.fromUserId
           });
           break;
+
+          case 'game_created': 
+          console.log('Game created:', data);
+            const currentUser = UserState.getUser();
+            if (!currentUser) return;
+            if (data.isAiGame) {
+              console.log('AI game created:', data.payload.gameId);
+              resetClientGameState(); // Только для AI обнуляем стейт сразу
+              clientGameState.player1.id = 0;
+              clientGameState.player2.id = currentUser.id;
+              clientGameState.player1.score = 0;
+              clientGameState.player2.score = 0;
+              clientGameState.ball.x = 0;
+              clientGameState.ball.y = 0;
+              clientGameState.gameId = data.payload.gameId;
+              redirectTo('/pong');
+              return;
+            }
+            
+
+
+            const opponentId = clientGameState.player1.id === currentUser?.id
+              ? clientGameState.player2.id
+              : clientGameState.player1.id;
+            const opponent = currentUser?.friends?.find(f => f.friend_id === opponentId);
+
+            if (!currentUser || !opponent) return;
+          
+            if(data.isAiGame)
+                return;
+            showGameIntroWithPlayers(data.payload.gameId, {
+              id: currentUser.id,
+              username: currentUser.username,
+              avatar: "http://localhost:8080/user" + (currentUser.avatar || '/images/default_avatar.png')
+            }, {
+              id: opponent.friend_id,
+              username: opponent.friend_username,
+              avatar: "http://localhost:8080/user" + (opponent.friend_avatar || '/images/default_avatar.png')
+            });
+            break;
+          
 
         case 'game_countdown':
           const countdownTimer = document.getElementById('countdownTimer');
@@ -90,17 +143,120 @@ export function connectGameWebSocket(token: string): WebSocket {
           clientGameState.ball.x = data.payload.ball.x;
           clientGameState.ball.y = data.payload.ball.y;
           break;
-    
         case 'game_result':
-          console.log('Game result:', data);
-          UserState.notifyGameEvent({
-            type: 'game_result',
-            gameResult: {
+            showGameOverModal({
               winnerId: data.payload.winnerId,
               score1: data.payload.score1,
               score2: data.payload.score2
+            });
+            UserState.notifyGameEvent({
+              type: 'game_result',
+              gameResult: {
+                winnerId: data.payload.winnerId,
+                score1: data.payload.score1,
+                score2: data.payload.score2
+              }
+            });
+          resetClientGameState();
+
+          break;
+          case 'tournament_created':
+            UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
+  
+            UserState.notifyGameEvent({
+              type: 'tournament_created',
+              tournamentId: data.payload.tournamentId
+            });
+            break;
+          
+          case 'new_tournament_created':
+            if (!UserState.getGameMode()?.tournamentId) {
+              UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
+            }
+            UserState.notifyGameEvent({
+              type: 'new_tournament_created',
+              tournamentId: data.payload.tournamentId
+            });
+            break;
+        case 'tournament_state_update':
+          console.log('Tournament state update:', data.payload);
+          UserState.notifyGameEvent({
+            type: 'tournament_state_update',
+            tournamentState: data.payload
+          });
+          break;
+
+        case 'tournament_match_start':
+      
+        showAlert(`Tournament match started!`);
+          const previousTournamentState = UserState.getTournamentState();
+          if (previousTournamentState) {
+            UserState.setTournamentState({
+              ...previousTournamentState,
+              matches: {
+                semifinals: data.payload.matches.semifinals,
+                final: data.payload.matches.final
+              } // <-- вот здесь обновляем матчи в состоянии
+            });
+          }
+          
+          console.log('Tournament match start:', UserState.getTournamentState());
+
+          //showTournamentProgress();
+
+          if (tournamentProgressModal) {
+            fadeOutTailwind(tournamentProgressModal, () => {
+              tournamentProgressModal = null;
+              setTimeout(() => {
+                showTournamentProgress();
+              }, 1000); // 100ms достаточно
+            });
+          } else {
+            showTournamentProgress();
+          }
+
+
+
+          UserState.notifyGameEvent({
+            type: 'tournament_match_start',
+            tournamentMatch: {
+              opponentId: data.payload.opponentId,
+              gameId: data.payload.gameId,
+              matchType: data.payload.matchType
             }
           });
+
+          const currentUserI = UserState.getUser();
+          if (!currentUserI) return;
+          const opponentU = currentUserI.friends?.find(f => f.friend_id === data.payload.opponentId);
+          if (!opponentU) return;
+          clientGameState.player1.id = data.payload.isPlayer1 ? data.payload.opponentId : UserState.getUser()!.id ;
+          clientGameState.player2.id = data.payload.isPlayer1 ? UserState.getUser()!.id : data.payload.opponentId;  
+          clientGameState.gameId = data.payload.gameId;
+          UserState.setGameMode({ mode: 'championship' });
+          showGameIntroWithPlayers(data.payload.gameId, {
+            id: currentUserI.id,
+            username: currentUserI.username,
+            avatar: "http://localhost:8080/user" + (currentUserI.avatar || '/images/default_avatar.png')
+          }, {
+            id: opponentU.friend_id,
+            username: opponentU.friend_username,
+            avatar: "http://localhost:8080/user" + (opponentU.friend_avatar || '/images/default_avatar.png')
+          });
+          break;
+
+        case 'tournament_match_complete':
+          redirectTo('/');
+          renderEliminationWait({ ...data.payload, gameId: Number(data.payload.gameId) });
+          break;
+
+        case 'tournament_completed':
+          removeEliminationWait();
+          renderPodium(data.payload.podium);
+          setTimeout(() => {
+            redirectTo('/');
+          }, 1000);
+          
           break;
       }
     };
@@ -109,4 +265,11 @@ export function connectGameWebSocket(token: string): WebSocket {
   
 export function getWebSocket(): WebSocket | null {
   return socket;
+}
+
+function resetClientGameState() {
+  clientGameState.gameId = 0;
+  clientGameState.player1 = { id: 0, x: 0, y: 0, score: 0 };
+  clientGameState.player2 = { id: 0, x: 0, y: 0, score: 0 };
+  clientGameState.ball = { x: 0, y: 0, velX: 0, velY: 0 };
 }

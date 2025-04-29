@@ -1,4 +1,5 @@
 import { FriendsList } from '../scripts/models/user.model';
+import { trackedAddEventListener } from './outils/eventManager';
 
 export function createGameInvitationModal() {
   // Приватные (в классах) поля станут обычными переменными внутри области видимости.
@@ -43,27 +44,37 @@ export function createGameInvitationModal() {
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
+  function onCloseClick() {
+      hide();
+  }
+
+  function onDeclineClick() {
+      if (onDecline) onDecline();
+      hide();
+  }
+
+  function onAcceptClick() {
+      if (onAccept) onAccept();
+      hide();
+  }
+
+  function onModalClick(e: MouseEvent) {
+      if (e.target === modal) {
+          hide();
+      }
+  }
 
   // Устанавливаем обработчики (аналог метода setupEventListeners в классе)
   function setupEventListeners() {
-    closeButton.addEventListener('click', () => hide());
 
-    declineButton.addEventListener('click', () => {
-      if (onDecline) onDecline();
-      hide();
-    });
-
-    acceptButton.addEventListener('click', () => {
-      if (onAccept) onAccept();
-      hide();
-    });
-
-    // Закрытие по клику снаружи
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        hide();
-      }
-    });
+    if(closeButton)
+        trackedAddEventListener(closeButton, 'click', onCloseClick);
+    if(declineButton)
+        trackedAddEventListener(declineButton, 'click', onDeclineClick);
+    if(acceptButton)
+        trackedAddEventListener(acceptButton, 'click', onAcceptClick);
+    if(modal)
+        trackedAddEventListener(modal, 'click', onModalClick as EventListener);
   }
 
   setupEventListeners();

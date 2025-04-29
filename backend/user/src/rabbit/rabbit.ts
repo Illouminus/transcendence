@@ -32,7 +32,7 @@ export async function connectRabbit(): Promise<void> {
   const q = await channel.assertQueue("user_service_queue", { durable: true });
 
   // Привязываем очередь к exchange по нужным routing key
-  await channel.bindQueue(q.queue, "transcendence_exchange", "user.registered");
+  await channel.bindQueue(q.queue, "transcendence_exchange", "user.created");
   await channel.bindQueue(q.queue, "transcendence_exchange", "user.updated");
 
   // Подписываемся на очередь и обрабатываем сообщения
@@ -43,7 +43,7 @@ export async function connectRabbit(): Promise<void> {
     console.log("User service received event:", routingKey, content);
 
     // В зависимости от routing key вызываем нужный обработчик
-    if (routingKey === "user.registered") {
+    if (routingKey === "user.created") {
       handleUserRegistered(content);
     } else if (routingKey === "user.updated") {
       handleUserUpdated(content);
@@ -71,3 +71,9 @@ async function handleUserUpdated(data: any) {
   // Пример:
   // updateUserProfile(data.userId, { username: data.username });
 }
+
+
+export const publishToQueue = async (routingKey: string, data: any) => {
+  if (!channel) return;
+  channel.publish('transcendence_exchange', routingKey, Buffer.from(JSON.stringify(data)));
+};

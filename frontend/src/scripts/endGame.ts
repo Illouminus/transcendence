@@ -6,112 +6,105 @@ export function showGameOverModal(gameResult: { winnerId: number, score1: number
     const isWinner = userId === gameResult.winnerId;
     
     const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-100';
-    modal.innerHTML = `
-        <div class="bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-xl shadow-2xl transform scale-95 animate-bounce">
-            <div class="text-center mb-6">
-                ${isWinner 
-                    ? '<span class="text-8xl animate-bounce">🏆</span>'
-                    : '<span class="text-8xl animate-spin">🤡</span>'}
-            </div>
-            <h2 class="text-4xl font-bold mb-4 text-center ${isWinner ? 'text-yellow-400' : 'text-white'} animate-pulse">
-                ${isWinner ? 'ABSOLUTE CHAMPION!' : 'LOL... NOOB!'}
-            </h2>
-            <div class="bg-black bg-opacity-30 p-4 rounded-lg mb-6">
-                <div class="text-7xl font-bold text-center ${isWinner ? 'text-green-400' : 'text-red-400'} animate-pulse">
-                    ${gameResult.score1} : ${gameResult.score2}
+    modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-lg flex items-center justify-center z-[1000]';
+    
+    // Создаем фоновые частицы для анимации
+    const particles = document.createElement('div');
+    particles.className = 'absolute inset-0 overflow-hidden pointer-events-none';
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = `absolute w-2 h-2 bg-purple-500/30 rounded-full
+            animate-[float_${3 + Math.random() * 2}s_ease-in-out_infinite]`;
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        particle.style.animationDelay = `${Math.random() * 2}s`;
+        particles.appendChild(particle);
+    }
+    modal.appendChild(particles);
+
+    const content = document.createElement('div');
+    content.className = 'relative';
+    content.innerHTML = `
+        <div class="relative z-[1001]">
+            <div class="absolute inset-0 bg-purple-500/20 blur-3xl rounded-3xl"></div>
+            <div class="relative bg-gray-900/80 backdrop-blur-sm p-12 rounded-3xl shadow-2xl 
+                        border border-purple-500/20 overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent"></div>
+                
+                <!-- Winner/Loser Icon with Glow -->
+                <div class="relative mb-8">
+                    <div class="absolute inset-0 ${isWinner ? 'bg-yellow-500' : 'bg-purple-500'} blur-2xl opacity-30 
+                                animate-[pulse_2s_ease-in-out_infinite]"></div>
+                    <div class="relative text-center">
+                        <span class="text-8xl transform inline-block
+                                   ${isWinner 
+                                       ? 'animate-[bounce_1s_ease-in-out_infinite] rotate-12' 
+                                       : 'animate-[spin_3s_linear_infinite] rotate-180'}">
+                            ${isWinner ? '👑' : '💀'}
+                        </span>
+                    </div>
                 </div>
+
+                <!-- Title with Gradient -->
+                <h2 class="text-5xl font-black mb-8 text-center tracking-wider
+                          ${isWinner 
+                              ? 'bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400' 
+                              : 'bg-gradient-to-r from-purple-400 via-pink-500 to-purple-400'}
+                          bg-clip-text text-transparent
+                          animate-[pulse_2s_ease-in-out_infinite]">
+                    ${isWinner ? 'VICTORY!' : 'DEFEAT'}
+                </h2>
+
+                <!-- Score Display -->
+                <div class="relative mb-8">
+                    <div class="absolute inset-0 bg-purple-500/20 blur-xl rounded-2xl"></div>
+                    <div class="relative bg-black/40 backdrop-blur-sm p-6 rounded-2xl border border-purple-500/20">
+                        <div class="flex items-center justify-center gap-8">
+                            <div class="text-7xl font-black ${isWinner ? 'text-green-400' : 'text-red-400'}
+                                      animate-[pulse_2s_ease-in-out_infinite]">
+                                ${gameResult.score1}
+                            </div>
+                            <div class="text-5xl font-bold text-gray-400">VS</div>
+                            <div class="text-7xl font-black ${isWinner ? 'text-red-400' : 'text-green-400'}
+                                      animate-[pulse_2s_ease-in-out_infinite]">
+                                ${gameResult.score2}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message -->
+                <p class="text-2xl font-medium text-center
+                         ${isWinner ? 'text-yellow-300' : 'text-purple-300'}
+                         tracking-wide">
+                    ${isWinner 
+                        ? 'Absolutely Legendary! 🌟' 
+                        : 'Better Luck Next Time! 🎮'}
+                </p>
             </div>
-            <p class="text-gray-300 text-xl text-center italic">
-                ${isWinner 
-                    ? 'You\'re breathtaking! 🌟' 
-                    : 'Did you even try? 😂'}
-            </p>
         </div>
     `;
 
+    // Add keyframes for float animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    modal.appendChild(content);
     document.body.appendChild(modal);
 
-    if (isWinner) {
-        // Победный салют
-        const duration = 4000;
-        const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-        function randomInRange(min: number, max: number) {
-            return Math.random() * (max - min) + min;
-        }
-
-        const interval = setInterval(function() {
-            const timeLeft = animationEnd - Date.now();
-
-            if (timeLeft <= 0) {
-                return clearInterval(interval);
-            }
-
-            const particleCount = 50 * (timeLeft / duration);
-            
-            // Конфетти с разных сторон
-            confetti({
-                ...defaults,
-                particleCount,
-                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
-            });
-            confetti({
-                ...defaults,
-                particleCount,
-                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
-            });
-            
-            // Добавим золотые конфетти в центре
-            confetti({
-                ...defaults,
-                particleCount: particleCount * 0.5,
-                origin: { x: 0.5, y: 0.5 },
-                colors: ['#FFD700', '#FFA500', '#FF8C00'],
-                gravity: 0.8,
-                scalar: 2
-            });
-        }, 250);
-    } else {
-        // Для проигравшего - падающие вниз эмодзи клоунов
-        const emojis = ['🤡', '😭', '💩', '🎪'];
-        const container = document.createElement('div');
-        container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000;';
-        document.body.appendChild(container);
-
-        for (let i = 0; i < 20; i++) {
-            setTimeout(() => {
-                const emoji = document.createElement('div');
-                emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                emoji.style.cssText = `
-                    position: absolute;
-                    left: ${Math.random() * 100}%;
-                    top: -50px;
-                    font-size: 30px;
-                    animation: fall 3s linear;
-                `;
-                container.appendChild(emoji);
-
-                setTimeout(() => emoji.remove(), 3000);
-            }, i * 200);
-        }
-
-        // Добавляем стили анимации
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fall {
-                to {
-                    transform: translateY(100vh) rotate(360deg);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    // Автоматический редирект через 5 секунд
+    // Add fade-out animation before redirect
     setTimeout(() => {
-        modal.remove();
-        redirectTo('/profile');
-    }, 5000);
+        modal.classList.add('transition-opacity', 'duration-500', 'opacity-0');
+        setTimeout(() => {
+            modal.remove();
+            style.remove();
+            redirectTo('/profile');
+        }, 500);
+    }, 4500);
 } 

@@ -1,62 +1,73 @@
 import { setupUI } from "./services/ui.service";
 import { handleRouting } from "./router";
 import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick, 
-	onSettingsClick, onUsersClick, onFriendsClick, onPongClick} from "./services/click.service";
+    onSettingsClick, onUsersClick, onFriendsClick, onPongClick } from "./services/click.service";
 import { UserState } from "./userState";
 import { fetchUserProfile } from "./services/user.service";
 import { fetchAllUsers } from "./loaders/outils";
 import { connectUserWebSocket } from "./userWebsocket";
 import { connectGameWebSocket } from "./gameWebsocket";
 import { connectChatWebSocket } from "./chatWebSocket";
-import { createGameInvitationModal } from "./gameInvitationModal";
 import { chat } from "./chat";
-import { ChatState } from "./chatState";
 
 
 
-document.addEventListener("DOMContentLoaded", async () => {
+const attachedListeners: { element: HTMLElement, event: string, handler: EventListenerOrEventListenerObject }[] = [];
 
-	// Global event listeners
-	document.getElementById("signup-button")?.addEventListener("click", onSignupClick);
-	document.getElementById("login-button")?.addEventListener("click", onLoginClick);
-	document.getElementById("logout-button")?.addEventListener("click", onLogoutClick);
-	document.getElementById("logo-button")?.addEventListener("click", onLogoClick);
-	document.getElementById("profile-button")?.addEventListener("click", onProfileClick);
-	document.getElementById("pong-button")?.addEventListener("click", onPongClick);
-	document.getElementById("settings-button")?.addEventListener("click", onSettingsClick);
-	document.getElementById("users-button")?.addEventListener("click", onUsersClick);
-	document.getElementById("friends-button")?.addEventListener("click", onFriendsClick);
+function attachListener(id: string, event: string, handler: EventListenerOrEventListenerObject) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.addEventListener(event, handler);
+        attachedListeners.push({ element, event, handler });
+    }
+}
 
-	const token = localStorage.getItem("token");
-	//Fetch user profile and set user state accordingly if token is present
-	if(token) 
-	{
-		const user = await fetchUserProfile();
-		const allUsers = await fetchAllUsers();
-		UserState.setUserSocket(connectUserWebSocket(token));
-		UserState.setGameSocket(connectGameWebSocket(token));
-		UserState.setChatSocket(connectChatWebSocket(token));
+export function disposeGlobalListeners() {
+    for (const { element, event, handler } of attachedListeners) {
+        element.removeEventListener(event, handler);
+    }
+    attachedListeners.length = 0;
+}
 
-		if(allUsers)
-			UserState.setAllUsers(allUsers);
-	
-		if (user) {
-			console.log("gougoug gaga");
-			if(UserState.getUser() === null)
-				UserState.updateUser(user);
-			UserState.setUser(user);
-			await ChatState.fetchMessagesForUser(user.id);
-			chat();
-		}
-		else
-		{
-			UserState.logout();
-			localStorage.removeItem("token");
-		}
-	}
-	
-	await setupUI();
-	handleRouting();
-});
+async function initializeApp() {
+    attachListener("signup-button", "click", onSignupClick);
+    attachListener("login-button", "click", onLoginClick);
+    attachListener("logout-button", "click", onLogoutClick);
+    attachListener("logo-button", "click", onLogoClick);
+    attachListener("profile-button", "click", onProfileClick);
+    attachListener("pong-button", "click", onPongClick);
+    attachListener("settings-button", "click", onSettingsClick);
+    attachListener("users-button", "click", onUsersClick);
+    attachListener("friends-button", "click", onFriendsClick);
 
+    const token = localStorage.getItem("token");
+
+    if (token) {
+        const user = await fetchUserProfile();
+        
+        if (user) {
+            UserState.setUser(user);
+
+            const allUsers = await fetchAllUsers();
+            if (allUsers) {
+                UserState.setAllUsers(allUsers);
+            }
+
+            UserState.setUserSocket(connectUserWebSocket(token));
+            UserState.setGameSocket(connectGameWebSocket(token));
+            UserState.setChatSocket(connectChatWebSocket(token));
+            await setupUI();
+            chat();
+        } else {
+            UserState.logout();
+            localStorage.removeItem("token");
+            await setupUI();
+        }
+    }
+
+    await setupUI();
+    handleRouting();
+}
+
+document.addEventListener("DOMContentLoaded", initializeApp);
 

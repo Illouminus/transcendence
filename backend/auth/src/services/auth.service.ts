@@ -11,6 +11,14 @@ import { createDatabaseError, createNotFoundError, logError } from "../utils/err
 import { publishToQueue } from "../rabbit/rabbit";
 
 
+export interface LoginResponse {
+	user?: User;
+	message?: string;
+}
+  
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const client = new OAuth2Client(googleClientId);
+
 export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyReply, userId: number): Promise<string> {
 	const token = fastify.jwt.sign({ userId }, { expiresIn: "1h" });
 	await updateJWT(userId, token);
@@ -24,10 +32,8 @@ export async function issueAndSetToken(fastify: FastifyInstance, res: FastifyRep
 }
 
 
-export interface LoginResponse {
-	user?: User;
-	message?: string;
-}
+
+  
 
 export async function loginUser( email: string, password: string): Promise<LoginResponse> {
 	
@@ -47,7 +53,6 @@ export async function loginUser( email: string, password: string): Promise<Login
 	else {
 		return {user};
 	}
-
 }
 
 export async function verifyTwoFactorAuth( fastify: FastifyInstance, email: string, code: string, ): Promise<number> {
@@ -64,34 +69,54 @@ export async function verifyTwoFactorAuth( fastify: FastifyInstance, email: stri
 }
 
 
+
+async function waitForUserIdSync(email: string, maxRetries = 10, delayMs = 500): Promise<User> {
+	for (let attempt = 0; attempt < maxRetries; attempt++) {
+	  const user = await getUserByEmail(email);
+	  if (user && user.user_id) {
+		return user;
+	  }
+	  await new Promise((res) => setTimeout(res, delayMs));
+	}
+	throw new Error('Timeout waiting for user_id to sync from User Service');
+  }
+
+  
+
+
+
 export async function googleAuthenticator(idToken: string): Promise<User> {
-	const googleClientId = process.env.GOOGLE_CLIENT_ID;
-	const client = new OAuth2Client(googleClientId);
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: googleClientId,
+  });
 
-	const ticket = await client.verifyIdToken({
-		idToken,
-		audience: googleClientId,
-	});
+  const payload = ticket.getPayload();
+  if (!payload) {
+    throw new Error("Invalid google token");
+  }
 
-	const payload = ticket.getPayload();
+  const { name, email, sub } = payload as GoogleUser;
+  let user = await getUserByGoogleId(sub);
 
-	if (!payload) {
-		throw new Error("Invalid google token");
-	}
+  if (!user) {
+    const authUserId = await createGooleUser({ name, email, sub });
+	if (!authUserId) throw new Error("User creation failed");
+    const authUser = await getUserByEmail(email!);
+    if (!authUser) throw new Error("User creation failed");
 
-	const { name, email, sub } = payload as GoogleUser;
+    // Publish to User Service
+    publishToQueue("user.created", {
+      userId: authUser.id,
+      email: authUser.email,
+      username: authUser.username,
+    });
 
-	let user = await getUserByGoogleId(sub);
+    // Wait for user_id to be synced back into auth.users table
+    user = await waitForUserIdSync(authUser.email);
+  }
 
-	if (!user) {
-		const userId = await createGooleUser({ name, email, sub });
-		user = await getUserById(userId);
-		if (!user) {
-			throw new Error("User creation failed");
-		}
-		publishToQueue("user.registered", { userId: user.id, email: user.email, username: user.username });
-	}
-	return user;
+  return user;
 }
 
 

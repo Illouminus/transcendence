@@ -1,7 +1,9 @@
+import { TournamentState } from "./types/tournament.types";
 import { GameMode, GameModeSelection } from "./gameMode";
 import { User } from "./models/user.model";
 import { showAlert } from "./services/alert.service";
 import { UserArray } from "./users";
+//import { disposeGlobalListeners } from "./main";
 
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
 
@@ -10,12 +12,55 @@ type GameEventCallback = (event: GameEvent) => void;
 type FriendEventCallback = (event: FriendEvent) => void;
 
 export type GameEvent = {
-	type: 'invitation_rejected' | 'invitation_accepted' | 'game_started' | 'game_result';
+	type: 
+		| 'invitation_rejected'
+		| 'invitation_accepted'
+		| 'game_started'
+		| 'game_result'
+		| 'tournament_created'
+		| 'new_tournament_created'
+		| 'tournament_state_update'
+		| 'tournament_match_start'
+		| 'tournament_match_complete'
+		| 'tournament_completed';
 	friendId?: number;
 	gameResult?: {
 		winnerId: number;
 		score1: number;
 		score2: number;
+	};
+	tournamentId?: number;
+	tournamentState?: {
+		phase: 'waiting' | 'semifinals'  | 'final' | 'completed';
+		tournamentId: number;
+		players: Array<{
+			id: number;
+			username: string;
+			ready: boolean;
+		}>;
+		matches?: {
+			semifinals?: Array<{
+				player1Id: number;
+				player2Id: number;
+				gameId?: string;
+				winner?: number;
+			}>;
+			final?: {
+				player1Id: number;
+				player2Id: number;
+				gameId?: string;
+				winner?: number;
+			};
+		};
+	};
+	tournamentMatch?: {
+		opponentId: number;
+		gameId: number;
+		matchType: 'semifinal' | 'final' | 'third_place';
+	};
+	tournamentResult?: {
+		place: number;
+		podium: { userId: number; place: number }[];
 	};
 };
 
@@ -50,7 +95,7 @@ export class UserState {
 	private static gameEventCallbacks: Set<GameEventCallback> = new Set();
 	private static friendEventCallbacks: Set<FriendEventCallback> = new Set();
 	private static chatSocket: WebSocket | null = null; 
-
+	private static tournamentState : TournamentState | null = null;
 
 	static setUser(user: User) {
 		this.user = user;
@@ -90,6 +135,7 @@ export class UserState {
 		this.gameSocket = null;
 		this.chatSocket = null;
 		localStorage.removeItem("token");
+		//disposeGlobalListeners();
 	}
 
 	static setAllUsers(users: UserArray[]) {
@@ -116,6 +162,13 @@ export class UserState {
 		this.tempEmail = email;
 	}
 
+	static setTournamentState(tournamentState: TournamentState) {
+		this.tournamentState = tournamentState;
+	}
+	static getTournamentState() {
+		return this.tournamentState;
+	}
+
 	static getTempEmail() {
 		return this.tempEmail;
 	}
@@ -137,7 +190,12 @@ export class UserState {
 	}
 
 	static setGameMode(mode: GameModeSelection) {
-		this.gameMode = mode;
+		const currentMode = this.gameMode || {};
+
+		this.gameMode = {
+			...currentMode,
+			...mode,
+		};
 	}
 
 	static getGameMode() {
@@ -168,6 +226,9 @@ export class UserState {
 	// Subscribe to connection changes
 	static onConnectionChange(callback: ConnectionChangeCallback) {
 		this.connectionChangeCallbacks.add(callback);
+		return () => {
+			this.connectionChangeCallbacks.delete(callback);
+		}
 	}
 
 	// Unsubscribe from connection changes
@@ -182,6 +243,9 @@ export class UserState {
 
 	static onGameEvent(callback: GameEventCallback) {
 		this.gameEventCallbacks.add(callback);
+		return () => {
+			this.gameEventCallbacks.delete(callback);
+		}
 	}
 
 	static offGameEvent(callback: GameEventCallback) {
@@ -194,6 +258,9 @@ export class UserState {
 
 	static onFriendEvent(callback: FriendEventCallback) {
 		this.friendEventCallbacks.add(callback);
+		return () => {
+			this.friendEventCallbacks.delete(callback);
+		}
 	}
 
 	static offFriendEvent(callback: FriendEventCallback) {

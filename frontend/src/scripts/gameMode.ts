@@ -9,6 +9,7 @@ export interface GameModeSelection {
     mode: GameMode;
     difficulty?: Difficulty;
     friendId?: string;
+    tournamentId?: number;
 }
 
 interface Friend {
@@ -22,21 +23,56 @@ interface Friend {
 let selectedCard: Element | null = null;
 let invitationPending = false;
 
-// Initialize the game mode selection page
+let wsListener: ((event: MessageEvent) => void) | null = null;
+let unsubscribeGameEvent: (() => void) | null = null;
+let unsubscribeConnectionChange: (() => void) | null = null;
+const cardClickHandlers = new Map<Element, EventListener>();
+const buttonClickHandlers = new Map<Element, EventListener>();
+const selectChangeHandlers = new Map<Element, EventListener>();
+
+export function disposeGameModeSelection(): void {
+    const gameSocket = UserState.getGameSocket();
+    if (gameSocket && wsListener) {
+        gameSocket.removeEventListener('message', wsListener);
+        wsListener = null;
+    }
+    if (unsubscribeGameEvent) {
+        unsubscribeGameEvent();
+        unsubscribeGameEvent = null;
+    }
+    if (unsubscribeConnectionChange) {
+        unsubscribeConnectionChange();
+        unsubscribeConnectionChange = null;
+    }
+    cardClickHandlers.clear();
+    buttonClickHandlers.clear();
+    selectChangeHandlers.clear();
+}
+
 export function initializeGameModeSelection(): void {
+    disposeGameModeSelection(); // очистка старых подписок
+    
     const cards = document.querySelectorAll('[data-mode]');
     
     // Populate friends list
     populateFriendsList();
     
     // Setup WebSocket listeners for game invitations
-    setupWebSocketListeners();
-    
+    const gameSocket = UserState.getGameSocket();
+    if (gameSocket) {
+        wsListener = (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'game_invite_response') {
+                handleGameInviteResponse(data.payload);
+            }
+        };
+        gameSocket.addEventListener('message', wsListener);
+    }
+
     // Subscribe to game events
-    UserState.onGameEvent((event) => {
+    unsubscribeGameEvent = UserState.onGameEvent((event) => {
         switch (event.type) {
             case 'invitation_rejected':
-                // Reset button state
                 const button = document.querySelector(`[data-mode="vsFriend"] button`) as HTMLButtonElement;
                 if (button) {
                     button.textContent = 'Start Game';
@@ -46,18 +82,30 @@ export function initializeGameModeSelection(): void {
                 invitationPending = false;
                 break;
             case 'invitation_accepted':
-                // Game will start, no need to reset UI
                 invitationPending = false;
+                break;
+            case 'tournament_created':
+                if (event.tournamentId) {
+                    const currentMode = UserState.getGameMode();
+                    if (currentMode) {
+                        UserState.setGameMode({
+                            ...currentMode,
+                            tournamentId: event.tournamentId
+                        });
+                    }
+                    redirectTo('/championship');
+                }
                 break;
         }
     });
-    
-    // Listen for WebSocket connection/disconnection events
-    UserState.onConnectionChange(() => {
+
+    // Subscribe to connection changes
+    unsubscribeConnectionChange = UserState.onConnectionChange(() => {
         populateFriendsList();
     });
-    
-    // Активируем карточку чемпионата
+
+
+    // Activate championship card
     const championshipCard = document.querySelector('[data-mode="championship"]');
     if (championshipCard) {
         const button = championshipCard.querySelector('button');
@@ -69,44 +117,72 @@ export function initializeGameModeSelection(): void {
         }
     }
     
+    // Setup cards
+    // Храним функции, чтобы можно было потом удалить
+
+
     cards.forEach(card => {
-        card.addEventListener('click', () => {
-            const mode = card.getAttribute('data-mode') as GameMode;
+        // Обработчик клика по карточке
+        const handleCardClick = (e: Event) => {
+            const mode = (card.getAttribute('data-mode') as GameMode) || 'vsComputer';
             handleCardSelection(card, mode);
-        });
+        };
 
-        // Add event listeners for buttons
+        // Обработчик клика по кнопке внутри карточки
         const button = card.querySelector('button');
-        if (button) {
-            button.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent card click
-                if (button.classList.contains('cursor-not-allowed')) return;
+        const handleButtonClick = (e: Event) => {
+            e.stopPropagation();
+            if (button?.classList.contains('cursor-not-allowed')) return;
+            if (button) {
                 handleGameStart(card, button);
-            });
-        }
+            }
+        };
 
-        // Add event listeners for selects
+        // Обработчик изменения селекта
         const select = card.querySelector('select');
+        const handleSelectChange = (e: Event) => {
+            e.stopPropagation();
+        };
+
+        // Удаляем старые обработчики, если есть
+        if (cardClickHandlers.has(card)) {
+            card.removeEventListener('click', cardClickHandlers.get(card)!);
+        }
+        if (button && buttonClickHandlers.has(button)) {
+            button.removeEventListener('click', buttonClickHandlers.get(button)!);
+        }
+        if (select && selectChangeHandlers.has(select)) {
+            select.removeEventListener('change', selectChangeHandlers.get(select)!);
+        }
+
+        // Добавляем новые обработчики
+        card.addEventListener('click', handleCardClick);
+        cardClickHandlers.set(card, handleCardClick);
+
+        if (button) {
+            button.addEventListener('click', handleButtonClick);
+            buttonClickHandlers.set(button, handleButtonClick);
+        }
+
         if (select) {
-            select.addEventListener('change', (e) => {
-                e.stopPropagation(); // Prevent card click
-            });
+            select.addEventListener('change', handleSelectChange);
+            selectChangeHandlers.set(select, handleSelectChange);
         }
     });
 }
 
-function setupWebSocketListeners(): void {
-    const gameSocket = UserState.getGameSocket();
-    if (!gameSocket) return;
+// function setupWebSocketListeners(): void {
+//     const gameSocket = UserState.getGameSocket();
+//     if (!gameSocket) return;
 
-    gameSocket.addEventListener('message', (event) => {
-        const data = JSON.parse(event.data);
+//     gameSocket.addEventListener('message', (event) => {
+//         const data = JSON.parse(event.data);
         
-        if (data.type === 'game_invite_response') {
-            handleGameInviteResponse(data.payload);
-        }
-    });
-}
+//         if (data.type === 'game_invite_response') {
+//             handleGameInviteResponse(data.payload);
+//         }
+//     });
+// }
 
 function handleGameInviteResponse(payload: { accepted: boolean, friendId: number }): void {
     invitationPending = false;
@@ -234,20 +310,20 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
                 startButton.disabled = true;
                 startButton.classList.add('bg-gray-600', 'cursor-not-allowed');
 
-                // Wait for game creation confirmation
-                await new Promise<void>((resolve) => {
-                    const listener = (event: MessageEvent) => {
-                        const data = JSON.parse(event.data);
-                        if (data.type === 'game_created') {
-                            gameSocket.removeEventListener('message', listener);
-                            resolve();
-                        }
-                    };
-                    gameSocket.addEventListener('message', listener);
-                });
+                // // Wait for game creation confirmation
+                // await new Promise<void>((resolve) => {
+                //     const listener = (event: MessageEvent) => {
+                //         const data = JSON.parse(event.data);
+                //         if (data.type === 'game_created') {
+                //             gameSocket.removeEventListener('message', listener);
+                //             resolve();
+                //         }
+                //     };
+                //     gameSocket.addEventListener('message', listener);
+                // });
 
-                // Redirect to game
-                redirectTo('/pong');
+                // // Redirect to game
+                // redirectTo('/pong');
             } catch (error) {
                 console.error('Error starting AI game:', error);
                 showAlert('Failed to start game', 'danger');
@@ -306,14 +382,6 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
                 startButton.textContent = 'Joining championship...';
                 startButton.disabled = true;
                 startButton.classList.add('bg-gray-600', 'cursor-not-allowed');
-
-                // Send request to join championship
-                gameSocket.send(JSON.stringify({ 
-                    type: 'join_championship',
-                    payload: { 
-                        userId: UserState.getUser()?.id 
-                    }
-                }));
 
                 // Redirect to championship waiting room
                 redirectTo('/championship');

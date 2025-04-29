@@ -95,14 +95,27 @@ export async function getUserByAuthId(authUserId: number): Promise<User | null> 
 	});
 }
 
-export async function createUser( userId: number, username: string, avatar_url: string, email: string ): Promise<void> {
+export async function createUser(
+	userId: number,
+	username: string,
+	avatar_url: string,
+	email: string
+): Promise<User | null> {
 	return new Promise((resolve, reject) => {
 		db.run(
 			"INSERT INTO user_profile (auth_user_id, username, avatar_url, email) VALUES (?, ?, ?, ?)",
 			[userId, username, avatar_url, email],
-			function (err: Error | null) {
-				if (err) reject(err);
-				else resolve();
+			function (this: { lastID: number }, err: Error | null) {
+				if (err) return reject(err);
+
+				db.get<User>(
+					"SELECT * FROM user_profile WHERE id = ?",
+					[this.lastID],
+					(err: Error | null, row: User) => {
+						if (err) return reject(err);
+						resolve(row || null);
+					}
+				);
 			}
 		);
 	});

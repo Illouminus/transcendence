@@ -13,7 +13,7 @@ export async function loginController( req: FastifyRequest<{ Body: LoginBody }>,
 		const response = await loginUser(req.body.email, req.body.password);
 		if(response.user)
 		{
-			const token = await issueAndSetToken(res.server, res, response.user.id);
+			const token = await issueAndSetToken(res.server, res, response.user?.user_id);
 			return res.status(200).send({message: "Login successful", token: token});
 		}
 		else
@@ -75,6 +75,8 @@ export async function verifyEmailController(req: FastifyRequest<{Querystring: {t
 export async function googleAuthLogin( req: FastifyRequest<{ Body: { idToken: string } }>, res: FastifyReply) {
 	try {
 		const { idToken } = req.body;
+
+		console.log("ID Token AUTH SERVICE: ", idToken);
 		if (!idToken) {
 			return res.status(400).send({ error: "Token is required" });
 		}
@@ -83,7 +85,7 @@ export async function googleAuthLogin( req: FastifyRequest<{ Body: { idToken: st
 		if (!user) {
 			return res.status(400).send({ error: "Login failed" });
 		}
-		const token = await issueAndSetToken(res.server, res, user.id);
+		const token = await issueAndSetToken(res.server, res, user.user_id);
 		return res.status(200).send({message: "Login successful!", token : token});
 		
 	} catch (error) {
@@ -100,7 +102,7 @@ export async function registerController(req: FastifyRequest<{Body: RegisterUser
 	  }
 
 	  const user = await registerUserService( username, email, password);
-	  publishToQueue("user.registered", { userId: user.id, email: user.email, username: user.username });
+	  publishToQueue("user.created", { userId: user.id, email: user.email, username: user.username });
 	  return reply.status(201).send({message : "User registered!"});
 	} catch (error) {
 	  logError(error, "registerUser");

@@ -1,3 +1,5 @@
+import { TournamentMatch } from "../types/tournament.types";
+
 export type UserWebSocketMessage =
   | { type: 'incoming_request'; payload: IncomingRequestPayload }
   | { type: 'friend_request_accepted'; payload: FriendRequestAcceptedPayload }
@@ -12,7 +14,9 @@ export type UserWebSocketMessage =
   | { type: 'system_notification'; payload: SystemNotificationPayload }
   | { type: 'user_connected'; payload: {user : UserInfo} }
   | { type: 'user_disconnected'; payload: {user: UserInfo} }
-  | { type: 'user_online'; payload: {user: FriendOnline} };
+  | { type: 'user_online'; payload: {user: FriendOnline} 
+  | { type: 'tournament_match_start'; payload: TournamentMatchStartPayload }
+  | { type: 'tournament_completed'; payload: TournamentCompletedPayload }};
 
   export interface IncomingRequestPayload {
     message: string;
@@ -96,15 +100,43 @@ export type UserWebSocketMessage =
     isOnline: boolean;
   }
 
+  export interface TournamentPlayer {
+    id: number;
+    username: string;
+    avatar: string;
+    ready: boolean;
+    isHost?: boolean;
+  }
+  
+
 export type GameWebSocketMessage = 
 | { type: 'game_invitation_income'; payload: GameInvitationIncomePayload }
 | { type: 'game_invitation_accepted'; payload: GameInvitationAcceptedPayload }
 | { type: 'game_invitation_rejected'; payload: GameInvitationRejectedPayload }
 | { type: 'game_started'; payload: GameStartedPayload }
 | { type: 'game_error'; payload: GameErrorPayload }
+| { type: 'game_created'; isAiGame?: boolean,  payload: { gameId: number, isPlayer1: boolean; } }
 | { type: 'game_update'; payload: GameUpdatePayload }
 | { type: 'game_countdown'; payload: GameCountdownPayload }
-| { type: 'game_result'; payload: GameResultPayload };
+| { type: 'game_result'; game_type: string, payload: GameResultPayload }
+| { type: 'player_joined'; payload: TournamentPlayer }
+| { type: 'player_left'; payload: number } // ID игрока
+| { type: 'player_ready'; payload: { playerId: number; ready: boolean } }
+| { type: 'tournament_starting'; payload: { startTime: number } }
+| { type: 'tournament_started'; payload: void }
+| { type: 'tournament_cancelled'; payload: void }
+| { type: 'tournament_created'; payload: TournamentCreatedPayload }
+| { type : 'new_tournament_created'; payload: TournamentCreatedPayload }
+| { type: 'tournament_state_update'; payload: TournamentStatePayload }
+| { type: 'tournament_match_start'; payload: TournamentMatchStartPayload }
+| { type: 'tournament_match_complete'; payload: { 
+    matchType: 'semifinal' | 'final';
+    gameId: string;
+    winnerId: number;
+    score1: number;
+    score2: number;
+  }}
+| { type: 'tournament_completed'; payload: TournamentCompletedPayload };
 
 
 export interface GameInvitationIncomePayload {
@@ -158,4 +190,54 @@ export interface GameResultPayload {
 
 export interface GameCountdownPayload {
   count: number;
+}
+
+export interface TournamentMatchStartPayload {
+  opponentId: number;
+  gameId: number;
+  round: number; // 1 = полуфинал, 2 = финал
+  matchType: 'semifinal' | 'final' | 'third_place';
+  isPlayer1: boolean;
+  matches: {
+    semifinals?: TournamentMatch[];
+    final?: TournamentMatch;
+  }
+}
+
+export interface TournamentCompletedPayload {
+  podium: Array<{
+    userId: number;
+    place: number; // 1, 2, 3
+  }>;
+}
+
+export interface TournamentCreatedPayload {
+  tournamentId: number;
+  hostId: number;
+}
+
+export interface TournamentStatePayload {
+  tournamentId: number;
+  phase: 'waiting' | 'semifinals' | 'final' | 'completed';
+  players: TournamentPlayer[];
+  matches?: {
+    semifinals?: Array<{
+      player1Id: number;
+      player2Id: number;
+      gameId?: string;
+      winner?: number;
+    }>;
+    thirdPlace?: {
+      player1Id: number;
+      player2Id: number;
+      gameId?: string;
+      winner?: number;
+    };
+    final?: {
+      player1Id: number;
+      player2Id: number;
+      gameId?: string;
+      winner?: number;
+    };
+  };
 }

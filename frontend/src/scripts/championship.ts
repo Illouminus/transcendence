@@ -1,288 +1,252 @@
-import { UserState } from './userState';
+import { GameEvent, UserState } from './userState';
 import { showAlert } from './services/alert.service';
 import { redirectTo } from './router';
+import { TournamentState } from './types/tournament.types';
+import { trackedAddEventListener } from './outils/eventManager';
+import { getFriendById } from './outils/outils';
 
 interface Player {
     id: number;
     username: string;
     avatar: string;
     ready: boolean;
-    isHost?: boolean;
+    isHost: boolean;
 }
 
-// Состояние чемпионата
-let players: Player[] = [];
-let countdownInterval: number | null = null;
-let startTime: number | null = null;
+export let championshipGameEventHandler: ((event: GameEvent) => void) | null = null;
+let messageListener: ((event: MessageEvent) => void) | null = null;
 let gameSocket: WebSocket | null = null;
 let currentPlayer: Player | null = null;
 
-// Обновление UI текущего игрока
+// Инициализация начального состояния
+UserState.setTournamentState({
+    tournamentId: null,
+    phase: 'waiting',
+    players: [],
+});
+
+function getTournamentState(): TournamentState {
+    const state = UserState.getTournamentState();
+    if (!state) throw new Error('Tournament state not initialized');
+    return state;
+}
+
+function updateTournamentState(newState: Partial<TournamentState>): void {
+    const currentState = getTournamentState();
+    UserState.setTournamentState({
+        ...currentState,
+        ...newState,
+        players: newState.players ?? currentState.players,
+    });
+    updateUI();
+}
+
 function updateCurrentPlayer(): void {
     const user = UserState.getUser();
     if (!user) return;
+
+    // Получаем актуального игрока из состояния турнира
+    const playerFromState = getTournamentState().players.find(p => p.id === user.id);
 
     currentPlayer = {
         id: user.id,
         username: user.username,
         avatar: user.avatar || '/images/default_avatar.png',
-        ready: false,
-        isHost: players.length === 0 // Первый игрок становится хостом
+        ready: playerFromState ? playerFromState.ready : false,
+        isHost: false,
     };
 
-    const avatarElement = document.getElementById('current-player-avatar') as HTMLImageElement;
-    const nameElement = document.getElementById('current-player-name');
-    const readyElement = document.getElementById('current-player-ready');
-    const statusElement = document.getElementById('current-player-status');
+    const avatar = document.getElementById('current-player-avatar') as HTMLImageElement;
+    const name = document.getElementById('current-player-name');
+    const ready = document.getElementById('current-player-ready');
+    const status = document.getElementById('current-player-status');
 
-    if (avatarElement) {
-        avatarElement.src = "http://localhost:8080/user" + currentPlayer.avatar;
-        avatarElement.alt = `${currentPlayer.username}'s avatar`;
+    if (avatar) avatar.src = "http://localhost:8080/user" + currentPlayer.avatar;
+    if (name) name.textContent = currentPlayer.username;
+    if (ready) {
+        ready.textContent = currentPlayer.ready ? 'Ready' : 'Not Ready';
+        ready.className = `px-3 py-1 rounded-full text-sm font-medium ${currentPlayer.ready ? 'bg-green-500' : 'bg-yellow-500'} text-gray-900`;
     }
-
-    if (nameElement) {
-        nameElement.textContent = currentPlayer.username;
-    }
-
-    if (readyElement) {
-        readyElement.textContent = currentPlayer.ready ? 'Ready' : 'Not Ready';
-        readyElement.className = currentPlayer.ready 
-            ? 'px-3 py-1 rounded-full text-sm font-medium bg-green-500 text-white'
-            : 'px-3 py-1 rounded-full text-sm font-medium bg-yellow-500 text-gray-900';
-    }
-
-    if (statusElement) {
-        statusElement.className = `absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-800 ${
-            currentPlayer.ready ? 'bg-green-500' : 'bg-yellow-500'
-        }`;
+    if (status) {
+        status.className = `absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-800 ${currentPlayer.ready ? 'bg-green-500' : 'bg-yellow-500'}`;
     }
 }
 
-// Обработчики WebSocket событий
-function handlePlayerJoined(player: Player): void {
-    if (player.id === currentPlayer?.id) return; // Не добавляем текущего игрока в список других игроков
-    players.push(player);
-    updatePlayersList();
-    updatePlayersCount();
-    updateTournamentStatus();
-}
-
-function handlePlayerLeft(playerId: number): void {
-    players = players.filter(p => p.id !== playerId);
-    updatePlayersList();
-    updatePlayersCount();
-    updateTournamentStatus();
-}
-
-function handlePlayerReady(payload: { playerId: number, ready: boolean }): void {
-    if (payload.playerId === currentPlayer?.id) {
-        if (currentPlayer) {
-            currentPlayer.ready = payload.ready;
-            updateCurrentPlayer();
-        }
-    } else {
-        const player = players.find(p => p.id === payload.playerId);
-        if (player) {
-            player.ready = payload.ready;
-            updatePlayersList();
-        }
-    }
-    updateTournamentStatus();
-}
-
-function handleTournamentStarting(payload: { startTime: number }): void {
-    startTime = payload.startTime;
-    updateStatus('Tournament starting soon!', 'green');
-    startCountdown();
-}
-
-function handleTournamentStarted(): void {
-    stopCountdown();
-    redirectTo('/pong');
-}
-
-function handleTournamentCancelled(): void {
-    stopCountdown();
-    showAlert('Tournament cancelled - not enough players', 'warning');
-    redirectTo('/game');
-}
-
-// Обновление UI
 function updatePlayersList(): void {
     const playersList = document.getElementById('players-list');
     const template = document.getElementById('player-card-template') as HTMLTemplateElement;
-    
     if (!playersList || !template) return;
 
     playersList.innerHTML = '';
+    const players = getTournamentState().players;
     
-    players.forEach(player => {
-        const card = template.content.cloneNode(true) as DocumentFragment;
-        const playerCard = card.querySelector('.player-card');
-        
-        if (playerCard) {
-            const img = playerCard.querySelector('img');
-            const name = playerCard.querySelector('h3');
-            const status = playerCard.querySelector('.player-status');
-            const statusIndicator = playerCard.querySelector('.status-indicator');
-            
-            if (img) {
-                img.src = player.avatar || '/images/default_avatar.png';
-                img.alt = `${player.username}'s avatar`;
-            }
-            
-            if (name) {
-                name.textContent = player.username;
-            }
-            
-            if (status) {
-                status.textContent = player.ready ? 'Ready' : 'Not Ready';
-            }
+    // Фильтруем текущего игрока из списка
+    const otherPlayers = players.filter(p => p.id !== currentPlayer?.id);
+    
+    for (const player of otherPlayers) {
+        const playerInfo = getFriendById(player.id);
+        if (!playerInfo) continue;
 
-            if (statusIndicator) {
-                statusIndicator.classList.add(player.ready ? 'bg-green-500' : 'bg-yellow-500');
-            }
-            
-            playersList.appendChild(card);
+        const card = template.content.cloneNode(true) as DocumentFragment;
+        const img = card.querySelector('img');
+        const name = card.querySelector('h3');
+        const status = card.querySelector('.player-status');
+        const indicator = card.querySelector('.status-indicator');
+
+        if (img) img.src =  'http://localhost:8080/user' + playerInfo.friend_avatar || '/images/default_avatar.png';
+        if (name) name.textContent = playerInfo.friend_username || "Anonymous";
+        if (status) status.textContent = player.ready ? 'Ready' : 'Not Ready';
+        if (indicator) {
+            indicator.classList.remove('bg-green-500', 'bg-yellow-500');
+            indicator.classList.add(player.ready ? 'bg-green-500' : 'bg-yellow-500');
         }
-    });
+        playersList.appendChild(card);
+    }
 }
 
 function updatePlayersCount(): void {
-    const countElement = document.getElementById('players-count');
-    if (countElement) {
-        const totalPlayers = players.length + (currentPlayer ? 1 : 0);
-        countElement.textContent = `${totalPlayers}/4`;
-    }
-}
-
-function updateStatus(status: string, type: 'yellow' | 'green' | 'red' = 'yellow'): void {
-    const statusElement = document.getElementById('tournament-status');
-    const indicatorElement = document.getElementById('tournament-status-indicator');
-    
-    if (statusElement) {
-        statusElement.textContent = status;
-        statusElement.className = `text-lg text-${type}-500`;
-    }
-
-    if (indicatorElement) {
-        indicatorElement.className = `w-3 h-3 rounded-full animate-pulse bg-${type}-500`;
-    }
+    const count = document.getElementById('players-count');
+    const totalPlayers = getTournamentState().players.length;
+    if (count) count.textContent = `${totalPlayers}/4`;
 }
 
 function updateTournamentStatus(): void {
-    const totalPlayers = players.length + (currentPlayer ? 1 : 0);
-    const allReady = currentPlayer?.ready && players.every(p => p.ready);
+    const status = document.getElementById('tournament-status');
+    const totalPlayers = getTournamentState().players.length + (currentPlayer ? 1 : 0);
+    const allReady = currentPlayer?.ready && getTournamentState().players.every(p => p.ready);
 
-    if (totalPlayers < 4) {
-        updateStatus(`Waiting for players (${totalPlayers}/4)`, 'yellow');
-    } else if (!allReady) {
-        updateStatus('Waiting for all players to be ready', 'yellow');
-    } else {
-        updateStatus('All players ready!', 'green');
-    }
-}
-
-// Управление таймером
-function startCountdown(): void {
-    if (!startTime) return;
-
-    const updateTimer = () => {
-        const now = Date.now();
-        const timeLeft = Math.max(0, startTime! - now);
-        
-        const seconds = Math.floor(timeLeft / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        
-        const timeElement = document.getElementById('time-until-start');
-        if (timeElement) {
-            timeElement.textContent = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    if (status) {
+        if (totalPlayers < 4) {
+            status.textContent = `Waiting for players (${totalPlayers}/4)`;
+            status.className = 'text-lg text-yellow-500';
+        } else if (!allReady) {
+            status.textContent = 'Waiting for all players to be ready';
+            status.className = 'text-lg text-yellow-500';
+        } else {
+            status.textContent = 'All players ready!';
+            status.className = 'text-lg text-green-500';
         }
-    };
-
-    countdownInterval = window.setInterval(updateTimer, 1000);
-    updateTimer();
-}
-
-function stopCountdown(): void {
-    if (countdownInterval) {
-        clearInterval(countdownInterval);
-        countdownInterval = null;
     }
 }
 
-// Действия пользователя
-function leaveTournament(): void {
-    if (gameSocket) {
-        gameSocket.send(JSON.stringify({
-            type: 'leave_tournament'
-        }));
-    }
-    redirectTo('/game');
-}
-
-function toggleReady(): void {
-    if (!currentPlayer || !gameSocket) return;
-
-    const newReadyState = !currentPlayer.ready;
-    gameSocket.send(JSON.stringify({
-        type: 'toggle_ready'
-    }));
-
-    // Оптимистичное обновление UI
-    currentPlayer.ready = newReadyState;
+function updateUI(): void {
     updateCurrentPlayer();
+    updatePlayersList();
+    updatePlayersCount();
     updateTournamentStatus();
 }
 
-// Основная функция инициализации
+function toggleReady(): void {
+    const tournamentId = getTournamentState().tournamentId;
+    if (!currentPlayer || !gameSocket || !tournamentId) return;
+
+    const newReady = !currentPlayer.ready;
+    gameSocket.send(JSON.stringify({
+        type: 'toggle_ready',
+        payload: { tournamentId, ready: newReady }
+    }));
+
+    currentPlayer.ready = newReady;
+    updateCurrentPlayer();
+    
+    // Отключаем кнопки после нажатия
+    const readyBtn = document.getElementById('ready-btn') as HTMLButtonElement;
+    const leaveBtn = document.getElementById('leave-btn') as HTMLButtonElement;
+    if (readyBtn) readyBtn.disabled = true;
+    if (leaveBtn) leaveBtn.disabled = true;
+}
+
+function leaveTournament(): void {
+    const tournamentId = getTournamentState().tournamentId;
+    if (gameSocket && tournamentId) {
+        gameSocket.send(JSON.stringify({
+            type: 'leave_tournament',
+            payload: { tournamentId }
+        }));
+        
+        // Отключаем кнопки после нажатия
+        const readyBtn = document.getElementById('ready-btn') as HTMLButtonElement;
+        const leaveBtn = document.getElementById('leave-btn') as HTMLButtonElement;
+        if (readyBtn) readyBtn.disabled = true;
+        if (leaveBtn) leaveBtn.disabled = true;
+    }
+    redirectTo('/');
+}
+
 export function initializeChampionship(): void {
+    console.log('Initializing championship page');
     gameSocket = UserState.getGameSocket();
     if (!gameSocket) {
         showAlert('Game socket not available', 'danger');
         return;
     }
 
-    // Инициализация текущего игрока
-    updateCurrentPlayer();
+    if (messageListener) gameSocket.removeEventListener('message', messageListener);
+    if (championshipGameEventHandler) UserState.offGameEvent(championshipGameEventHandler);
 
-    // Настройка обработчиков событий кнопок
     const leaveBtn = document.getElementById('leave-btn');
     const readyBtn = document.getElementById('ready-btn');
-    
-    leaveBtn?.addEventListener('click', leaveTournament);
-    readyBtn?.addEventListener('click', toggleReady);
 
-    // Настройка WebSocket слушателей
-    gameSocket.addEventListener('message', (event) => {
+    console.log("Butonst atus", leaveBtn, readyBtn);
+    if (!leaveBtn || !readyBtn) {
+        showAlert('Buttons not found', 'danger');
+        return;
+    }
+
+    trackedAddEventListener(leaveBtn, 'click', leaveTournament);
+    trackedAddEventListener(readyBtn, 'click', toggleReady);
+    // leaveBtn?.addEventListener('click', leaveTournament);
+    // readyBtn?.addEventListener('click', toggleReady);
+
+    const tournamentId = UserState.getGameMode()?.tournamentId;
+    if (tournamentId) {
+        gameSocket.send(JSON.stringify({ type: 'join_tournament', payload: { tournamentId } }));
+    } else {
+        gameSocket.send(JSON.stringify({ type: 'create_tournament', payload: {} }));
+    }
+
+    updateCurrentPlayer();
+
+    messageListener = (event: MessageEvent) => {
         const data = JSON.parse(event.data);
-        
         switch (data.type) {
-            case 'player_joined':
-                handlePlayerJoined(data.payload);
+            case 'tournament_created':
+            case 'new_tournament_created':
+                updateTournamentState({ tournamentId: data.payload.tournamentId });
                 break;
-            case 'player_left':
-                handlePlayerLeft(data.payload);
+            case 'tournament_state_update':
+                updateTournamentState(data.payload);
+                break;
+            case 'player_joined':
+                updateTournamentState({ players: data.payload.players });
                 break;
             case 'player_ready':
-                handlePlayerReady(data.payload);
+                updateTournamentState({ players: data.payload.players });
                 break;
-            case 'tournament_starting':
-                handleTournamentStarting(data.payload);
+            case 'player_left':
+                updateTournamentState({ players: data.payload.players });
                 break;
-            case 'tournament_started':
-                handleTournamentStarted();
-                break;
-            case 'tournament_cancelled':
-                handleTournamentCancelled();
+            case 'tournament_completed':
+                showAlert(`Tournament finished!`);
+                redirectTo('/');
                 break;
         }
-    });
+    };
+    
+    gameSocket.addEventListener('message', messageListener);
 
-    // Инициализация начального состояния
-    updateStatus('Waiting for players', 'yellow');
-    updatePlayersCount();
-    updateTournamentStatus();
+    championshipGameEventHandler = (event: GameEvent) => {
+        if (event.type === 'tournament_completed') {
+            showAlert(`Tournament completed!`);
+            redirectTo('/');
+        }
+    };
+    UserState.onGameEvent(championshipGameEventHandler);
+
+    updateUI();
 }
 
+export function disposeChampionshipPage(): void {
+    if (championshipGameEventHandler) UserState.offGameEvent(championshipGameEventHandler);
+    if (messageListener && gameSocket) gameSocket.removeEventListener('message', messageListener);
+}

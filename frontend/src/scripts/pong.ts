@@ -24,14 +24,14 @@ const currentPositions = {
   player2: { x: 0 },
   ball: { x: 0, z: 0 }
 };
-
-let userId: number | null = UserState.getUser()?.id || null;
-
 // Update scoreboard in the DOM
 function updateScoreDisplay(): void {
   const scoreDisplay = document.getElementById("scoreDisplay") as HTMLElement;
+  if (!scoreDisplay) return;
   scoreDisplay.innerHTML = `${clientGameState.player1.score} : ${clientGameState.player2.score}`;
 }
+
+const assetContainers: AssetContainer[] = [];
 
 // Get essential UI elements
 function getElements() {
@@ -54,7 +54,6 @@ function createEngine(canvas: HTMLCanvasElement): Engine {
 
 // Create and animate camera
 function createCamera(scene: Scene): ArcRotateCamera {
-
 
   const { player1, player2 } = clientGameState;
 
@@ -122,6 +121,7 @@ async function loadModel(
   physicsOptions?: any
 ): Promise<Mesh> {
   const container: AssetContainer = await LoadAssetContainerAsync(url, scene);
+  assetContainers.push(container);
   container.meshes.forEach((mesh, index) => {
     console.log(`Mesh ${index} from ${url}: ${mesh.name}, vertices: ${mesh.getTotalVertices()}`);
   });
@@ -146,6 +146,7 @@ async function loadModel(
 // Create the ground (court)
 async function createGround(scene: Scene): Promise<Mesh> {
   const groundContainer = await LoadAssetContainerAsync("models/court.glb", scene);
+  assetContainers.push(groundContainer);
   const groundMesh = groundContainer.meshes[0] as Mesh;
   groundMesh.scaling = new Vector3(10.97, 1, 23.77);
   groundMesh.position = new Vector3(0, 0, 0);
@@ -178,43 +179,12 @@ async function createBall(scene: Scene): Promise<Mesh> {
   return ball;
 }
 
-// Function to animate paddle hit
-function animatePaddleHit(paddle: Mesh, isPlayer1: boolean): void {
-    const scene = paddle.getScene();
-    scene.stopAnimation(paddle);
-    
-    // Get current rotation
-    const startQuat = paddle.rotationQuaternion?.clone() || Quaternion.Identity();
-    
-    // Calculate hit rotation (tilt back)
-    const hitAngle = Tools.ToRadians(isPlayer1 ? -15 : 15); // Different direction for each player
-    const hitQuat = Quaternion.FromEulerAngles(hitAngle, 0, 0);
-    const targetQuat = startQuat.multiply(hitQuat);
-    
-    // Create animation
-    const anim = new Animation(
-        "paddleHit",
-        "rotationQuaternion",
-        60,
-        Animation.ANIMATIONTYPE_QUATERNION,
-        Animation.ANIMATIONLOOPMODE_CONSTANT
-    );
-    
-    // Set key frames
-    anim.setKeys([
-        { frame: 0, value: startQuat },
-        { frame: 5, value: targetQuat },
-        { frame: 10, value: startQuat }
-    ]);
-    
-    // Start animation
-    paddle.animations = [anim];
-    scene.beginAnimation(paddle, 0, 10, false);
-}
+
 
 // Main function to initialize and run the game scene.
-export async function loadPongPageScript(): Promise<void> {
-  const { canvas, startMenu, gameOverMenu, choiseModal } = getElements();
+export async function loadPongPageScript(): Promise< ()  => void> {
+  const { canvas } = getElements();
+  
   const engine = createEngine(canvas);
   engine.displayLoadingUI();
   engine.loadingUIText = "Loading...";
@@ -248,24 +218,15 @@ export async function loadPongPageScript(): Promise<void> {
   engine.hideLoadingUI();
 
   // Keyboard events for player movement (sending updates to the server)
-  window.addEventListener("keydown", (event: KeyboardEvent) => {
-    userId = UserState.getUser()?.id || null;
+  const keyDownHandler = (event: KeyboardEvent) => {
+    const userId = UserState.getUser()?.id || null;
     if (event.key === "s") {
-      UserState.getGameSocket()?.send(JSON.stringify({
-        type: "player_move",
-        gameId: clientGameState.gameId,
-        userId,
-        direction: "LEFT"
-      }));
+      UserState.getGameSocket()?.send(JSON.stringify({ type: "player_move", gameId: clientGameState.gameId, userId, direction: "LEFT" }));
     } else if (event.key === "a") {
-      UserState.getGameSocket()?.send(JSON.stringify({
-        type: "player_move",
-        gameId: clientGameState.gameId,
-        userId,
-        direction: "RIGHT"
-      }));
+      UserState.getGameSocket()?.send(JSON.stringify({ type: "player_move", gameId: clientGameState.gameId, userId, direction: "RIGHT" }));
     }
-  });
+  };
+  window.addEventListener("keydown", keyDownHandler);
 
   //choiseModal.style.display = "block";
 
@@ -274,23 +235,6 @@ export async function loadPongPageScript(): Promise<void> {
     //startMenu.style.display = "block";
   });
 
-  function startGame(): void {
-    startMenu.style.display = "none";
-    gameOverMenu.style.display = "none";
-    updateScoreDisplay();
-  }
-
-  //startButton.onclick = startGame;
-  // restartButton.onclick = () => {
-  //   clientGameState.player1.score = 0;
-  //   clientGameState.player2.score = 0;
-  //   updateScoreDisplay();
-  //   startGame();
-  // };
-  // quitButton.onclick = () => {
-  //   alert("Merci d'avoir joué!");
-  //   gameOverMenu.style.display = "none";
-  // };
 
   // Main render loop: update scoreboard and sync mesh positions from global state.
   engine.runRenderLoop(() => {
@@ -319,21 +263,55 @@ export async function loadPongPageScript(): Promise<void> {
   window.addEventListener("resize", () => engine.resize());
 
   // Update the WebSocket message handler
-  const socket = UserState.getGameSocket();
-  if (socket) {
-    const existingOnMessage = socket.onmessage;
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
+  // const socket = UserState.getGameSocket();
+  // if (socket) {
+  //   const existingOnMessage = socket.onmessage;
+  //   socket.onmessage = (event) => {
+  //     const message = JSON.parse(event.data);
       
-      // Вызываем существующий обработчик, если он есть
-      if (existingOnMessage) {
-        existingOnMessage.call(socket, event);
-      }
-      
-      // Добавляем обработку game_result для модального окна
-      if (message.type === 'game_result') {
-        showGameOverModal(message.payload);
-      }
-    };
+  //     // Вызываем существующий обработчик, если он есть
+  //     if (existingOnMessage) {
+  //       existingOnMessage.call(socket, event);
+  //     }
+
+  //   };
+  // }
+
+
+
+  function cleanup() {
+    window.removeEventListener('beforeunload', cleanup);
+    window.removeEventListener('popstate', cleanup);
+    window.removeEventListener('keydown', keyDownHandler);
+
+    UserState.offGameEvent(handleGameEvent);
+    
+    for (const container of assetContainers) {
+      container.dispose();
+    }
+    assetContainers.length = 0;
+
+    engine.stopRenderLoop();
+    scene.dispose();
+    engine.clearInternalTexturesCache();
+    engine.dispose();
+
+    //if (socket) socket.onmessage = null;
+
+    const { canvas } = getElements();
+    if (canvas && canvas.parentNode) {
+      canvas.parentNode.removeChild(canvas);
+    }
+
+    clientGameState.gameId = 0;
+    clientGameState.player1 = { ...clientGameState.player1, x: 0, y: 0, score: 0 };
+    clientGameState.player2 = { ...clientGameState.player2, x: 0, y: 0, score: 0 };
+    clientGameState.ball = { x: 0, y: 0, velX: 0, velY: 0 };
+    currentPositions.player1 = { x: 0 };
+    currentPositions.player2 = { x: 0 };
+    currentPositions.ball = { x: 0, z: 0 };
   }
+
+
+  return cleanup;
 }

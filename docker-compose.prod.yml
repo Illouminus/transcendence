@@ -1,0 +1,133 @@
+version: "3.8"
+
+services:
+  nginx:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: transcendence_nginx
+    ports:
+      - "8443:443"
+    depends_on:
+      - gateway
+      - game
+      - user
+      - chat
+    volumes:
+      - certs:/etc/nginx/certs
+    networks:
+      - transcendance-network
+
+  gateway:
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    container_name: transcendence_gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - transcendance-network
+    environment:
+      - GATEWAY_PORT=${GATEWAY_PORT}
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - GAME_SERVICE_URL=${GAME_SERVICE_URL}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
+
+  auth:
+    build:
+      context: ./backend/auth
+      dockerfile: Dockerfile
+    container_name: transcendence_auth
+    networks:
+      - transcendance-network
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - VERIFY_URL=${VERIFY_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  user:
+    build:
+      context: ./backend/user
+      dockerfile: Dockerfile
+    container_name: transcendence_user
+    networks:
+      - transcendance-network
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  game:
+    build:
+      context: ./backend/game
+      dockerfile: Dockerfile
+    container_name: transcendence_game
+    networks:
+      - transcendance-network
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - JWT_SECRET=${JWT_SECRET}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  chat: 
+    build:
+      context: ./backend/chat
+      dockerfile: Dockerfile
+    container_name: transcendence_chat
+    networks:
+      - transcendance-network
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    container_name: transcendence_rabbitmq
+    networks:
+      - transcendance-network
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+volumes:
+  db-data:
+  certs:
+
+networks:
+  transcendance-network:
+    driver: bridge
