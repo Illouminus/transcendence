@@ -135,36 +135,37 @@ export function createGameRow(player1: { username: string, avatar: string }, pla
   }
  
     const gameRow = document.createElement('div');
-    gameRow.className = 'flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-3 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-600 hover:shadow-md';
+    gameRow.className = 'grid grid-cols-12 items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-3 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-600 hover:shadow-md';
     gameRow.innerHTML = `
-        <div class="flex items-center space-x-4 w-full">
-            <!-- Player 1 -->
-            <div class="flex items-center space-x-2 flex-1">
-                <div class="relative group">
-                    <img src="http://localhost:8080/user${player1.avatar}" alt="${player1.username}" 
-                         class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
-                </div>
-                <span class="text-gray-900 dark:text-white font-medium">${player1.username}</span>
+        <!-- Player 1 -->
+        <div class="col-span-4 flex items-center space-x-2">
+            <div class="relative group">
+                <img src="http://localhost:8080/user${player1.avatar}" alt="${player1.username}" 
+                     class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
             </div>
-            
-            <!-- Score -->
+            <span class="text-gray-900 dark:text-white font-medium truncate">${player1.username}</span>
+        </div>
+        
+        <!-- Score -->
+        <div class="col-span-4 flex items-center justify-center">
             <div class="flex items-center space-x-2 bg-gray-200 dark:bg-gray-800 px-4 py-2 rounded-lg">
                 <span class="text-2xl font-bold ${score1 > score2 ? 'text-green-500' : 'text-gray-500'}">${score1}</span>
                 <span class="text-gray-500 dark:text-gray-400">-</span>
                 <span class="text-2xl font-bold ${score2 > score1 ? 'text-green-500' : 'text-gray-500'}">${score2}</span>
             </div>
-            
-            <!-- Player 2 -->
-            <div class="flex items-center space-x-2 flex-1 justify-end">
-                <span class="text-gray-900 dark:text-white font-medium">${player2.username}</span>
-                <div class="relative group">
-                    <img src="http://localhost:8080/user${player2.avatar}" alt="${player2.username}" 
-                         class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
-                </div>
+        </div>
+        
+        <!-- Player 2 -->
+        <div class="col-span-3 flex items-center space-x-2 justify-end">
+            <span class="text-gray-900 dark:text-white font-medium truncate">${player2.username}</span>
+            <div class="relative group">
+                <img src="http://localhost:8080/user${player2.avatar}" alt="${player2.username}" 
+                     class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
             </div>
         </div>
+
         <!-- Date -->
-        <div class="text-sm text-gray-500 dark:text-gray-400 ml-4 whitespace-nowrap">
+        <div class="col-span-1 text-sm text-gray-500 dark:text-gray-400 text-right">
             ${date}
         </div>
     `;
