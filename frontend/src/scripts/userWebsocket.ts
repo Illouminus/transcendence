@@ -4,6 +4,7 @@ import { UserWebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
+import { updateChatUserRowStatus }  from "./chat";
 
 let socket : WebSocket | null = null;
 let activeConnections: Set<number> = new Set();
@@ -163,6 +164,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: user.friend_id,
             friendEmail: user.friend_email
           });
+          updateChatUserRowStatus(user.friend_id, true);
           break;
         }
 

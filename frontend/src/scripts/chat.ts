@@ -30,6 +30,16 @@ function toggleElementClass(elementId: string, className: string, add: boolean):
     }
 }
 
+function toggleElementDisabled(elementId: string, disable: boolean): void {
+    const element = document.getElementById(elementId) as HTMLInputElement | null;
+    if (element) {
+        element.disabled = disable;
+    } else {
+        console.error(`Element with id "${elementId}" not found.`);
+    }
+}
+
+
 // Utilitaire pour mettre à jour le contenu d'un élément
 function updateElementContent(elementId: string, content: string): void {
     const element = document.getElementById(elementId);
@@ -135,6 +145,7 @@ export function displayMessage(user1: string, user2: string, fromUserId: number,
 
 // Fonction pour créer la ligne de chat d'un utilisateur
 function createChatUserRow(user: Friend): string {
+
     return `
         <div data-user-id="${user.friend_id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
             <div class="relative flex-shrink-0 h-10 w-10">
@@ -149,9 +160,23 @@ function createChatUserRow(user: Friend): string {
     `;
 }
 
+export function updateChatUserRowStatus(userId: string, online: boolean) {
+    // Trouver l'élément correspondant dans le DOM
+    const userRow = document.querySelector(`[data-user-id="${userId}"]`);
+    if (userRow) {
+        const statusIndicator = userRow.querySelector('span');
+
+        if (statusIndicator) {
+            // Supprimer les classes existantes et ajouter la bonne classe
+            statusIndicator.classList.remove('bg-green-500', 'bg-yellow-500');
+            statusIndicator.classList.add(online ? 'bg-green-500' : 'bg-yellow-500');
+        }
+    }
+}
+
+
 async function openChatWindow(userId: string) {
     openedChatWindow = true;
-    console.log('openchatWindow is true');
     const { me } = getUserData();
     const friends = me?.friends;
     const him = friends?.find(user => user.friend_id === parseInt(userId));
@@ -159,6 +184,8 @@ async function openChatWindow(userId: string) {
     const himId = him?.friend_id ?? 0;
     const meUsername = me?.username ?? "Utilisateur inconnu";
     const meId = me?.id ?? 0;
+    const chatInput = document.getElementById("chatInput"); 
+    chatInput?.classList.remove("hidden"); 
 
     if (him?.status === 'blocked') {
         showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
@@ -169,8 +196,6 @@ async function openChatWindow(userId: string) {
         showAlert(`${himUsername} is not online, cannot send messages.`, 'warning');
         toggleElementClass('chatInput', 'hidden', true);
     }
-    else 
-        toggleElementClass('chatInput', 'hidden', false);
 
     // Mise à jour de l'affichage
     toggleElementClass('closeChat', 'hidden', true);
@@ -280,7 +305,7 @@ export function chat(): void {
     // Éléments du DOM
     const chatButton = document.getElementById('chatButton');
     const closeChatButton = document.getElementById('closeChat');
-       const friendsListContainer = document.getElementById("chat-friends-list");
+    const friendsListContainer = document.getElementById("chat-friends-list");
 
     if (!chatButton || !closeChatButton || !friendsListContainer) {
         console.error("Éléments du DOM manquants pour initialiser le chat.");
@@ -288,8 +313,8 @@ export function chat(): void {
     }
 
     // Ajout des événements sur les boutons
-    chatButton?.addEventListener('click', () => toggleChatMenu(true));
     chatButton?.classList.remove('hidden');
+    chatButton?.addEventListener('click', () => toggleChatMenu(true));
     closeChatButton?.addEventListener('click', () => {
         toggleChatMenu(false);
     });
