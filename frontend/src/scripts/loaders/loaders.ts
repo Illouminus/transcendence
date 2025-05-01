@@ -93,7 +93,6 @@ export async function fetchStat() {
                 'Content-Type': 'application/json'
             }
         });
-    console.log("RESPONSE GAME STAT", response);
 		if (!response.ok) throw new Error("Erreur lors de la récupération des stats");
 
 		const stats = await response.json();
@@ -122,10 +121,19 @@ export async function fetchGames() {
     }
 }
 
-export function createGameRow(player1: { username: string, avatar: string }, player2: { username: string, avatar: string }, score1: number, score2: number, date: string) {
+export function createGameRow(player1: { username: string, avatar: string }, player2: { username: string, avatar: string }, score1: number, score2: number, date: string, gameType: string) {
     const gamesList = document.getElementById('gamesList');
     if (!gamesList) return;
 
+    if (gameType === 'ai') {
+      if (player1.id === 999999) {
+          player1.username = 'AI';
+      }
+      if (player2.id === 999999) {
+          player2.username = 'AI';
+      }
+  }
+ 
     const gameRow = document.createElement('div');
     gameRow.className = 'flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-3 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-600 hover:shadow-md';
     gameRow.innerHTML = `
@@ -219,41 +227,53 @@ export async function loadProfilePage() {
 	await setUpdateAvatar();
 
 	const stats = await fetchStat(); // Récupérer les stats
-    if (!stats) {
-        console.error("Les statistiques n'ont pas pu être récupérées.");
-        return;
-    }
+  if (!stats) {
+      console.error("Les statistiques n'ont pas pu être récupérées.");
+      return;
+  }
 
 	const games = await fetchGames(); // Récupérer les games
-    if (!games) {
-        console.error("Les statistiques n'ont pas pu être récupérées.");
-        return;
-    }
+  if (!games) {
+    console.error("Les matchs n'ont pas pu être récupérées.");
+    return;
+  }
 	else {
-		games.forEach((game: any) => {
-			console.log(game);
-			console.log(user);
-		
-			// Déterminer qui est l'opponent
-			const isPlayer1 = user?.id === game.player1_id;
-			const opponentId = isPlayer1 ? game.player2_id : game.player1_id;
-		
-			const opponent = user?.friends?.find(friend => friend.friend_id === opponentId);
-		
-			// Définir les scores selon le joueur actuel
-			const playerScore = isPlayer1 ? game.score_player1 : game.score_player2;
-			const opponentScore = isPlayer1 ? game.score_player2 : game.score_player1;
-		
-			// Créer la ligne du jeu avec les informations correctement ordonnées
-			createGameRow(
-				{ username: user?.username ?? 'inconnu', avatar: user?.avatar || "" },
-				{ username: opponent?.friend_username ?? 'inconnu', avatar: opponent?.friend_avatar || "" },
-				playerScore,
-				opponentScore,
-				formatDate(game.started_at)
-			);
-		});
-	}
+    games.forEach((game: any) => {
+        // Déterminer si l'utilisateur actuel est Player1
+        const isPlayer1 = user?.id === game.player1_id;
+        const opponentId = isPlayer1 ? game.player2_id : game.player1_id;
+
+        // Chercher l'opponent parmi les amis de l'utilisateur
+        let opponent = user?.friends?.find(friend => friend.friend_id === opponentId);
+
+        // Si le type de jeu est "ai" et l'opponentId est 999999, définir l'opponent comme AI
+        if (game.game_type === 'ai' && opponentId === 999999) {
+          opponent = {
+              friend_id: 999999,
+              friend_username: 'The Computer',
+              friend_avatar: '/images/default_avatar.png', // Vous pouvez ajuster l'URL de l'avatar
+              friend_email: '',
+              status: 'accepted',
+              online: false
+          };
+      }
+
+        // Définir les scores selon le joueur actuel
+        const playerScore = isPlayer1 ? game.score_player1 : game.score_player2;
+        const opponentScore = isPlayer1 ? game.score_player2 : game.score_player1;
+
+        // Créer la ligne du jeu avec les informations correctement ordonnées
+        createGameRow(
+            { username: user?.username ?? 'inconnu', avatar: user?.avatar || "" },
+            { username: opponent?.friend_username ?? 'inconnu', avatar: opponent?.friend_avatar || "" },
+            playerScore,
+            opponentScore,
+            formatDate(game.started_at), 
+            game.game_type
+        );
+    });
+}
+
 
 	new Chart(ctx, {
 		type: 'bar',
@@ -262,10 +282,10 @@ export async function loadProfilePage() {
 		  datasets: [{
 			label: 'Statistiques',
 			data: [
-                stats.totalGamesPlayed, // 8
-                stats.totalWins,        // 2
-                stats.totalLosses,      // 16
-                stats.totalTournamentsPlayed // 5
+            stats.totalGamesPlayed, // 8
+            stats.totalWins,        // 2
+            stats.totalLosses,      // 16
+            stats.totalTournamentsPlayed // 5
             ],
 			borderWidth: 2,
 			backgroundColor: [
@@ -285,16 +305,6 @@ export async function loadProfilePage() {
 		  }
 		}
 	  });
-	  
-  clearAllDisposables();
-  await fetchAndRender("signup");
-
-  const form = document.querySelector("form");
-  if (form) {
-    trackedAddEventListener(form, "submit", registerHandler);
-    //form.addEventListener("submit", registerHandler);
-    formSubmitHandlers.push(() => form.removeEventListener("submit", registerHandler));
-  }
 }
 
 export async function load2FAPage() {

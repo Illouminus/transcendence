@@ -3,7 +3,6 @@ import { CountRow } from "../@types/user.types";
 import { GameType } from "../@types/tournament.types";
 
 
-
 export async function getTotalGamesPlayed(userId: number): Promise<number> {
 	return new Promise((resolve, reject) => {
 		db.get(
@@ -15,6 +14,7 @@ export async function getTotalGamesPlayed(userId: number): Promise<number> {
 					reject(err);
 				} else {
 					const countRow = row as CountRow;
+					console.log("Total games:", countRow.totalGames);
 					resolve(countRow.totalGames || 0);
 				}
 			}
@@ -22,10 +22,12 @@ export async function getTotalGamesPlayed(userId: number): Promise<number> {
 	});
 }
 
+
 export async function getTotalTournaments(userId: number): Promise<number> {
+	
 	return new Promise((resolve, reject) => {
 		db.get(
-			"SELECT COUNT(*) AS totalTournaments FROM tournament_participants WHERE user_id = ?",
+			"SELECT COUNT(*) AS totalTournaments FROM tournament_players WHERE user_id = ?",
 			[userId],
 			(err: Error | null, row: unknown) => {
 				if (err) {
@@ -33,6 +35,7 @@ export async function getTotalTournaments(userId: number): Promise<number> {
 					reject(err);
 				} else {
 					const countRow = row as CountRow;
+					console.log("Total Tournament:", countRow.totalTournaments);
 					resolve(countRow.totalTournaments || 0);
 				}
 			}
@@ -40,10 +43,11 @@ export async function getTotalTournaments(userId: number): Promise<number> {
 	});
 }
 
+
 export async function getTournamentWins(userId: number): Promise<number> {
 	return new Promise((resolve, reject) => {
 		db.get(
-			"SELECT COUNT(*) AS tournamentWins FROM tournament_participants WHERE user_id = ? AND score > 0",
+			"SELECT COUNT(*) AS tournamentWins FROM tournament_matches WHERE winner_id = ?",
 			[userId],
 			(err: Error | null, row: unknown) => {
 				if (err) {
@@ -51,6 +55,7 @@ export async function getTournamentWins(userId: number): Promise<number> {
 					reject(err);
 				} else {
 					const countRow = row as CountRow;
+					console.log("Tournament Wins:", countRow.tournamentWins);
 					resolve(countRow.tournamentWins || 0);
 				}
 			}
@@ -69,6 +74,7 @@ export async function getGameWins(userId: number): Promise<number> {
 					reject(err);
 				} else {
 					const countRow = row as CountRow;
+					console.log("Total Game Wins:", countRow.totalWins);
 					resolve(countRow.totalWins || 0);
 				}
 			}
@@ -87,6 +93,7 @@ export async function getGameLosses(userId: number): Promise<number> {
 					reject(err);
 				} else {
 					const countRow = row as CountRow;
+					console.log("Total Game Losses:", countRow.totalLosses);
 					resolve(countRow.totalLosses || 0);
 				}
 			}
