@@ -153,6 +153,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: user.id,
             friendEmail: user.email
           });
+          updateChatUserRowStatus(user.id, true);
           break;
         }
 
@@ -164,7 +165,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: user.friend_id,
             friendEmail: user.friend_email
           });
-          updateChatUserRowStatus(user.friend_id, true);
+          
           break;
         }
 
@@ -177,6 +178,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: user.id,
             friendEmail: user.email
           });
+          updateChatUserRowStatus(user.id, false);
           break;
         }
     

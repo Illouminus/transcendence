@@ -160,7 +160,7 @@ function createChatUserRow(user: Friend): string {
     `;
 }
 
-export function updateChatUserRowStatus(userId: string, online: boolean) {
+export function updateChatUserRowStatus(userId: number, online: boolean) {
     // Trouver l'élément correspondant dans le DOM
     const userRow = document.querySelector(`[data-user-id="${userId}"]`);
     if (userRow) {
