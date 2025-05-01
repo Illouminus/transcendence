@@ -12,13 +12,13 @@
 
 <body class="bg-stone-900">
 	<!-- Chat SECTION -->
-	<button id="chatButton" style="position: absolute; right: 2%; bottom: 2%;" class="hidden z-400 p-3 text-gray-900 rounded-full dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+	<button id="chatButton" style="position: fixed; right: 2%; bottom: 2%;" class="hidden z-400 p-3 text-gray-900 rounded-full dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl">
 		<svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
 			<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
 		</svg>
 	</button>
 
-	<div id="chatMenu" class="hidden flex h-[600px] flex-col w-[400px] absolute bottom-5 right-10 z-400 rounded-xl shadow-2xl transition-all duration-300" style="background-color: rgba(17, 24, 39, 0.95); color: white;">
+	<div id="chatMenu" class="hidden flex h-[600px] flex-col w-[400px] fixed bottom-5 right-10 z-400 rounded-xl shadow-2xl transition-all duration-300" style="background-color: rgba(17, 24, 39, 0.95); color: white;">
 		<div class="flex justify-between items-center p-4 border-b border-gray-700">
 			<h1 id="chatTitle" class="text-xl font-semibold hover:text-blue-400 transition-colors duration-200 cursor-pointer">CHAT</h1>
 			<div class="flex space-x-2">
