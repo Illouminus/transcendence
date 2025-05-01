@@ -19,4 +19,8 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
   },
+  define: {
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
+    'import.meta.env.VITE_AUTH_URL': JSON.stringify(process.env.VITE_AUTH_URL),
+  }
 });

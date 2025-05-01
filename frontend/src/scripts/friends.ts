@@ -1,6 +1,7 @@
 import { friendCard } from "../components/friendCard";
 import { requestComponent } from "../components/requestList";
 import { updateUser } from "./loaders/outils";
+import { BASE_URL } from "./outils/config";
 import { trackedAddEventListener } from "./outils/eventManager";
 import { showAlert } from "./services/alert.service";
 import { fetchUserProfile } from "./services/user.service";
@@ -159,17 +160,6 @@ const inviteToGame = async (friendId: number, card: HTMLElement) => {
             return;
         }
         gameSocket.send(JSON.stringify({ type: 'game_invite', payload: {friendId: friendId}}));
-        // const response = await fetch('http://localhost:8080/game/invite', {
-        //     method: 'POST',
-        //     headers: { 
-        //         'Content-Type': 'application/json',
-        //         'authorization': `Bearer ${localStorage.getItem('token')}`
-        //     },
-        //     body: JSON.stringify({ friendId }),
-        //     credentials: 'include'
-        // });
-
-        //if (!response.ok) throw new Error('Failed to send game invitation');
 
         const button = card.querySelector('.invite-button');
         if (button) {
@@ -189,8 +179,8 @@ const blockFriend = async (friendId: number, card: HTMLElement) => {
     try {
         const isBlocked = card.querySelector('.block-button');
         const url = isBlocked 
-            ? `http://localhost:8080/user/friends/${friendId}/block`
-            : `http://localhost:8080/user/friends/${friendId}/unblock`;
+            ? `${BASE_URL}/user/friends/${friendId}/block`
+            : `${BASE_URL}/user/friends/${friendId}/unblock`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -215,7 +205,7 @@ const blockFriend = async (friendId: number, card: HTMLElement) => {
 
 const acceptFriendRequest = async (requestId: number, card: HTMLElement) => {
     try {
-        const response = await fetch(`http://localhost:8080/user/friends/requests/${requestId}/accept`, {
+        const response = await fetch(`${BASE_URL}/user/friends/requests/${requestId}/accept`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ requestId }),
@@ -244,7 +234,7 @@ const acceptFriendRequest = async (requestId: number, card: HTMLElement) => {
 
 const rejectFriendRequest = async (requestId: number, card: HTMLElement) => {
     try {
-        const response = await fetch(`http://localhost:8080/user/friends/requests/${requestId}/reject`, {
+        const response = await fetch(`${BASE_URL}/user/friends/requests/${requestId}/reject`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ requestId }),
@@ -271,7 +261,7 @@ const rejectFriendRequest = async (requestId: number, card: HTMLElement) => {
 
 const removeFriend = async (friendId: number, card: HTMLElement) => {
     try {
-        const response = await fetch(`http://localhost:8080/user/friends/${friendId}/delete`, {
+        const response = await fetch(`${BASE_URL}/user/friends/${friendId}/delete`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ friendId }),

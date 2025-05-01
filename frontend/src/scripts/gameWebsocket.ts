@@ -13,8 +13,12 @@ import { showGameIntroWithPlayers } from "./outils/showGameIntroWithPlayer";
 import { showTournamentProgress } from "./tournament/tournamentProgress";
 import { renderPodium } from "./components/podium";
 import { removeEliminationWait, renderEliminationWait } from "./components/eliminationWait";
+import { BASE_URL, WS_BASE } from "./outils/config";
 
 let socket : WebSocket | null = null;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 10;
+const reconnectDelay = 3000; 
 let tournamentProgressModal: HTMLElement | null = null;
 let gameReadyModal: HTMLElement | null = null;
 
@@ -23,14 +27,29 @@ export function connectGameWebSocket(token: string): WebSocket {
     if (socket && socket.readyState === WebSocket.OPEN) {
       return socket;
     } 
-    socket = new WebSocket(`ws://localhost:8083/ws?token=${token}`);
+    socket = new WebSocket(`${WS_BASE}/game?token=${token}`);
 
     socket.onopen = () => {
       console.log("WebSocket connection established");
+      reconnectAttempts = 0;
     };
     socket.onclose = () => {
       console.log("WebSocket connection closed");
       socket = null;
+
+      if (reconnectAttempts < maxReconnectAttempts) {
+        setTimeout(() => {
+          console.log(`Attempting reconnect (#${reconnectAttempts + 1})`);
+          reconnectAttempts++;
+          const token = localStorage.getItem("token");
+          if (token) {
+            const newSocket = connectGameWebSocket(token);
+            UserState.setGameSocket(newSocket);
+          }
+        }, reconnectDelay);
+      } else {
+        console.warn("Max reconnect attempts reached. Giving up.");
+      }
     };
     socket.onerror = (err) => {
       console.error("WebSocket error:", err);
@@ -112,11 +131,11 @@ export function connectGameWebSocket(token: string): WebSocket {
             showGameIntroWithPlayers(data.payload.gameId, {
               id: currentUser.id,
               username: currentUser.username,
-              avatar: "http://localhost:8080/user" + (currentUser.avatar || '/images/default_avatar.png')
+              avatar: `${BASE_URL}/user${currentUser.avatar}` || '/images/default_avatar.png'
             }, {
               id: opponent.friend_id,
               username: opponent.friend_username,
-              avatar: "http://localhost:8080/user" + (opponent.friend_avatar || '/images/default_avatar.png')
+              avatar: `${BASE_URL}/user${opponent.friend_avatar}`  || '/images/default_avatar.png'
             });
             break;
           
@@ -234,15 +253,15 @@ export function connectGameWebSocket(token: string): WebSocket {
           clientGameState.player2.id = data.payload.isPlayer1 ? UserState.getUser()!.id : data.payload.opponentId;  
           clientGameState.gameId = data.payload.gameId;
           UserState.setGameMode({ mode: 'championship' });
-          showGameIntroWithPlayers(data.payload.gameId, {
+            showGameIntroWithPlayers(data.payload.gameId, {
             id: currentUserI.id,
             username: currentUserI.username,
-            avatar: "http://localhost:8080/user" + (currentUserI.avatar || '/images/default_avatar.png')
-          }, {
+            avatar: `${BASE_URL}/user${currentUserI.avatar}` || '/images/default_avatar.png'
+            }, {
             id: opponentU.friend_id,
             username: opponentU.friend_username,
-            avatar: "http://localhost:8080/user" + (opponentU.friend_avatar || '/images/default_avatar.png')
-          });
+            avatar: `${BASE_URL}/user${opponentU.friend_avatar}` || '/images/default_avatar.png'
+            });
           break;
 
         case 'tournament_match_complete':

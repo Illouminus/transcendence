@@ -23,11 +23,7 @@ const server: FastifyInstance = fastify({
 	disableRequestLogging: config.server.env === "production",
 });
 
-// Active les CORS
-server.register(cors, {
-	origin: config.server.corsOrigin,
-	credentials: true,
-});
+
 
 // Active JWT pour les connexions WebSocket
 server.register(fastifyJwt, { secret: config.security.jwtSecret });
@@ -80,6 +76,11 @@ server.register(async function (fastify: FastifyInstance) {
 							text: data.payload.text,
 							sent_at: data.payload.sent_at},
 					});
+				}
+				else if (data.type == "ping") {
+					connection.send(JSON.stringify({ type: "pong" }));
+				} else {
+					console.log("❌ Type de message inconnu:", data.type);
 				}
 			});
 

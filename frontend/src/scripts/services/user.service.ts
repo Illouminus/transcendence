@@ -4,13 +4,14 @@ import { UserState } from "../userState";
 import { loadSettingsPage } from "../loaders/loaders";
 import { setUpdateAvatar } from "../loaders/outils";
 
-const API_AGREGATED = "http://localhost:8080";
-const API_URL = "http://localhost:8080/auth";
-const API_URL_USER = "http://localhost:8080/user";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+const AUTH_URL = BASE_URL + "/auth";
+const USER_URL = BASE_URL + "/user";
 
 export async function fetchUserProfile(): Promise<User | null> {
     try {
-        const res = await fetch(`${API_AGREGATED}/aggregated/profile`, { credentials: "include" });
+        const res = await fetch(`${BASE_URL}/api/aggregated/profile`, { credentials: "include" });
+        console.log("Response from user profile fetch:", res);
         if (res.ok) {
             //console.log("User profile fetched successfully", await res.json());
             const user: User = await res.json();
@@ -62,7 +63,7 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
     }
   
     try {
-      const res = await fetch(`${API_URL}/update`, {
+      const res = await fetch(`${AUTH_URL}/update`, {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -125,7 +126,7 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 	}
   
 	try {
-	  const res = await fetch(`${API_URL_USER}/updatePhoto`, {
+	  const res = await fetch(`${USER_URL}/updatePhoto`, {
 		method: "POST",
 		body: formData,
 		credentials: "include",
@@ -164,7 +165,7 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 
   export async function enable2FA(): Promise<void> {
     try {
-      const response = await fetch(`${API_URL}/enable-2fa`, {
+      const response = await fetch(`${AUTH_URL}/enable-2fa`, {
         method: "GET",
         credentials: "include",
       });
@@ -183,7 +184,7 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
 
   export async function disable2FA(): Promise<void> {
     try {
-      const response = await fetch(`${API_URL}/disable-2fa`, {
+      const response = await fetch(`${AUTH_URL}/disable-2fa`, {
         method: "GET",
         credentials: "include",
       });
@@ -201,7 +202,7 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
   
   export async function incrementWins(userId: number, type: 'win' | 'loss'): Promise<void> {
     try {
-      const res = await fetch(`${API_URL_USER}/incrementWins`, {
+      const res = await fetch(`${USER_URL}/incrementWins`, {
         method: 'POST',
         credentials: 'include',
         headers: {

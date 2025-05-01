@@ -1,11 +1,16 @@
 import { loadFriendRequests, loadFriends } from "./friends";
 import { fetchAllUsers, updateUser } from "./loaders/outils";
 import { UserWebSocketMessage } from "./models/websocket.model";
+import { WS_BASE } from "./outils/config";
 import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
 
 let socket : WebSocket | null = null;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 10;
+const reconnectDelay = 3000; 
+
 let activeConnections: Set<number> = new Set();
 
 export function connectUserWebSocket(token: string): WebSocket {
@@ -13,14 +18,28 @@ export function connectUserWebSocket(token: string): WebSocket {
     if (socket && socket.readyState === WebSocket.OPEN) {
       return socket;
     } 
-    socket = new WebSocket(`ws://localhost:8082/ws?token=${token}`);
+    socket = new WebSocket(`${WS_BASE}/user?token=${token}`);
     socket.onopen = () => {
       console.log("WebSocket connection established");
+      reconnectAttempts = 0;
     };
     socket.onclose = () => {
-      console.log("WebSocket connection closed");
+      console.log("User WS closed");
       socket = null;
       activeConnections.clear();
+      if (reconnectAttempts < maxReconnectAttempts) {
+        setTimeout(() => {
+          console.log(`Attempting reconnect (#${reconnectAttempts + 1})`);
+          reconnectAttempts++;
+          const token = localStorage.getItem("token");
+          if (token) {
+            const newSocket = connectUserWebSocket(token);
+            UserState.setUserSocket(newSocket);
+          }
+        }, reconnectDelay);
+      } else {
+        console.warn("Max reconnect attempts reached. Giving up.");
+      }
     };
     socket.onerror = (err) => {
       console.error("WebSocket error:", err);

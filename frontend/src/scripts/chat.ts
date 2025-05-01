@@ -2,6 +2,7 @@ import { UserState } from "./userState";
 import { ChatState} from "./chatState";
 import { showAlert } from "./services/alert.service";
 import { redirectTo } from "./router";
+import { BASE_URL } from "./outils/config";
 
 
 export interface ChatArray {
@@ -138,7 +139,7 @@ function createChatUserRow(user: Friend): string {
     return `
         <div data-user-id="${user.friend_id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
             <div class="relative flex-shrink-0 h-10 w-10">
-                <img class="h-10 w-10 rounded-full object-cover" src=${`http://localhost:8080/user${user.friend_avatar}`} alt="">
+                <img class="h-10 w-10 rounded-full object-cover" src=${`${BASE_URL}/user${user.friend_avatar}`} alt="">
                 <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-gray-800 ${user.online ? 'bg-green-500' : 'bg-yellow-500'}"></span>
             </div>
             <div class="ml-4">

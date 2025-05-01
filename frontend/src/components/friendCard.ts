@@ -1,5 +1,7 @@
 import { Friend } from "../scripts/friends";
 
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
 
 export const friendCard = (friend: Friend) => {
     const statusColor = friend.status === 'blocked' ? 'bg-red-500' : 
@@ -14,7 +16,7 @@ export const friendCard = (friend: Friend) => {
     <div class="flex flex-col items-center justify-center p-4">
         <div class="relative group">
             <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-50 transition duration-500 blur"></div>
-            <img class="relative w-24 h-24 rounded-full shadow-lg object-cover ring-2 ring-gray-700/50 ${userIsBlocked ? 'grayscale' : ''} ${userIsOffline ? 'brightness-75' : ''}" src="http://localhost:8080/user${friend.friend_avatar}" alt="${friend.friend_username}'s avatar"/>
+            <img class="relative w-24 h-24 rounded-full shadow-lg object-cover ring-2 ring-gray-700/50 ${userIsBlocked ? 'grayscale' : ''} ${userIsOffline ? 'brightness-75' : ''}" src="${BASE_URL}/user${friend.friend_avatar}" alt="${friend.friend_username}'s avatar"/>
             <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full ${statusColor} border-2 border-gray-800 shadow-lg"></span>
         </div>
         <h5 class="mt-4 text-xl font-medium text-white group-hover:text-blue-400 transition-colors ${userIsBlocked ? 'text-gray-400' : ''} ${userIsOffline ? 'text-gray-500' : ''}">${friend.friend_username}</h5>

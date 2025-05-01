@@ -3,23 +3,43 @@ import { ChatState } from "./chatState";
 import { UserWebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
 import { ChatArray } from "./chat";
+import { WS_BASE } from "./outils/config";
+import UserState from "./userState";
 
 let socket : WebSocket | null = null;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 10;
+const reconnectDelay = 3000; 
 
 export function connectChatWebSocket(token: string): WebSocket {
     if (socket && socket.readyState === WebSocket.OPEN) {
       return socket;
     } 
 
-    socket = new WebSocket(`ws://localhost:8084/ws?token=${token}`);
+    socket = new WebSocket(`${WS_BASE}/chat?token=${token}`);
 
     socket.onopen = () => {
       console.log("Chat - WebSocket connection established");
+      reconnectAttempts = 0; // Reset the reconnect attempts on successful connection
     };
 
     socket.onclose = () => {
-      console.log("WebSocket connection closed");
+      console.log("User WS closed");
       socket = null;
+
+      if (reconnectAttempts < maxReconnectAttempts) {
+        setTimeout(() => {
+          console.log(`Attempting reconnect (#${reconnectAttempts + 1})`);
+          reconnectAttempts++;
+          const token = localStorage.getItem("token");
+          if (token) {
+            const newSocket = connectChatWebSocket(token);
+            UserState.setChatSocket(newSocket);
+          }
+        }, reconnectDelay);
+      } else {
+        console.warn("Max reconnect attempts reached. Giving up.");
+      }
     };
 
     socket.onerror = (err) => {

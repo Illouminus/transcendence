@@ -1,6 +1,7 @@
 import { Chat } from "./models/chat.model";
 import { ChatArray } from "./chat";
 import { loadUserProfileData } from "./users";
+import { BASE_URL } from "./outils/config";
 
 export class ChatState {
 
@@ -49,7 +50,7 @@ export class ChatState {
     public static async fetchMessagesForUser(userId: number): Promise<void> {
         // Chargement des messages
         try {
-            const response = await fetch(`http://localhost:8084/chat/messages/${userId}/`);
+            const response = await fetch(`${BASE_URL}/chat/messages/${userId}/`);
             if (!response.ok) throw new Error("Erreur lors de la récupération des messages");
 
             const messages = await response.json();
@@ -63,7 +64,6 @@ export class ChatState {
         } catch (error) {
             console.error("Erreur de chargement des messages :", error);
         }
-
     }
 
     public static filterMessages(sender_id: number, receiver_id: number): ChatArray[] {

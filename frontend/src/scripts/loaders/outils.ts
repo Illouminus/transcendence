@@ -1,14 +1,9 @@
 import { fetchUserProfile } from "../services/user.service";
-import { redirectTo } from "../router";
-import { loadPongPage } from "./loaders";
 import {UserState} from "../userState";
 
 
-// export async function fetchAndRender(page: string) {
-// 	const response = await fetch(`./src/pages/${page}.html`);
-// 	if (!response.ok) throw new Error(`Error loading ${page}`);
-// 	document.getElementById("app")!.innerHTML = await response.text();
-// }
+const BASE_URL = import.meta.env.VITE_BASE_URL
+
 
 export async function fetchAndRender(page: string) {
 	const response = await fetch(`/pages/${page}.html`);
@@ -45,12 +40,12 @@ export async function setUpdateAvatar() {
 	{
 		avatar.onerror = () => {
 			avatar.onerror = null;
-			avatar.src = "http://localhost:8080/user/images/default_avatar.png";
+			avatar.src = `${BASE_URL}/user/images/default_avatar.png`;
 		};
 		if (user?.avatar) {
-			avatar.src = `http://localhost:8080/user${user.avatar}`;
+			avatar.src = `${BASE_URL}/user${user.avatar}`;
 		} else {
-			avatar.src = "http://localhost:8080/user/images/default_avatar.png";
+			avatar.src = `${BASE_URL}/user/images/default_avatar.png`;
 		}
 	}
 
@@ -60,7 +55,7 @@ export async function setUpdateAvatar() {
 
 
 export async function fetchAllUsers() {
-	const response = await fetch("http://localhost:8080/user/getAllUsers", {
+	const response = await fetch(`${BASE_URL}/user/getAllUsers`, {
 		credentials: "include",
 	});
 	console.log("Response from fetchAllUsers", response);

@@ -99,6 +99,8 @@ server.register(fastifyHttpProxy, {
 
 async function verifyJWT(req: FastifyRequest, reply: FastifyReply) {
   req.log.info('Verifying JWT');
+  console.log('HEADERS:', req.headers);
+  console.log('COOKIES:', req.cookies);
   const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
   try {
     if(token)
@@ -166,7 +168,7 @@ server.register(fastifyHttpProxy, {
 server.register(fastifyHttpProxy, {
     upstream: config.services.chat_service,
     prefix: '/chat',
-    rewritePrefix: "",
+    rewritePrefix: "/chat",
     http2: false,
     websocket: true,
 });

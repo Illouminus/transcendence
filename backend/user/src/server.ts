@@ -32,6 +32,7 @@ export const activeConnections = new Map<number, WebSocket>();
 
 server.register(async function (fastify: FastifyInstance) {
 	fastify.get('/ws', { websocket: true }, async (connection: any, req: FastifyRequest<{ Querystring: { token: string } }>) => {
+	  console.log("WebSocket connected", req.url);
 	  const token = req.query.token; 
 	  const payload = server.jwt.verify(token) as JwtPayload;
 	  const userAuthId = await getUserByAuthId(Number(payload.userId));
@@ -88,16 +89,12 @@ server.register(async function (fastify: FastifyInstance) {
 	  connection.on('message', (message: any) => {
 		const data = JSON.parse(message);
 		console.log('Received message:', data);
-		// switch (data.type) {
-		//   case 'friend_request_accepted':
-		// 	const { message, user } = data.payload;
-		// 	console.log('Friend request accepted:', message, user);
-		// 	sendNotification(user.id, {
-		// 	  type: 'friend_request_accepted',
-		// 	  payload: { message, user },
-		// 	});
-		// 	break;
-		// }
+		switch (data.type) {
+		  case 'ping':
+			// Отправляем ответ на ping
+			connection.send(JSON.stringify({ type: 'pong' }));
+			break;
+		}
 	  });
 	  
 	  // Обработка ошибок

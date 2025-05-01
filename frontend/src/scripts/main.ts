@@ -56,6 +56,28 @@ async function initializeApp() {
             UserState.setUserSocket(connectUserWebSocket(token));
             UserState.setGameSocket(connectGameWebSocket(token));
             UserState.setChatSocket(connectChatWebSocket(token));
+
+            setInterval(() => {
+                const socket = UserState.getUserSocket();
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ type: 'ping' }));
+                }
+            }, 30_000);
+
+            setInterval(() => {
+                const socket = UserState.getGameSocket(); 
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ type: 'ping' }));
+                }
+            }, 30_000);
+
+            setInterval(() => {
+                const socket = UserState.getChatSocket(); 
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ type: 'ping' }));
+                }
+            }, 30_000); 
+
             await setupUI();
             chat();
         } else {

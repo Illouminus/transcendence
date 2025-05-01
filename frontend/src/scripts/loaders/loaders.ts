@@ -13,6 +13,7 @@ import { disposeChampionshipPage, initializeChampionship } from "../championship
 import { disposeGlobalListeners } from "../main";
 import { removeAllTrackedEventListeners, trackedAddEventListener } from "../outils/eventManager";
 import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
+import { BASE_URL } from "../outils/config";
 
 let currentDispose: (() => void) | null = null;
 let chartInstance: any | null = null;
@@ -87,10 +88,10 @@ export async function loadSignupPage() {
 export async function fetchStat() {
     try {
         const token = localStorage.getItem('token'); 
-        const response = await fetch(`http://localhost:8080/game/gameStats`, {
+        const response = await fetch(`${BASE_URL}/game/gameStats`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
             }
         });
     console.log("RESPONSE GAME STAT", response);
@@ -107,7 +108,7 @@ export async function fetchStat() {
 export async function fetchGames() {
     try {
         const token = localStorage.getItem('token'); // ou autre méthode pour récupérer le token
-        const response = await fetch(`http://localhost:8080/game/userGames`, {
+        const response = await fetch(`${BASE_URL}/game/userGames`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -133,7 +134,7 @@ export function createGameRow(player1: { username: string, avatar: string }, pla
             <!-- Player 1 -->
             <div class="flex items-center space-x-2 flex-1">
                 <div class="relative group">
-                    <img src="http://localhost:8080/user${player1.avatar}" alt="${player1.username}" 
+                    <img src="${BASE_URL}/user${player1.avatar}" alt="${player1.username}" 
                          class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
                 </div>
                 <span class="text-gray-900 dark:text-white font-medium">${player1.username}</span>
@@ -150,7 +151,7 @@ export function createGameRow(player1: { username: string, avatar: string }, pla
             <div class="flex items-center space-x-2 flex-1 justify-end">
                 <span class="text-gray-900 dark:text-white font-medium">${player2.username}</span>
                 <div class="relative group">
-                    <img src="http://localhost:8080/user${player2.avatar}" alt="${player2.username}" 
+                    <img src="${BASE_URL}/user${player2.avatar}" alt="${player2.username}" 
                          class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
                 </div>
             </div>
@@ -286,15 +287,15 @@ export async function loadProfilePage() {
 		}
 	  });
 	  
-  clearAllDisposables();
-  await fetchAndRender("signup");
+  // clearAllDisposables();
+  // await fetchAndRender("signup");
 
-  const form = document.querySelector("form");
-  if (form) {
-    trackedAddEventListener(form, "submit", registerHandler);
-    //form.addEventListener("submit", registerHandler);
-    formSubmitHandlers.push(() => form.removeEventListener("submit", registerHandler));
-  }
+  // const form = document.querySelector("form");
+  // if (form) {
+  //   trackedAddEventListener(form, "submit", registerHandler);
+  //   //form.addEventListener("submit", registerHandler);
+  //   formSubmitHandlers.push(() => form.removeEventListener("submit", registerHandler));
+  // }
 }
 
 export async function load2FAPage() {

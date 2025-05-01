@@ -4,6 +4,7 @@ import { createUserRow, generateProfileContainer } from "../components/usersRow"
 import { fetchUserProfile } from "./services/user.service";
 import { showAlert } from "./services/alert.service";
 import { trackedAddEventListener } from "./outils/eventManager";
+import { BASE_URL } from "./outils/config";
 
 
 export interface UserArray {
@@ -21,7 +22,7 @@ export interface UserArray {
 // Function to add friend
 async function addFriend(userId: number): Promise<void> {
     try {
-        const response: Response = await fetch('http://localhost:8080/user/friends/requests', {
+        const response: Response = await fetch(`${BASE_URL}/user/friends/requests`, {
             method: 'POST',
             credentials: 'include',
             body: JSON.stringify({ userId })  ,

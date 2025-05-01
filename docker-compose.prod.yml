@@ -5,6 +5,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_AUTH_URL: ${VITE_AUTH_URL}
+        VITE_BASE_URL: ${VITE_BASE_URL}
     container_name: transcendence_nginx
     ports:
       - "8443:443"
@@ -15,6 +19,17 @@ services:
       - chat
     volumes:
       - certs:/etc/nginx/certs
+    networks:
+      - transcendance-network
+  
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: transcendence_ngrok
+    depends_on:
+      - nginx
+    command: http https://nginx:443 --log stdout --domain=transcendence.ngrok.dev
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
     networks:
       - transcendance-network
 
@@ -36,6 +51,7 @@ services:
       - GAME_SERVICE_URL=${GAME_SERVICE_URL}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
+      - CORS_ORIGIN=${CORS_ORIGIN}
 
   auth:
     build:
@@ -104,6 +120,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - DATABASE_PATH=${DATABASE_PATH}
+      - JWT_SECRET=${JWT_SECRET}
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     depends_on:

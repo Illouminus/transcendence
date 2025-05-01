@@ -9,8 +9,15 @@ RUN npm install
 # Копируем оставшиеся файлы
 COPY . .
 
+ARG VITE_API_URL
+ARG VITE_AUTH_URL
+ARG VITE_BASE_URL
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_AUTH_URL=$VITE_AUTH_URL
+ENV VITE_BASE_URL=$VITE_BASE_URL
+
 # Сборка Vite
-RUN npm run build
+RUN npm run build -- --mode production
 
 # Продакшн-этап: NGINX с готовой статикой
 FROM nginx:alpine

@@ -1,3 +1,5 @@
+import { BASE_URL } from "../scripts/outils/config";
+
 interface FriendRequest {
     id: number;
     username: string;
@@ -11,7 +13,7 @@ const requestCard = (request: FriendRequest) => {
             <div class="relative group shrink-0">
                 <div class="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full opacity-0 group-hover:opacity-50 transition duration-500 blur"></div>
                 <img class="relative w-16 h-16 rounded-full shadow-lg object-cover ring-2 ring-gray-700/50" 
-                     src="http://localhost:8080/user${request.avatar}" 
+                     src="${BASE_URL}/user${request.avatar}" 
                      alt="${request.username}'s avatar"/>
             </div>
             

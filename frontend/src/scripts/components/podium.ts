@@ -1,5 +1,6 @@
 import { UserState } from '../userState';
 import { getFriendById } from '../outils/outils';
+import { BASE_URL } from '../outils/config';
 
 interface PodiumEntry {
   userId: number;
@@ -93,7 +94,7 @@ export function renderPodium(podium: PodiumEntry[]) {
 
     // Аватар
     const avatar = document.createElement('img');
-    avatar.src = p.avatar.startsWith('http') ? p.avatar : 'http://localhost:8080/user' + p.avatar;
+    avatar.src = p.avatar.startsWith('http') ? p.avatar : `${BASE_URL}/user${p.avatar}`;
     avatar.alt = p.username;
     avatar.className = `w-24 h-24 rounded-full border-4 border-white shadow-lg absolute -top-14 bg-white object-cover ${p.isCurrent ? 'ring-4 ring-purple-400' : ''}`;
     avatar.style.opacity = '0';

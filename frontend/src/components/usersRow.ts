@@ -1,3 +1,4 @@
+import { BASE_URL } from "../scripts/outils/config";
 import { UserArray } from "../scripts/users";
 import { UserState } from "../scripts/userState";
 
@@ -20,7 +21,7 @@ export function createUserRow(user: UserArray): string {
             <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 h-10 w-10">
-                        <img class="h-10 w-10 rounded-full" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
+                        <img class="h-10 w-10 rounded-full" src=${BASE_URL}/user${user.avatar_url} alt="">
                     </div>
                     <div class="ml-4">
                         <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -58,7 +59,7 @@ export function createUserRow(user: UserArray): string {
                 <div class="flex flex-col space-y-4">
                     <div class="flex items-center space-x-4">
                         <div class="flex-shrink-0 h-12 w-12">
-                            <img class="h-12 w-12 rounded-full" src=${`http://localhost:8080/user${user.avatar_url}`} alt="">
+                            <img class="h-12 w-12 rounded-full" src=${BASE_URL}/user${user.avatar_url} alt="">
                         </div>
                         <div>
                             <div class="text-base font-medium text-gray-900 dark:text-white">
@@ -106,7 +107,7 @@ export const generateProfileContainer = (user: UserArray) => `
                 <div class="w-full md:w-1/3 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <div class="flex flex-col items-center text-center">
                         <img class="w-24 h-24 rounded-full object-cover mb-4 border-2 border-blue-400"
-                            src="http://localhost:8080/user${user.avatar_url}" alt="User avatar" />
+                            src="${BASE_URL}/user${user.avatar_url}" alt="User avatar" />
                         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                             ${user.username}
                         </h2>

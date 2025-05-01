@@ -2,6 +2,7 @@ import { createGameIntro, fadeOutTailwind } from "../../components/gameIntro";
 import { UserState } from "../userState";
 import { redirectTo } from "../router";
 import { DisplayPlayer, MatchPair, TournamentMatch } from "../types/tournament.types";
+import { BASE_URL } from "./config";
 
 interface PlayerInfo {
   id: number;
@@ -63,7 +64,7 @@ export function mapTournamentMatchToDisplay(match: TournamentMatch): MatchPair {
       return {
         id: user.id,
         username: user.username,
-        avatar: "http://localhost:8080/user" + (user.avatar || '/images/default_avatar.png'),
+        avatar: `${BASE_URL}/user${user.avatar}` || '/images/default_avatar.png',
         status: 'playing'
       };
     }
@@ -74,7 +75,7 @@ export function mapTournamentMatchToDisplay(match: TournamentMatch): MatchPair {
     return {
       id: friend.friend_id,
       username: friend.friend_username,
-      avatar: "http://localhost:8080/user" + (friend.friend_avatar || '/images/default_avatar.png'),
+      avatar: `${BASE_URL}/user${friend.friend_avatar || '/images/default_avatar.png'}`,
       status: 'playing'
     };
   }

@@ -3,6 +3,7 @@ import { GameMode, GameModeSelection } from "./gameMode";
 import { User } from "./models/user.model";
 import { showAlert } from "./services/alert.service";
 import { UserArray } from "./users";
+import { BASE_URL } from "./outils/config";
 //import { disposeGlobalListeners } from "./main";
 
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
@@ -314,9 +315,9 @@ export class UserState {
 		if (avatarImg) {
 			avatarImg.onerror = () => {
 				avatarImg.onerror = null;
-				avatarImg.src = "http://localhost:8080/user/images/default_avatar.png";
+				avatarImg.src = `${BASE_URL}/user/images/default_avatar.png`;
 			};
-			avatarImg.src = avatar ? `http://localhost:8080/user${avatar}` : "http://localhost:8080/user/images/default_avatar.png";
+			avatarImg.src = avatar ? `${BASE_URL}/user${avatar}` : `${BASE_URL}/user/images/default_avatar.png`;
 		}
 	}
 }

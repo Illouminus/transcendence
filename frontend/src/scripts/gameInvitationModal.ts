@@ -1,4 +1,5 @@
 import { FriendsList } from '../scripts/models/user.model';
+import { BASE_URL } from './outils/config';
 import { trackedAddEventListener } from './outils/eventManager';
 
 export function createGameInvitationModal() {
@@ -29,7 +30,7 @@ export function createGameInvitationModal() {
     content.innerHTML = `
       <div class="flex items-center space-x-4">
         <div class="relative">
-            <img src="http://localhost:8080/user${inviter.friend_avatar}"
+            <img src="${BASE_URL}/user${inviter.friend_avatar}"
                  alt="${inviter.friend_username}'s avatar" 
                  class="w-16 h-16 rounded-full object-cover">
             <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>

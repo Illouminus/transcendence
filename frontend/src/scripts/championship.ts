@@ -4,6 +4,7 @@ import { redirectTo } from './router';
 import { TournamentState } from './types/tournament.types';
 import { trackedAddEventListener } from './outils/eventManager';
 import { getFriendById } from './outils/outils';
+import { BASE_URL } from './outils/config';
 
 interface Player {
     id: number;
@@ -61,7 +62,7 @@ function updateCurrentPlayer(): void {
     const ready = document.getElementById('current-player-ready');
     const status = document.getElementById('current-player-status');
 
-    if (avatar) avatar.src = "http://localhost:8080/user" + currentPlayer.avatar;
+    if (avatar) avatar.src = `${BASE_URL}/user${currentPlayer.avatar}`;
     if (name) name.textContent = currentPlayer.username;
     if (ready) {
         ready.textContent = currentPlayer.ready ? 'Ready' : 'Not Ready';
@@ -93,7 +94,7 @@ function updatePlayersList(): void {
         const status = card.querySelector('.player-status');
         const indicator = card.querySelector('.status-indicator');
 
-        if (img) img.src =  'http://localhost:8080/user' + playerInfo.friend_avatar || '/images/default_avatar.png';
+        if (img) img.src =  `${BASE_URL}/user${playerInfo.friend_avatar}` || '/images/default_avatar.png';
         if (name) name.textContent = playerInfo.friend_username || "Anonymous";
         if (status) status.textContent = player.ready ? 'Ready' : 'Not Ready';
         if (indicator) {

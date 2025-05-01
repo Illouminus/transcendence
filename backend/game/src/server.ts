@@ -130,6 +130,10 @@ server.register(async function (fastify: FastifyInstance) {
 				case 'game_ready':
 					receiveGameReady(data.payload.gameId, userId);
 					break;
+				case 'ping':
+					// Send a pong response
+					connection.send(JSON.stringify({ type: 'pong' }));
+					break;
 				default:
 					console.log('Unknown message type:', data.type);
 					break;

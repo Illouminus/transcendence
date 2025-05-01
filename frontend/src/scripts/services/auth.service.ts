@@ -13,17 +13,17 @@ declare var google: any;
 // Google OAuth 2.0 Client ID
 const clientId = "747067169-6jotvfqmsp06iq9muu28jq2547q3v32s.apps.googleusercontent.com";
 
-const API_URL = "http://localhost:8080/auth";
+const AUTH_URL = import.meta.env.VITE_AUTH_URL;
 
 
-
+console.log("API_URL", AUTH_URL);
 
 // Function to login the user using the email and password
 // If the user has 2FA enabled, this is the function to get the email and password
 // and send it to the backend
 export async function login2FA(email: string, code: string) {
 	try {
-		const res = await fetch(`${API_URL}/verify-2fa`, {
+		const res = await fetch(`${AUTH_URL}/verify-2fa`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, code }),
@@ -53,7 +53,7 @@ export async function login2FA(email: string, code: string) {
 // Anf if the user has 2FA enabled, we redirect to the 2FA page
 export async function loginHandler(email: string, password: string) {
 	try {
-		const res = await fetch(`${API_URL}/login`, {
+		const res = await fetch(`${AUTH_URL}/login`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, password }),
@@ -97,7 +97,7 @@ export async function loginHandler(email: string, password: string) {
 // And then we update the user state and show an alert
 export async function logout() {
 	try {
-		await fetch(`${API_URL}/logout`, { method: "GET", credentials: "include" });
+		await fetch(`${AUTH_URL}/logout`, { method: "GET", credentials: "include" });
 		UserState.logout();
 		localStorage.removeItem("token");
 		showAlert("Logout successful", "success");
@@ -132,7 +132,7 @@ export async function renderGoogleButton() {
 // Login by sending the ID token to the backend or register the user
 async function googleSignIn(response: any): Promise<void> {
 	try {
-	  const res = await fetch(`${API_URL}/google-authenticator`, {
+	  const res = await fetch(`${AUTH_URL}/google-authenticator`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ idToken: response.credential }),
@@ -199,7 +199,7 @@ export async function registerHandler(e: Event): Promise<void> {
 	formData.append("password", password);
 
 	try {
-		const res = await fetch(`${API_URL}/register`, {
+		const res = await fetch(`${AUTH_URL}/register`, {
 			method: "POST",
 			body: formData,
 			credentials: "include",
