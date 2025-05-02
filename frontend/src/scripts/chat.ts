@@ -1,5 +1,5 @@
 import { UserState } from "./userState";
-import { ChatState} from "./chatState";
+import { ChatState } from "./chatState";
 import { showAlert } from "./services/alert.service";
 import { redirectTo } from "./router";
 
@@ -13,7 +13,7 @@ export interface ChatArray {
 }
 
 // Variable pour suivre l'utilisateur de la fenêtre de chat ouverte
-let openedChatWindow: boolean = false; 
+let openedChatWindow: boolean = false;
 
 // Fonction pour récupérer l'utilisateur courant et les utilisateurs
 const getUserData = () => {
@@ -102,7 +102,7 @@ const chatInviteToGame = async (friendId: number) => {
             showAlert('Game socket not available', 'danger');
             return;
         }
-        gameSocket.send(JSON.stringify({ type: 'game_invite', payload: {friendId: friendId}}));
+        gameSocket.send(JSON.stringify({ type: 'game_invite', payload: { friendId: friendId } }));
     } catch (error) {
         console.error('Error inviting to game:', error);
         showAlert('Failed to send game invitation', 'danger');
@@ -184,15 +184,14 @@ async function openChatWindow(userId: string) {
     const himId = him?.friend_id ?? 0;
     const meUsername = me?.username ?? "Utilisateur inconnu";
     const meId = me?.id ?? 0;
-    const chatInput = document.getElementById("chatInput"); 
-    chatInput?.classList.remove("hidden"); 
+    const chatInput = document.getElementById("chatInput");
+    chatInput?.classList.remove("hidden");
 
     if (him?.status === 'blocked') {
         showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
         toggleElementClass('chatInput', 'hidden', true);
     }
-    else if(!him?.online)
-    {
+    else if (!him?.online) {
         showAlert(`${himUsername} is not online, cannot send messages.`, 'warning');
         toggleElementClass('chatInput', 'hidden', true);
     }
@@ -212,7 +211,7 @@ async function openChatWindow(userId: string) {
 
     // Gestion du bouton "Retour"
     addEventListenerToElement('goBack', 'click', () => hideChatMenu(true));
-    
+
     // Gestion du bouton "Invite to Game"
     addEventListenerToElement('chatInviteGameButton', 'click', () => {
         chatInviteToGame(himId);
@@ -230,7 +229,7 @@ async function openChatWindow(userId: string) {
         displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sent_at);
     });
 
-  
+
     // Gestion de l'envoi des messages
     addEventListenerToElement("sendButton", "click", () => {
         const chatMessageInput = document.getElementById("chatMessage") as HTMLInputElement;
@@ -299,11 +298,14 @@ type Friend = {
 
 // Fonction d'initialisation du chat
 export function chat(): void {
+    console.log("Going into chat");
     const { me } = getUserData();
     const friends = me?.friends;
 
     // Éléments du DOM
     const chatButton = document.getElementById('chatButton');
+    console.log("SALUT");
+    console.log(chatButton);
     const closeChatButton = document.getElementById('closeChat');
     const friendsListContainer = document.getElementById("chat-friends-list");
 
@@ -319,7 +321,7 @@ export function chat(): void {
         toggleChatMenu(false);
     });
 
-    
+
     friends?.forEach((friend) => {
         if (friend.friend_id !== UserState.getUser()?.id) {
             const userRow = createChatUserRow(friend);

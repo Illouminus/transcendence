@@ -1,7 +1,9 @@
 import { setupUI } from "./services/ui.service";
 import { handleRouting } from "./router";
-import { onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick, 
-    onSettingsClick, onUsersClick, onFriendsClick, onPongClick } from "./services/click.service";
+import {
+    onSignupClick, onLoginClick, onLogoutClick, onLogoClick, onProfileClick,
+    onSettingsClick, onUsersClick, onFriendsClick, onPongClick
+} from "./services/click.service";
 import { UserState } from "./userState";
 import { fetchUserProfile } from "./services/user.service";
 import { fetchAllUsers } from "./loaders/outils";
@@ -44,8 +46,10 @@ async function initializeApp() {
 
     if (token) {
         const user = await fetchUserProfile();
-        
+        console.log("Dans main, user trouve");
+
         if (user) {
+            console.log("COUCOU - User connected");
             UserState.setUser(user);
 
             const allUsers = await fetchAllUsers();
@@ -56,8 +60,8 @@ async function initializeApp() {
             UserState.setUserSocket(connectUserWebSocket(token));
             UserState.setGameSocket(connectGameWebSocket(token));
             UserState.setChatSocket(connectChatWebSocket(token));
-            await setupUI();
             chat();
+            await setupUI();
         } else {
             UserState.logout();
             localStorage.removeItem("token");
