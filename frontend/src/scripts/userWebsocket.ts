@@ -5,6 +5,7 @@ import { WS_USER_URL } from "./outils/config";
 import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
+import { updateChatUserRowStatus }  from "./chat";
 
 let socket : WebSocket | null = null;
 let reconnectAttempts = 0;
@@ -171,6 +172,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: user.id,
             friendEmail: user.email
           });
+          updateChatUserRowStatus(user.id, true);
           break;
         }
 
@@ -182,6 +184,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: user.friend_id,
             friendEmail: user.friend_email
           });
+          
           break;
         }
 
@@ -194,6 +197,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: user.id,
             friendEmail: user.email
           });
+          updateChatUserRowStatus(user.id, false);
           break;
         }
     
