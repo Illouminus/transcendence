@@ -277,7 +277,7 @@ export async function loadProfilePage() {
             game.game_type
         );
     });
-}
+  }
 
 
 	new Chart(ctx, {
