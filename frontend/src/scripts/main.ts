@@ -46,10 +46,8 @@ async function initializeApp() {
 
     if (token) {
         const user = await fetchUserProfile();
-        console.log("Dans main, user trouve");
 
         if (user) {
-            console.log("COUCOU - User connected");
             UserState.setUser(user);
 
             const allUsers = await fetchAllUsers();

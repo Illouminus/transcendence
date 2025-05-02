@@ -298,14 +298,11 @@ type Friend = {
 
 // Fonction d'initialisation du chat
 export function chat(): void {
-    console.log("Going into chat");
     const { me } = getUserData();
     const friends = me?.friends;
 
     // Éléments du DOM
     const chatButton = document.getElementById('chatButton');
-    console.log("SALUT");
-    console.log(chatButton);
     const closeChatButton = document.getElementById('closeChat');
     const friendsListContainer = document.getElementById("chat-friends-list");
 
