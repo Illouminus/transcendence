@@ -264,7 +264,7 @@ export async function forceEndGame(gameId: number): Promise<void> {
     type: 'game_result',
     payload: {
       gameId,
-      winnerId: (state.player1.score > state.player2.score ? state.player1.userId : state.player2.userId),
+      winnerId: winnerId,
       score1: state.player1.score,
       score2: state.player2.score
     }
