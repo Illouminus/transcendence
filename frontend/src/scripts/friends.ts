@@ -16,13 +16,30 @@ export interface Friend {
     online?: boolean;
 }
 
-
 // DOM Elements
 let friendsContainer: HTMLElement | null = null;
 let requestsContainer: HTMLElement | null = null;
 let unsubscribeFriendEvent: (() => void) | null = null;
 let unsubscribeConnectionChange: (() => void) | null = null;
 
+
+export const getFriendsNumber = (): void => {
+    console.log("Coucou");
+    const sidebarFriendsCount = document.getElementById("sidebarFriendsCount");
+    let friendsCount = 0;
+
+    if (sidebarFriendsCount) {
+        const user = UserState.getUser();
+        if (user?.friends) {
+            user.friends.forEach(friend => {
+                if (friend.status == 'accepted')
+                    friendsCount++;
+        });
+    }        
+    // Utiliser textContent pour insérer le texte
+    sidebarFriendsCount.textContent = friendsCount.toString();
+    }
+};
 
 export const disposeFriends = () => {
     if (unsubscribeFriendEvent) {
@@ -306,6 +323,8 @@ export const initializeFriends = async () => {
     try {
         await loadFriends();
         await loadFriendRequests();
+        getFriendsNumber();
+        UserState.onConnectionChange(getFriendsNumber);
 
         if (friendsContainer)
             trackedAddEventListener(friendsContainer, 'click', handleFriendCardClick);
@@ -333,6 +352,8 @@ export const initializeFriends = async () => {
                     case 'friend_online':
                         await loadFriends();
                         await loadFriendRequests();
+
+                        getFriendsNumber();
                         break;
                 }
             });
