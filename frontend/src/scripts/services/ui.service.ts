@@ -13,7 +13,7 @@ export function setupUI() {
 	toggleVisibility("user-photo-button", isAuth);
 	toggleVisibility("users-button", isAuth);
 	toggleVisibility("friends-button", isAuth);
-
+	toggleVisibility("chatButton", isAuth);
 }
 
 function toggleVisibility(elementId: string, isVisible: boolean) {

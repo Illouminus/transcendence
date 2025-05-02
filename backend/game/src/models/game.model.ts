@@ -3,7 +3,6 @@ import { CountRow } from "../@types/user.types";
 import { GameType } from "../@types/tournament.types";
 
 
-
 export async function getTotalGamesPlayed(userId: number): Promise<number> {
 	return new Promise((resolve, reject) => {
 		db.get(
@@ -22,10 +21,12 @@ export async function getTotalGamesPlayed(userId: number): Promise<number> {
 	});
 }
 
+
 export async function getTotalTournaments(userId: number): Promise<number> {
+	
 	return new Promise((resolve, reject) => {
 		db.get(
-			"SELECT COUNT(*) AS totalTournaments FROM tournament_participants WHERE user_id = ?",
+			"SELECT COUNT(*) AS totalTournaments FROM tournament_players WHERE user_id = ?",
 			[userId],
 			(err: Error | null, row: unknown) => {
 				if (err) {
@@ -40,10 +41,11 @@ export async function getTotalTournaments(userId: number): Promise<number> {
 	});
 }
 
+
 export async function getTournamentWins(userId: number): Promise<number> {
 	return new Promise((resolve, reject) => {
 		db.get(
-			"SELECT COUNT(*) AS tournamentWins FROM tournament_participants WHERE user_id = ? AND score > 0",
+			"SELECT COUNT(*) AS tournamentWins FROM tournament_matches WHERE winner_id = ?",
 			[userId],
 			(err: Error | null, row: unknown) => {
 				if (err) {

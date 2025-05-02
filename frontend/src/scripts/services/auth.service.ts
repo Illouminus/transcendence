@@ -8,10 +8,9 @@ import { fetchUserProfile } from "./user.service";
 import { connectUserWebSocket } from "../userWebsocket";
 import { connectGameWebSocket } from "../gameWebsocket";
 import { AUTH_URL } from "../outils/config";
+import { connectChatWebSocket } from "../chatWebSocket";
+import { chat } from "../chat"
 
-
-
-console.log("AUTH_URL", AUTH_URL);
 
 declare var google: any;
 
@@ -78,11 +77,13 @@ export async function loginHandler(email: string, password: string) {
 
 			UserState.setUserSocket(connectUserWebSocket(data.token));
 			UserState.setGameSocket(connectGameWebSocket(data.token));
+			UserState.setChatSocket(connectChatWebSocket(data.token));
 			const user = await fetchUserProfile();
 			const allUsers = await fetchAllUsers();
 			
 			if (user)
 				UserState.setUser(user);
+				chat();
 			if(allUsers)
 				UserState.setAllUsers(allUsers);
 
@@ -147,6 +148,7 @@ async function googleSignIn(response: any): Promise<void> {
 	  localStorage.setItem("token", data.token);
 	  UserState.setUserSocket(connectUserWebSocket(data.token));
 	  UserState.setGameSocket(connectGameWebSocket(data.token));
+	  UserState.setChatSocket(connectChatWebSocket(data.token));
 	  const user = await fetchUserProfile();
 	  const allUsers = await fetchAllUsers();
 	  if (allUsers) {
@@ -154,6 +156,7 @@ async function googleSignIn(response: any): Promise<void> {
 	  }
 	  if (user) {
 		UserState.setUser(user);
+		chat();
 	  }
 	  await setupUI();
 	  redirectTo("/profile");
