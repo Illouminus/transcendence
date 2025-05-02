@@ -219,11 +219,17 @@ export async function loadPongPageScript(): Promise< ()  => void> {
 
   // Keyboard events for player movement (sending updates to the server)
   const keyDownHandler = (event: KeyboardEvent) => {
+
+    console.log("Key pressed:", event.key);
+
     const userId = UserState.getUser()?.id || null;
     if (event.key === "s") {
       UserState.getGameSocket()?.send(JSON.stringify({ type: "player_move", gameId: clientGameState.gameId, userId, direction: "LEFT" }));
     } else if (event.key === "a") {
       UserState.getGameSocket()?.send(JSON.stringify({ type: "player_move", gameId: clientGameState.gameId, userId, direction: "RIGHT" }));
+    }
+    else if (event.key === "Escape") {
+      UserState.getGameSocket()?.send(JSON.stringify({ type: "player_left", gameId: clientGameState.gameId }));
     }
   };
   window.addEventListener("keydown", keyDownHandler);

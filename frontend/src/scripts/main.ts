@@ -44,9 +44,14 @@ async function initializeApp() {
 
     if (token) {
         const user = await fetchUserProfile();
-        
+        console.log("Fetched user profile HHHHHHHH:", user);
+
+
         if (user) {
             UserState.setUser(user);
+            setupUI();
+            console.log("User connected");
+            chat();
 
             const allUsers = await fetchAllUsers();
             if (allUsers) {
@@ -78,16 +83,15 @@ async function initializeApp() {
                 }
             }, 30_000); 
 
-            await setupUI();
-            chat();
+
         } else {
             UserState.logout();
             localStorage.removeItem("token");
-            await setupUI();
+            setupUI();
         }
     }
 
-    await setupUI();
+    setupUI();
     handleRouting();
 }
 

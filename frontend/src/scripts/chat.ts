@@ -275,13 +275,16 @@ type Friend = {
 
 // Fonction d'initialisation du chat
 export function chat(): void {
+    console.log('Chat - Initialisation');
     const { me } = getUserData();
+    console.log('Chat - User:', me);
     const friends = me?.friends;
+    
 
     // Éléments du DOM
     const chatButton = document.getElementById('chatButton');
     const closeChatButton = document.getElementById('closeChat');
-       const friendsListContainer = document.getElementById("chat-friends-list");
+    const friendsListContainer = document.getElementById("chat-friends-list");
 
     if (!chatButton || !closeChatButton || !friendsListContainer) {
         console.error("Éléments du DOM manquants pour initialiser le chat.");

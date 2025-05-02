@@ -1,6 +1,6 @@
 import { UserState } from "../userState";
 
-export async function setupUI() {
+export function setupUI() {
 	const isAuth = UserState.isLoggedIn();
 	toggleVisibility("login-button", !isAuth);
 	toggleVisibility("signup-button", !isAuth);
@@ -13,6 +13,7 @@ export async function setupUI() {
 	toggleVisibility("user-photo-button", isAuth);
 	toggleVisibility("users-button", isAuth);
 	toggleVisibility("friends-button", isAuth);
+
 }
 
 function toggleVisibility(elementId: string, isVisible: boolean) {

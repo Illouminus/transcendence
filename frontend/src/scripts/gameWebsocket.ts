@@ -13,7 +13,7 @@ import { showGameIntroWithPlayers } from "./outils/showGameIntroWithPlayer";
 import { showTournamentProgress } from "./tournament/tournamentProgress";
 import { renderPodium } from "./components/podium";
 import { removeEliminationWait, renderEliminationWait } from "./components/eliminationWait";
-import { BASE_URL, WS_BASE } from "./outils/config";
+import { BASE_URL, WS_GAME_URL } from "./outils/config";
 
 let socket : WebSocket | null = null;
 let reconnectAttempts = 0;
@@ -27,7 +27,7 @@ export function connectGameWebSocket(token: string): WebSocket {
     if (socket && socket.readyState === WebSocket.OPEN) {
       return socket;
     } 
-    socket = new WebSocket(`${WS_BASE}/game?token=${token}`);
+    socket = new WebSocket(`${WS_GAME_URL}?token=${token}`);
 
     socket.onopen = () => {
       console.log("WebSocket connection established");

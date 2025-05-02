@@ -8,6 +8,7 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL}
         VITE_AUTH_URL: ${VITE_AUTH_URL}
+        VITE_WS_BASE: ${VITE_WS_BASE}
         VITE_BASE_URL: ${VITE_BASE_URL}
     container_name: transcendence_nginx
     ports:

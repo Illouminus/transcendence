@@ -3,14 +3,12 @@ import { showAlert } from "./alert.service";
 import { UserState } from "../userState";
 import { loadSettingsPage } from "../loaders/loaders";
 import { setUpdateAvatar } from "../loaders/outils";
+import { AUTH_URL, BASE_URL, USER_URL } from "../outils/config";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-const AUTH_URL = BASE_URL + "/auth";
-const USER_URL = BASE_URL + "/user";
 
 export async function fetchUserProfile(): Promise<User | null> {
     try {
-        const res = await fetch(`${BASE_URL}/api/aggregated/profile`, { credentials: "include" });
+        const res = await fetch(`${BASE_URL}/aggregated/profile`, { credentials: "include" });
         console.log("Response from user profile fetch:", res);
         if (res.ok) {
             //console.log("User profile fetched successfully", await res.json());

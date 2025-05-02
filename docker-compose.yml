@@ -5,6 +5,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_AUTH_URL: ${VITE_AUTH_URL}
+        VITE_BASE_URL: ${VITE_BASE_URL}
+        VITE_WS_BASE: ${VITE_WS_BASE}
+        VITE_WS_GAME_PORT: ${VITE_WS_GAME_PORT}
+        VITE_WS_CHAT_PORT: ${VITE_WS_CHAT_PORT}
+        VITE_WS_USER_PORT: ${VITE_WS_USER_PORT}
     container_name: transcendence_frontend
     restart: always
     working_dir: /app

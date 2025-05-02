@@ -242,3 +242,36 @@ function updateAIPosition(state: GameState): void {
     ai.x = Math.min(Math.max(ai.x, -10), 10);
   }
 }
+
+
+export async function forceEndGame(gameId: number): Promise<void> {
+  const state = activeGames[gameId];
+  if (!state) return;
+
+  clearInterval(gameIntervals[gameId]);
+  delete gameIntervals[gameId];
+  state.isRunning = false;
+
+  const meta = await getGameMetaDB(gameId);
+
+  if (!meta) throw new Error(`Game ${gameId} not found in DB`);
+
+  const winnerId = state.player1.score > state.player2.score ? state.player1.userId : state.player2.userId || state.player2.userId;
+
+  await updateGameResultDB(gameId, winnerId, state.player1.score, state.player2.score);
+
+  const payload = {
+    type: 'game_result',
+    payload: {
+      gameId,
+      winnerId: (state.player1.score > state.player2.score ? state.player1.userId : state.player2.userId),
+      score1: state.player1.score,
+      score2: state.player2.score
+    }
+  };
+
+  sendNotification(state.player1.userId, payload);
+  sendNotification(state.player2.userId, payload);
+
+  delete activeGames[gameId];
+}

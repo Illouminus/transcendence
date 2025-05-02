@@ -7,16 +7,18 @@ import { fetchAllUsers, setUpdateAvatar } from "../loaders/outils";
 import { fetchUserProfile } from "./user.service";
 import { connectUserWebSocket } from "../userWebsocket";
 import { connectGameWebSocket } from "../gameWebsocket";
+import { AUTH_URL } from "../outils/config";
+
+
+
+console.log("AUTH_URL", AUTH_URL);
 
 declare var google: any;
 
 // Google OAuth 2.0 Client ID
 const clientId = "747067169-6jotvfqmsp06iq9muu28jq2547q3v32s.apps.googleusercontent.com";
 
-const AUTH_URL = import.meta.env.VITE_AUTH_URL;
 
-
-console.log("API_URL", AUTH_URL);
 
 // Function to login the user using the email and password
 // If the user has 2FA enabled, this is the function to get the email and password

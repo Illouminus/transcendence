@@ -6,6 +6,10 @@ interface ImportMetaEnv {
     readonly VITE_API_URL: string;
     readonly VITE_AUTH_URL: string;
     readonly VITE_BASE_URL: string;
+    readonly VITE_WS_BASE: string;
+    readonly VITE_WS_USER_PORT: number;
+    readonly VITE_WS_GAME_PORT: number;
+    readonly VITE_WS_CHAT_PORT: number;
   }
   
   interface ImportMeta {

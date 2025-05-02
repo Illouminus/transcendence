@@ -50,7 +50,7 @@ export function disposeGameModeSelection(): void {
 }
 
 export function initializeGameModeSelection(): void {
-    disposeGameModeSelection(); // очистка старых подписок
+    disposeGameModeSelection(); 
     
     const cards = document.querySelectorAll('[data-mode]');
     
@@ -144,7 +144,6 @@ export function initializeGameModeSelection(): void {
             e.stopPropagation();
         };
 
-        // Удаляем старые обработчики, если есть
         if (cardClickHandlers.has(card)) {
             card.removeEventListener('click', cardClickHandlers.get(card)!);
         }
@@ -155,7 +154,7 @@ export function initializeGameModeSelection(): void {
             select.removeEventListener('change', selectChangeHandlers.get(select)!);
         }
 
-        // Добавляем новые обработчики
+
         card.addEventListener('click', handleCardClick);
         cardClickHandlers.set(card, handleCardClick);
 
@@ -167,22 +166,13 @@ export function initializeGameModeSelection(): void {
         if (select) {
             select.addEventListener('change', handleSelectChange);
             selectChangeHandlers.set(select, handleSelectChange);
+            select.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
         }
     });
 }
 
-// function setupWebSocketListeners(): void {
-//     const gameSocket = UserState.getGameSocket();
-//     if (!gameSocket) return;
-
-//     gameSocket.addEventListener('message', (event) => {
-//         const data = JSON.parse(event.data);
-        
-//         if (data.type === 'game_invite_response') {
-//             handleGameInviteResponse(data.payload);
-//         }
-//     });
-// }
 
 function handleGameInviteResponse(payload: { accepted: boolean, friendId: number }): void {
     invitationPending = false;
@@ -190,7 +180,6 @@ function handleGameInviteResponse(payload: { accepted: boolean, friendId: number
     
     if (payload.accepted) {
         showAlert('Friend accepted your invitation!', 'success');
-        // Save game mode and redirect
         const selection: GameModeSelection = {
             mode: 'vsFriend',
             friendId: payload.friendId.toString()
@@ -199,7 +188,6 @@ function handleGameInviteResponse(payload: { accepted: boolean, friendId: number
         redirectTo('/pong');
     } else {
         showAlert('Friend declined your invitation', 'warning');
-        // Reset button state
         if (button) {
             button.textContent = 'Start Game';
             button.disabled = false;

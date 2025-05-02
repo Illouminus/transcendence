@@ -1,7 +1,7 @@
 import { loadFriendRequests, loadFriends } from "./friends";
 import { fetchAllUsers, updateUser } from "./loaders/outils";
 import { UserWebSocketMessage } from "./models/websocket.model";
-import { WS_BASE } from "./outils/config";
+import { WS_USER_URL } from "./outils/config";
 import { showAlert } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
@@ -18,7 +18,7 @@ export function connectUserWebSocket(token: string): WebSocket {
     if (socket && socket.readyState === WebSocket.OPEN) {
       return socket;
     } 
-    socket = new WebSocket(`${WS_BASE}/user?token=${token}`);
+    socket = new WebSocket(`${WS_USER_URL}?token=${token}`);
     socket.onopen = () => {
       console.log("WebSocket connection established");
       reconnectAttempts = 0;

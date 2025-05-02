@@ -6,7 +6,7 @@ import { WebSocket } from 'ws';
 import { logError } from "./utils/errorHandler";
 import { connectRabbit } from "./rabbit/rabbit";
 import config from "./config";
-import { createAndStartGame, createAndStartAIGame, updatePlayerPosition, receiveGameReady } from "./services/game.service";
+import { createAndStartGame, createAndStartAIGame, updatePlayerPosition, receiveGameReady, forceEndGame } from "./services/game.service";
 import { createTournament, joinTournament, toggleReady } from "./services/tournament.service";
 import { JwtPayload } from "./@types/user.types";
 //import { TournamentWebSocketMessage } from "./@types/tournament.types";
@@ -130,6 +130,8 @@ server.register(async function (fastify: FastifyInstance) {
 				case 'game_ready':
 					receiveGameReady(data.payload.gameId, userId);
 					break;
+				case 'player_left': 
+					forceEndGame(data.gameId);
 				case 'ping':
 					// Send a pong response
 					connection.send(JSON.stringify({ type: 'pong' }));

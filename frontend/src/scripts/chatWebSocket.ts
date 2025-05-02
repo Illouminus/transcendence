@@ -3,7 +3,7 @@ import { ChatState } from "./chatState";
 import { UserWebSocketMessage } from "./models/websocket.model";
 import { showAlert } from "./services/alert.service";
 import { ChatArray } from "./chat";
-import { WS_BASE } from "./outils/config";
+import { WS_CHAT_URL } from "./outils/config";
 import UserState from "./userState";
 
 let socket : WebSocket | null = null;
@@ -16,7 +16,7 @@ export function connectChatWebSocket(token: string): WebSocket {
       return socket;
     } 
 
-    socket = new WebSocket(`${WS_BASE}/chat?token=${token}`);
+    socket = new WebSocket(`${WS_CHAT_URL}?token=${token}`);
 
     socket.onopen = () => {
       console.log("Chat - WebSocket connection established");
