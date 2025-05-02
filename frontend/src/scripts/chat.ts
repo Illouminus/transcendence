@@ -312,7 +312,6 @@ export function chat(): void {
     }
 
     // Ajout des événements sur les boutons
-    chatButton?.classList.remove('hidden');
     chatButton?.addEventListener('click', () => toggleChatMenu(true));
     closeChatButton?.addEventListener('click', () => {
         toggleChatMenu(false);
