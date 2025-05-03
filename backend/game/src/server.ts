@@ -46,6 +46,7 @@ server.register(async function (fastify: FastifyInstance) {
 		activeConnections.delete(userId);
 	  });
 	  
+
 	  connection.on('message', async (message: any) => {
 		//const data = JSON.parse(message) as TournamentWebSocketMessage;
 		const data = JSON.parse(message);
@@ -54,7 +55,7 @@ server.register(async function (fastify: FastifyInstance) {
 		try {
 			switch (data.type) {
 				case 'create_tournament':
-					const tournamentId = await createTournament(userId);
+					const tournamentId = await createTournament(userId, data.payload.alias);
 					connection.send(JSON.stringify({
 						type: 'tournament_created',
 						payload: { tournamentId, hostId: userId }
@@ -65,7 +66,7 @@ server.register(async function (fastify: FastifyInstance) {
 					});
 					break;
 				case 'join_tournament':
-						await joinTournament(Number(data.payload.tournamentId), userId);
+						await joinTournament(Number(data.payload.tournamentId), userId, data.payload.alias);
 					break;
 				case 'toggle_ready':
 					await toggleReady(Number(data.payload.tournamentId), userId, data.payload.ready);

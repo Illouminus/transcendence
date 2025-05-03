@@ -120,6 +120,7 @@ export type UserWebSocketMessage =
     avatar: string;
     ready: boolean;
     isHost?: boolean;
+    alias?: string;
   }
   
 
@@ -215,6 +216,7 @@ export interface GameCountdownPayload {
 
 export interface TournamentMatchStartPayload {
   opponentId: number;
+  opponentAlias: string;
   gameId: number;
   round: number; // 1 = полуфинал, 2 = финал
   matchType: 'semifinal' | 'final' | 'third_place';

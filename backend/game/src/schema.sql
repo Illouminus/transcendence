@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS tournament_players (
     tournament_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     ready BOOLEAN DEFAULT 0,
+    alias TEXT DEFAULT NULL,
     final_place INTEGER DEFAULT NULL,
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE
 );

@@ -54,35 +54,44 @@ export function showGameIntroWithPlayers(gameId: number, player1: PlayerInfo, pl
   gameReadyModal = intro;
 }
 
-// Конвертирует матч в красивую структуру
-export function mapTournamentMatchToDisplay(match: TournamentMatch): MatchPair {
+function getPlayerInfo(playerId: number): DisplayPlayer {
   const user = UserState.getUser();
+  const tournament = UserState.getTournamentState();
+  if (!tournament) throw new Error('Tournament not found');
   if (!user) throw new Error('User not logged in');
+  
+  const player = tournament.players.find(p => p.id === playerId);
+  if (!player) throw new Error(`Player with ID ${playerId} not found in tournament`);
+  // We need to take the alias of player 1 or 2
 
-  function getPlayerInfo(playerId: number): DisplayPlayer {
-    if (user && playerId === user.id) {
-      return {
-        id: user.id,
-        username: user.username,
-        avatar: `${BASE_URL}/user${user.avatar}` || '/images/default_avatar.png',
-        status: 'playing'
-      };
-    }
-    const friend = user?.friends.find(f => f.friend_id === playerId);
-    if (!friend) {
-      throw new Error(`Player with ID ${playerId} not found among friends or yourself`);
-    }
+  if (user && playerId === user.id) {
     return {
-      id: friend.friend_id,
-      username: friend.friend_username,
-      avatar: `${BASE_URL}/user${friend.friend_avatar || '/images/default_avatar.png'}`,
+      id: user.id,
+      username: tournament.players.find(p => p.id === playerId)?.alias || user.username,
+      avatar: `${BASE_URL}/user${user.avatar}` || '/images/default_avatar.png',
       status: 'playing'
     };
   }
+  const friend = user?.friends.find(f => f.friend_id === playerId);
+  if (!friend) {
+    throw new Error(`Player with ID ${playerId} not found among friends or yourself`);
+  }
+  return {
+    id: friend.friend_id,
+    username: tournament.players.find(p => p.id === playerId)?.alias || friend.friend_username,
+    avatar: `${BASE_URL}/user${friend.friend_avatar || '/images/default_avatar.png'}`,
+    status: 'playing'
+  };
+}
 
+
+
+// Конвертирует матч в красивую структуру
+export function mapTournamentMatchToDisplay(match: TournamentMatch): MatchPair {
   const player1 = getPlayerInfo(match.player1Id);
   const player2 = getPlayerInfo(match.player2Id);
 
+  console.log("Mapped players", player1, player2);
   return {
     player1,
     player2,

@@ -18,6 +18,7 @@ export let championshipGameEventHandler: ((event: GameEvent) => void) | null = n
 let messageListener: ((event: MessageEvent) => void) | null = null;
 let gameSocket: WebSocket | null = null;
 let currentPlayer: Player | null = null;
+let userAlias: string | null = null;
 
 // Инициализация начального состояния
 UserState.setTournamentState({
@@ -51,7 +52,7 @@ function updateCurrentPlayer(): void {
 
     currentPlayer = {
         id: user.id,
-        username: user.username,
+        username: UserState.getTournamentAlias() || user.username,
         avatar: user.avatar || '/images/default_avatar.png',
         ready: playerFromState ? playerFromState.ready : false,
         isHost: false,
@@ -82,7 +83,7 @@ function updatePlayersList(): void {
     const players = getTournamentState().players;
     
     // Фильтруем текущего игрока из списка
-    const otherPlayers = players.filter(p => p.id !== currentPlayer?.id);
+    const otherPlayers = players.filter(p => p.id !== currentPlayer?.id );
     
     for (const player of otherPlayers) {
         const playerInfo = getFriendById(player.id);
@@ -95,7 +96,7 @@ function updatePlayersList(): void {
         const indicator = card.querySelector('.status-indicator');
 
         if (img) img.src =  `${BASE_URL}/user${playerInfo.friend_avatar}` || '/images/default_avatar.png';
-        if (name) name.textContent = playerInfo.friend_username || "Anonymous";
+        if (name) name.textContent = player.alias || playerInfo.friend_username || "Anonymous";
         if (status) status.textContent = player.ready ? 'Ready' : 'Not Ready';
         if (indicator) {
             indicator.classList.remove('bg-green-500', 'bg-yellow-500');
@@ -174,8 +175,62 @@ function leaveTournament(): void {
     redirectTo('/');
 }
 
+function showAliasModal(onSubmit: (alias: string) => void) {
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.background = 'rgba(0,0,0,0.7)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '9999';
+    modal.innerHTML = `
+      <div style="background:#222;padding:32px 40px;border-radius:16px;color:white;min-width:320px;text-align:center;">
+        <div style="font-size:1.5rem;margin-bottom:16px;">Enter your alias</div>
+        <input id="alias-input" type="text" style="padding:8px 12px;border-radius:8px;border:none;width:80%;margin-bottom:16px;" maxlength="20" autofocus />
+        <br>
+        <button id="alias-submit" style="padding:8px 24px;border-radius:8px;background:#4f46e5;color:white;font-weight:bold;border:none;">Join</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const input = modal.querySelector('#alias-input') as HTMLInputElement;
+    const btn = modal.querySelector('#alias-submit') as HTMLButtonElement;
+
+
+    btn.onclick = () => {
+        if (input.value.trim()) {
+            onSubmit(input.value.trim());
+            modal.remove();
+        }
+    };
+    input.onkeydown = (e) => {
+        if (e.key === 'Enter' && input.value.trim()) {
+            onSubmit(input.value.trim());
+            modal.remove();
+        }
+    };
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            onSubmit(input.value.trim());
+            modal.remove();
+        }
+    };
+    input.focus();
+}
+
+function joinTournamentWithAlias(tournamentId: number, alias: string) {
+    if (!gameSocket) return;
+    gameSocket.send(JSON.stringify({
+        type: 'join_tournament',
+        payload: { tournamentId, alias }
+    }));
+}
+
 export function initializeChampionship(): void {
-    console.log('Initializing championship page');
     gameSocket = UserState.getGameSocket();
     if (!gameSocket) {
         showAlert('Game socket not available', 'danger');
@@ -196,15 +251,21 @@ export function initializeChampionship(): void {
 
     trackedAddEventListener(leaveBtn, 'click', leaveTournament);
     trackedAddEventListener(readyBtn, 'click', toggleReady);
-    // leaveBtn?.addEventListener('click', leaveTournament);
-    // readyBtn?.addEventListener('click', toggleReady);
 
+    // Показываем модалку для alias и только после этого отправляем join
     const tournamentId = UserState.getGameMode()?.tournamentId;
-    if (tournamentId) {
-        gameSocket.send(JSON.stringify({ type: 'join_tournament', payload: { tournamentId } }));
-    } else {
-        gameSocket.send(JSON.stringify({ type: 'create_tournament', payload: {} }));
-    }
+    showAliasModal((alias) => {
+        if(alias.length < 1) {
+            alias = UserState.getUser()?.username || 'Anonymous';
+        }
+        userAlias = alias;
+        UserState.setTournamentAlias(alias);
+        if (tournamentId) {
+            joinTournamentWithAlias(tournamentId, alias);
+        } else {
+            gameSocket?.send(JSON.stringify({ type: 'create_tournament', payload: { alias } }));
+        }
+    });
 
     updateCurrentPlayer();
 

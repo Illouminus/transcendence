@@ -181,7 +181,6 @@ export function connectGameWebSocket(token: string): WebSocket {
           break;
           case 'tournament_created':
             UserState.setGameMode({ mode: 'championship', tournamentId: data.payload.tournamentId });
-  
             UserState.notifyGameEvent({
               type: 'tournament_created',
               tournamentId: data.payload.tournamentId
@@ -198,7 +197,6 @@ export function connectGameWebSocket(token: string): WebSocket {
             });
             break;
         case 'tournament_state_update':
-          console.log('Tournament state update:', data.payload);
           UserState.notifyGameEvent({
             type: 'tournament_state_update',
             tournamentState: data.payload
@@ -215,14 +213,9 @@ export function connectGameWebSocket(token: string): WebSocket {
               matches: {
                 semifinals: data.payload.matches.semifinals,
                 final: data.payload.matches.final
-              } // <-- вот здесь обновляем матчи в состоянии
+              } 
             });
           }
-          
-          console.log('Tournament match start:', UserState.getTournamentState());
-
-          //showTournamentProgress();
-
           if (tournamentProgressModal) {
             fadeOutTailwind(tournamentProgressModal, () => {
               tournamentProgressModal = null;
@@ -255,11 +248,11 @@ export function connectGameWebSocket(token: string): WebSocket {
           UserState.setGameMode({ mode: 'championship' });
             showGameIntroWithPlayers(data.payload.gameId, {
             id: currentUserI.id,
-            username: currentUserI.username,
+            username: UserState.getTournamentAlias() || currentUserI.username,
             avatar: `${BASE_URL}/user${currentUserI.avatar}` || '/images/default_avatar.png'
             }, {
             id: opponentU.friend_id,
-            username: opponentU.friend_username,
+            username: data.payload.opponentAlias || opponentU.friend_username,
             avatar: `${BASE_URL}/user${opponentU.friend_avatar}` || '/images/default_avatar.png'
             });
           break;

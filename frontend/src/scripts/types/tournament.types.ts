@@ -12,6 +12,7 @@ export interface TournamentState {
 export interface TournamentPlayer {
     id: number;
     ready: boolean;
+    alias?: string;
 }
 
 // Отдельный тип матча

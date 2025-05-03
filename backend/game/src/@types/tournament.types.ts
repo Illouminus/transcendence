@@ -16,6 +16,7 @@ export interface DbTournament {
 export interface TournamentPlayer {
     id: number;
     ready: boolean;
+    alias: string;
   }
 
   export interface DbTournamentMatch {

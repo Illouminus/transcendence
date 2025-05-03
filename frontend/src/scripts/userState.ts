@@ -99,6 +99,7 @@ export class UserState {
 	private static tournamentState : TournamentState | null = null;
 	private static currentPage: string = "";
 	private static gameCleanup: (() => void) | null = null;
+	private static tournamentAlias: string = "";
 
 	static setUser(user: User) {
 		this.user = user;
@@ -167,6 +168,13 @@ export class UserState {
 
 	static addSentFriendRequest(userId: number) {
 		this.sentFriendRequests.add(userId);
+	}
+	
+	static setTournamentAlias(alias: string) {
+		this.tournamentAlias = alias;
+	}
+	static getTournamentAlias() {
+		return this.tournamentAlias;
 	}
 
 	static removeSentFriendRequest(userId: number) {

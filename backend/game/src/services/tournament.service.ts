@@ -48,20 +48,20 @@ function broadcastTournamentState(tournamentId: number): void {
   }
 }
 
-export async function createTournament(hostId: number): Promise<number> {
+export async function createTournament(hostId: number, alias: string): Promise<number> {
   const tournamentId = await createTournamentDB(hostId);
-  await insertUserTournamentDB(tournamentId, hostId);
+  await insertUserTournamentDB(tournamentId, hostId, alias);
 
   activeTournaments[tournamentId] = {
     tournamentId,
     phase: 'waiting',
-    players: [{ id: hostId, ready: false }]
+    players: [{ id: hostId, ready: false, alias }]
   };
 
   return tournamentId;
 }
 
-export async function joinTournament(tournamentId: number, userId: number): Promise<void> {
+export async function joinTournament(tournamentId: number, userId: number, alias: string): Promise<void> {
   const tournament = await getTournamentDB(tournamentId);
   if (!tournament || tournament.status !== 'waiting') {
     throw new Error('Tournament not available for joining');
@@ -71,11 +71,11 @@ export async function joinTournament(tournamentId: number, userId: number): Prom
   if (players.includes(userId)) {
     throw new Error('User already joined');
   }
-  await insertUserTournamentDB(tournamentId, userId);
+  await insertUserTournamentDB(tournamentId, userId, alias);
 
   const state = activeTournaments[tournamentId];
   if (state) {
-    state.players.push({ id: userId, ready: false });
+    state.players.push({ id: userId, ready: false, alias });
     broadcastTournamentState(tournamentId);
   }
 }
@@ -128,6 +128,7 @@ export async function startTournament(tournamentId: number): Promise<void> {
       payload: {
         gameId,
         opponentId: match.player2Id,
+        opponentAlias: state.players.find(p => p.id === match.player2Id)?.alias,
         matchType: match.matchType,
         isPlayer1: true,
         pending: true,
@@ -140,6 +141,7 @@ export async function startTournament(tournamentId: number): Promise<void> {
       payload: {
         gameId,
         opponentId: match.player1Id,
+        opponentAlias: state.players.find(p => p.id === match.player1Id)?.alias,
         matchType: match.matchType,
         isPlayer1: false,
         pending: true,
@@ -147,7 +149,6 @@ export async function startTournament(tournamentId: number): Promise<void> {
       }
     });
   }
-
   broadcastTournamentState(tournamentId);
 }
 
@@ -223,6 +224,7 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
           payload: {
             gameId: finalGameId,
             opponentId,
+            opponentAlias: state.players.find(p => p.id === opponentId)?.alias,
             matchType: 'final',
             isPlayer1,
             matches: {

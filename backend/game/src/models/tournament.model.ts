@@ -19,11 +19,11 @@ export function createTournamentDB(hostId: number): Promise<number> {
   });
 }
 
-export function insertUserTournamentDB(tournamentId: number, userId: number): Promise<void> {
+export function insertUserTournamentDB(tournamentId: number, userId: number, alias: string): Promise<void> {
   return new Promise((resolve, reject) => {
     db.run(
-      `INSERT INTO tournament_players (tournament_id, user_id) VALUES (?, ?)`,
-      [tournamentId, userId],
+      `INSERT INTO tournament_players (tournament_id, user_id, alias) VALUES (?, ?, ?)`,
+      [tournamentId, userId, alias],
       function (this: sqlite3.RunResult, err: string) {
         if (err) {
           reject(err);
