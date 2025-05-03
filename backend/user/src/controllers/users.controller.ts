@@ -3,7 +3,7 @@ import { registerUserService, updateAvatarService, updateUsernameService, getUse
 import { getErrorMessage, getErrorStatusCode, logError, createValidationError, createAuthenticationError } from "../utils/errorHandler";
 import { getUserById } from "../models/user.model";
 import { getUserIdFromHeader } from "../utils/outils";
-import { sendNotification } from "../server";
+import { sendNotification, sendNotificationToAll } from "../server";
 import { publishToQueue } from "../rabbit/rabbit";
 
 
@@ -44,6 +44,7 @@ export async function updateAvatarController(req: FastifyRequest<{Body: UpdatePr
 			username: response.username,
 			email : response.email,
 		});
+		sendNotificationToAll({ type: "user_registered", payload: { userId: response.id, username: response.username } });
 	} catch (error) {
 		logError(error, "registerUser");
 		throw createAuthenticationError("Error registering user");

@@ -6,8 +6,11 @@ const BASE_URL = import.meta.env.VITE_BASE_URL
 
 
 export async function fetchAndRender(page: string) {
+
 	const response = await fetch(`/pages/${page}.html`);
 	if (!response.ok) throw new Error(`Error loading ${page}`);
+	// Set the current page in UserState
+	UserState.setCurrentPage(page);
 	document.getElementById("app")!.innerHTML = await response.text();
 }
 

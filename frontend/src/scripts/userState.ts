@@ -97,6 +97,7 @@ export class UserState {
 	private static friendEventCallbacks: Set<FriendEventCallback> = new Set();
 	private static chatSocket: WebSocket | null = null; 
 	private static tournamentState : TournamentState | null = null;
+	private static currentPage: string = "";
 
 	static setUser(user: User) {
 		this.user = user;
@@ -161,6 +162,12 @@ export class UserState {
 
 	static setTempEmail(email: string) {
 		this.tempEmail = email;
+	}
+	static setCurrentPage(page: string) {
+		this.currentPage = page;
+	}
+	static getCurrentPage() {
+		return this.currentPage;
 	}
 
 	static setTournamentState(tournamentState: TournamentState) {

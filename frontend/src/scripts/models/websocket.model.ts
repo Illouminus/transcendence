@@ -14,9 +14,10 @@ export type UserWebSocketMessage =
   | { type: 'system_notification'; payload: SystemNotificationPayload }
   | { type: 'user_connected'; payload: {user : UserInfo} }
   | { type: 'user_disconnected'; payload: {user: UserInfo} }
-  | { type: 'user_online'; payload: {user: FriendOnline} 
+  | { type: 'user_online'; payload: {user: FriendOnline} } 
   | { type: 'tournament_match_start'; payload: TournamentMatchStartPayload }
-  | { type: 'tournament_completed'; payload: TournamentCompletedPayload }};
+  | { type: 'tournament_completed'; payload: TournamentCompletedPayload }
+  | { type: 'user_registered'; payload: UserRegisteredPayload };
 
   export interface IncomingRequestPayload {
     message: string;
@@ -162,6 +163,13 @@ export interface GameStartedPayload {
   players: Array<{ userId: number; username: string; }>;
   // другие поля, которые могут понадобиться
 }
+
+
+export interface UserRegisteredPayload {
+  userId: number;
+  username: string;
+}
+
 export interface GameErrorPayload {
   errorCode: string;
   errorMessage: string; 

@@ -8,7 +8,7 @@ import { AUTH_URL, BASE_URL, USER_URL } from "../outils/config";
 
 export async function fetchUserProfile(): Promise<User | null> {
     try {
-        const res = await fetch(`${BASE_URL}/api/aggregated/profile`, { credentials: "include" });
+        const res = await fetch(`${BASE_URL}/aggregated/profile`, { credentials: "include" });
         console.log("Response from user profile fetch:", res);
         if (res.ok) {
             //console.log("User profile fetched successfully", await res.json());

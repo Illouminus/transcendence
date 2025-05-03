@@ -48,7 +48,6 @@ export function connectUserWebSocket(token: string): WebSocket {
     socket.onmessage = async (event) => {
       const data: UserWebSocketMessage = JSON.parse(event.data);
     
-      console.log('WebSocket message:', data);
       switch (data.type) {
         case 'incoming_request': {
           showAlert(`You have a new friend request from ${data.payload.user.username}`);
@@ -105,7 +104,6 @@ export function connectUserWebSocket(token: string): WebSocket {
           const { message, user, isOnline } = data.payload;
           showAlert(`${message}. Unblocked by ${user.username}`, 'info');
           
-          // Сначала отправляем событие об изменении статуса
           UserState.notifyFriendEvent({
             type: 'friend_unblocked',
             friendId: user.id,
@@ -113,10 +111,8 @@ export function connectUserWebSocket(token: string): WebSocket {
             isOnline: isOnline
           });
           
-          // Затем обновляем данные пользователя
           await updateUser();
           
-          // И восстанавливаем статус онлайн
           UserState.updateFriendStatus(user.id, isOnline, user.email);
           break;
         }
@@ -200,6 +196,19 @@ export function connectUserWebSocket(token: string): WebSocket {
           updateChatUserRowStatus(user.id, false);
           break;
         }
+
+        case 'user_registered': {
+          console.log("User registered: ", data.payload);
+          const allUsers = await fetchAllUsers();
+          console.log("All users: ", allUsers);
+          if (allUsers) {
+            UserState.setAllUsers(allUsers);
+          }
+          if(UserState.getCurrentPage() === 'users')
+            await fetchUsers();
+          break; // 🔥 ВАЖНО!
+        }
+
     
         default:
           console.warn('Unknown WS message type:', data);
