@@ -224,7 +224,6 @@ async function openChatWindow(userId: string) {
         redirectTo(`/user-profile?id=${himId}`);
     });
 
-    console.log('Chat - Retrieving Messages');
     const messages = ChatState.filterMessages(meId, himId);
     messages.forEach(message => {
         displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sent_at);
