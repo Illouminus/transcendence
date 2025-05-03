@@ -136,6 +136,25 @@ export async function startTournament(tournamentId: number): Promise<void> {
       }
     });
 
+    console.log("Ehat we send to player 1: ", {
+      gameId,
+      opponentId: match.player2Id,
+      opponentAlias: state.players.find(p => p.id === match.player2Id)?.alias,
+      matchType: match.matchType,
+      isPlayer1: true,
+      pending: true,
+      matches: { semifinals: matches, final: undefined }
+    });
+    console.log("Ehat we send to player 2: ", {
+      gameId,
+      opponentId: match.player1Id,
+      opponentAlias: state.players.find(p => p.id === match.player1Id)?.alias,
+      matchType: match.matchType,
+      isPlayer1: false,
+      pending: true,
+      matches: { semifinals: matches, final: undefined }
+    });
+
     sendNotification(match.player2Id, {
       type: 'tournament_match_start',
       payload: {
@@ -207,6 +226,7 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
         console.log('Final match data:', {
           gameId: finalGameId,
           opponentId,
+          opponentAlias: state.players.find(p => p.id === opponentId)?.alias,
           matchType: 'final',
           isPlayer1,
           matches: {

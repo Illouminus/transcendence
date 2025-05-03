@@ -205,7 +205,9 @@ export function connectGameWebSocket(token: string): WebSocket {
 
         case 'tournament_match_start':
       
+        console.log('Tournament match started:', data);
         showAlert(`Tournament match started!`);
+
           const previousTournamentState = UserState.getTournamentState();
           if (previousTournamentState) {
             UserState.setTournamentState({
@@ -264,10 +266,11 @@ export function connectGameWebSocket(token: string): WebSocket {
 
         case 'tournament_completed':
           removeEliminationWait();
+          redirectTo('/');
           renderPodium(data.payload.podium);
-          setTimeout(() => {
-            redirectTo('/');
-          }, 1000);
+          // setTimeout(() => {
+          //   redirectTo('/');
+          // }, 1000);
           
           break;
       }
