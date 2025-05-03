@@ -11,6 +11,7 @@ import { connectUserWebSocket } from "./userWebsocket";
 import { connectGameWebSocket } from "./gameWebsocket";
 import { connectChatWebSocket } from "./chatWebSocket";
 import { chat } from "./chat";
+import { getFriendsNumber } from "./friends";
 
 
 
@@ -81,7 +82,7 @@ async function initializeApp() {
                     socket.send(JSON.stringify({ type: 'ping' }));
                 }
             }, 30_000); 
-
+            getFriendsNumber();
             chat();
             setupUI();
         } else {
