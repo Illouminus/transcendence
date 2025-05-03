@@ -4,6 +4,7 @@ import { User } from "./models/user.model";
 import { showAlert } from "./services/alert.service";
 import { UserArray } from "./users";
 import { BASE_URL } from "./outils/config";
+import { ChatState } from "./chatState";
 //import { disposeGlobalListeners } from "./main";
 
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
@@ -284,7 +285,6 @@ export class UserState {
 					case 'friend_unblocked':
 						friend.status = 'accepted';
 						friend.online = event.isOnline ?? false;
-						chatInput?.classList.remove('hidden');
 						break;
 					case 'user_unblocked':
 						console.log("Event in unblocked case", event);

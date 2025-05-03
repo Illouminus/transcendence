@@ -82,7 +82,6 @@ async function initializeApp() {
                 }
             }, 30_000); 
 
-
             chat();
             setupUI();
         } else {

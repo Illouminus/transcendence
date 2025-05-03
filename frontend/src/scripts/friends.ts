@@ -25,7 +25,6 @@ let unsubscribeConnectionChange: (() => void) | null = null;
 
 
 export const getFriendsNumber = (): void => {
-    console.log("Coucou");
     const sidebarFriendsCount = document.getElementById("sidebarFriendsCount");
     let friendsCount = 0;
 

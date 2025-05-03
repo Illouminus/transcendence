@@ -10,6 +10,7 @@ import { connectGameWebSocket } from "../gameWebsocket";
 import { AUTH_URL } from "../outils/config";
 import { connectChatWebSocket } from "../chatWebSocket";
 import { chat } from "../chat"
+import { getFriendsNumber } from "../friends";
 
 
 declare var google: any;
@@ -83,6 +84,7 @@ export async function loginHandler(email: string, password: string) {
 			
 			if (user)
 				UserState.setUser(user);
+				getFriendsNumber();
 				chat();
 			if(allUsers)
 				UserState.setAllUsers(allUsers);
@@ -156,6 +158,7 @@ async function googleSignIn(response: any): Promise<void> {
 	  }
 	  if (user) {
 		UserState.setUser(user);
+		getFriendsNumber();
 		chat();
 	  }
 	  await setupUI();

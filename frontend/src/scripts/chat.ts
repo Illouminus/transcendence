@@ -185,8 +185,11 @@ async function openChatWindow(userId: string) {
     const himId = him?.friend_id ?? 0;
     const meUsername = me?.username ?? "Utilisateur inconnu";
     const meId = me?.id ?? 0;
+
+
     const chatInput = document.getElementById("chatInput");
-    chatInput?.classList.remove("hidden");
+    if (him?.status != 'blocked')
+        chatInput?.classList.remove("hidden");
 
     if (him?.status === 'blocked') {
         showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
