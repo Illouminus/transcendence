@@ -1,5 +1,6 @@
 import { loadPongPage, loadHomePage, loadLoginPage, loadSignupPage, loadSettingsPage, 
-	loadProfilePage, load2FAPage, loadUsersPage, loadUserProfilePage, loadFriendsPage, loadGameModePage, loadChampionshipPage } from "./loaders/loaders";
+	loadProfilePage, load2FAPage, loadUsersPage, loadUserProfilePage, loadFriendsPage, loadGameModePage, loadChampionshipPage, 
+	loadLocalPongPage} from "./loaders/loaders";
 import { UserState } from "./userState";
 
 type RouteHandler = () => void | Promise<void>;
@@ -8,6 +9,9 @@ const routes: Record<string, RouteHandler> = {
 	"/": loadHomePage,
 	"/2fa": load2FAPage,
 	"/pong": loadPongPage,
+	"/local-pong": async () => {
+		(UserState.isLoggedIn()) ? await loadLocalPongPage() : redirectTo("/login");
+	},
 	"/login": async () => {
 		(UserState.isLoggedIn()) ? redirectTo("/profile") : await loadLoginPage();
 	},

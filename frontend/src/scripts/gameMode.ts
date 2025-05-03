@@ -1,8 +1,9 @@
 import { UserState } from './userState';
 import { showAlert } from './services/alert.service';
 import { redirectTo } from './router';
+import { loadLocalPongPage } from './loaders/loaders';
 
-export type GameMode = 'vsComputer' | 'vsFriend' | 'championship';
+export type GameMode = 'vsComputer' | 'vsFriend' | 'championship' | 'local';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export interface GameModeSelection {
@@ -271,7 +272,7 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
 
     // Get game socket once for all cases
     const gameSocket = UserState.getGameSocket();
-    if (!gameSocket) {
+    if (!gameSocket && mode !== 'local') {
         showAlert('Game socket not available', 'danger');
         return;
     }
@@ -283,6 +284,7 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
             selection.difficulty = difficulty;
 
             try {
+                if (!gameSocket) throw new Error('Game socket not available');
                 // Send request to start AI game
                 gameSocket.send(JSON.stringify({ 
                     type: 'start_ai_game',
@@ -340,6 +342,7 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
             }
 
             try {
+                if (!gameSocket) throw new Error('Game socket not available');
                 invitationPending = true;
                 gameSocket.send(JSON.stringify({ 
                     type: 'game_invite', 
@@ -376,6 +379,37 @@ async function handleGameStart(card: Element, button: Element): Promise<void> {
             } catch (error) {
                 console.error('Error joining championship:', error);
                 showAlert('Failed to join championship', 'danger');
+                
+                // Reset button state
+                const startButton = button as HTMLButtonElement;
+                startButton.textContent = 'Start Game';
+                startButton.disabled = false;
+                startButton.classList.remove('bg-gray-600', 'cursor-not-allowed');
+            }
+            break;
+
+        case 'local':
+            try {
+                // Save game mode selection
+                UserState.setGameMode(selection);
+
+                // Show loading state
+                const startButton = button as HTMLButtonElement;
+                startButton.textContent = 'Starting game...';
+                startButton.disabled = true;
+                startButton.classList.add('bg-gray-600', 'cursor-not-allowed');
+
+                
+                redirectTo('/local-pong');
+                // Import and start local game
+                // const { loadLocalPongPageScript } = await import('./localPong');
+                // const cleanup = await loadLocalPongPageScript();
+                // // Store cleanup function for later
+                // UserState.setGameCleanup(cleanup);
+                
+            } catch (error) {
+                console.error('Error starting local game:', error);
+                showAlert('Failed to start game', 'danger');
                 
                 // Reset button state
                 const startButton = button as HTMLButtonElement;

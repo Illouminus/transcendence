@@ -98,6 +98,7 @@ export class UserState {
 	private static chatSocket: WebSocket | null = null; 
 	private static tournamentState : TournamentState | null = null;
 	private static currentPage: string = "";
+	private static gameCleanup: (() => void) | null = null;
 
 	static setUser(user: User) {
 		this.user = user;
@@ -356,6 +357,14 @@ export class UserState {
 			};
 			avatarImg.src = avatar ? `${BASE_URL}/user${avatar}` : `${BASE_URL}/user/images/default_avatar.png`;
 		}
+	}
+
+	static setGameCleanup(cleanup: () => void): void {
+		this.gameCleanup = cleanup;
+	}
+
+	static getGameCleanup(): (() => void) | null {
+		return this.gameCleanup;
 	}
 }
 

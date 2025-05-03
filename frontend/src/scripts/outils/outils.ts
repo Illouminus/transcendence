@@ -17,3 +17,26 @@ export function api(path: string, options: RequestInit = {}) {
     ...options
   });
 }
+
+
+export function waitForElement(selector: string, timeout = 3000): Promise<Element> {
+	return new Promise((resolve, reject) => {
+		const el = document.querySelector(selector);
+		if (el) return resolve(el);
+
+		const observer = new MutationObserver(() => {
+			const el = document.querySelector(selector);
+			if (el) {
+				observer.disconnect();
+				resolve(el);
+			}
+		});
+
+		observer.observe(document.body, { childList: true, subtree: true });
+
+		setTimeout(() => {
+			observer.disconnect();
+			reject(new Error(`Element ${selector} not found within ${timeout}ms`));
+		}, timeout);
+	});
+}

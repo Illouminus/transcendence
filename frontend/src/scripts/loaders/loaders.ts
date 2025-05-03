@@ -14,6 +14,8 @@ import { disposeGlobalListeners } from "../main";
 import { removeAllTrackedEventListeners, trackedAddEventListener } from "../outils/eventManager";
 import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 import { BASE_URL } from "../outils/config";
+import { loadLocalPongPageScript } from "../localPong";
+import { waitForElement } from "../outils/outils";
 
 let currentDispose: (() => void) | null = null;
 let chartInstance: any | null = null;
@@ -376,6 +378,12 @@ export async function loadPongPage() {
   clearAllDisposables();
   await fetchAndRender("pong");
   currentDispose = await loadPongPageScript();
+}
+
+export async function loadLocalPongPage() {
+  clearAllDisposables();
+  await fetchAndRender("local-pong");
+  currentDispose = await loadLocalPongPageScript();
 }
 
 
