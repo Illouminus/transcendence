@@ -303,6 +303,15 @@ export async function loadLocalPongPageScript(): Promise< ()  => void> {
       case "ArrowRight":
         localGameState.player2.x = Math.min(localGameState.player2.x + paddleSpeed, 10);
         break;
+      case "Escape":
+        localGameOver = true;
+        showGameEndModal();
+        setTimeout(() => {
+          removeGameEndModal();
+          redirectTo("/");
+        }
+        , 1500);
+        break;
     }
   };
   window.addEventListener("keydown", keyDownHandler);
@@ -369,6 +378,11 @@ export async function loadLocalPongPageScript(): Promise< ()  => void> {
     currentPositions.player2 = { x: 0 };
     currentPositions.ball = { x: 0, z: 0 };
 
+    localGameState.player1 = { x: 0, score: 0 };
+    localGameState.player2 = { x: 0, score: 0 };
+    localGameState.ball = { x: 0, y: 0, velX: 0.12, velY: 0.18 };
+    localPaddleState.player1 = { x: 0 };
+    localPaddleState.player2 = { x: 0 };
     localGameOver = false;
   }
 
