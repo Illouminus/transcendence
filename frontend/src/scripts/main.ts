@@ -51,7 +51,6 @@ async function initializeApp() {
             UserState.setUser(user);
             setupUI();
             console.log("User connected");
-            chat();
 
             const allUsers = await fetchAllUsers();
             if (allUsers) {

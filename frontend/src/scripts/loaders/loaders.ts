@@ -133,7 +133,7 @@ export function createGameRow(player1: { username: string, avatar: string }, pla
       <!-- Player 1 -->
       <div class="col-span-4 flex items-center space-x-2">
           <div class="relative group">
-              <img src="http://localhost:8080/user${player1.avatar}" alt="${player1.username}" 
+              <img src="${BASE_URL}/user${player1.avatar}" alt="${player1.username}" 
                    class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
           </div>
           <span class="text-gray-900 dark:text-white font-medium truncate">${player1.username}</span>
