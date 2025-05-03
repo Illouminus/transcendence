@@ -63,7 +63,7 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 
 
   // Function to update user
-  export async function updateAvatarService( userId: number, avatarFile?: any): Promise<{ message: string }> {
+  export async function updateAvatarService( userId: number, avatarFile?: any): Promise<string | null> {
 	try {
 	  const currentUser = await getUserById(userId);
 	  if (!currentUser) {
@@ -84,7 +84,7 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
 		avatar_url = fileResult.url;
 	  }
 	  await updateAvatar(userId, avatar_url);
-	  return { message: "User updated!" };
+	  return avatar_url;
 	} catch (error) {
 	  logError(error, "updateUserService");
 	  throw createDatabaseError("Failed to update user", {

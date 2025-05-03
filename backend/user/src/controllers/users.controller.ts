@@ -22,9 +22,10 @@ export async function updateAvatarController(req: FastifyRequest<{Body: UpdatePr
 	  if (!user) {
 		return reply.status(401).send({ error: "User not found" });
 	  }
-	  const response = await updateAvatarService(user.id, avatar);
-	  sendNotification(userId, { type: "profile-view", payload: { userId } });
-	  return reply.status(200).send(response);
+	  const avatarUrl = await updateAvatarService(user.id, avatar);
+	  if(avatarUrl)
+	  	sendNotificationToAll({ type: "user_avatar_updated", payload: { userId: user.id, avatarUrl: avatarUrl } });
+	  return reply.status(200).send({avatarUrl});
 	} catch (error) {
 	  logError(error, "updateProfile");
 	  return reply.status(getErrorStatusCode(error)).send({ error: getErrorMessage(error) });

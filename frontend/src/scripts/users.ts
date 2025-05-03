@@ -6,6 +6,7 @@ import { showAlert } from "./services/alert.service";
 import { trackedAddEventListener } from "./outils/eventManager";
 import { BASE_URL } from "./outils/config";
 
+let unsubscribeConnectionChange: (() => void) | null = null;
 
 export interface UserArray {
     id: number;
@@ -161,6 +162,31 @@ async function fetchUsers(): Promise<void> {
         console.error('Error fetching users:', error);
     }
 }
+
+
+export async function initializeUsers(): Promise<() => void> {
+	UserState.setCurrentPage("users");
+
+	await fetchUsers();
+	const unsubscribe = UserState.onConnectionChange(() => {
+		if (UserState.getCurrentPage() === "users") {
+			fetchUsers();
+		}
+	});
+
+	return () => {
+		unsubscribe();
+	};
+}
+
+export function disposeUsers() {
+	if (unsubscribeConnectionChange) {
+		unsubscribeConnectionChange();
+		unsubscribeConnectionChange = null;
+	}
+}
+
+
 
 // Export necessary functions
 export { fetchUsers, addFriend }; 

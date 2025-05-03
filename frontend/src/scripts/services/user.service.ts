@@ -125,24 +125,17 @@ export async function handleUpdateProfile(e: Event): Promise<void> {
   
 	try {
 	  const res = await fetch(`${USER_URL}/updatePhoto`, {
-		method: "POST",
-		body: formData,
-		credentials: "include",
-	  });
+      method: "POST",
+      body: formData,
+      credentials: "include",
+      });
 	  
 	  if (!res.ok) {
 		const errorData = await res.json();
 		throw new Error(errorData.error || `Update failed: ${res.statusText}`);
 	  }
 	  
-	  const data = await res.json();
-	  
-	  if (data.message === "User updated!") {
 		showAlert("Update was successful", "success");
-	  } else {
-		showAlert("Update failed: " + (data.error || "Unknown error"), "danger");
-	  }
-	  
 	  
 	  const user = await fetchUserProfile();
 	  if (user)

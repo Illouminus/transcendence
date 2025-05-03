@@ -6,7 +6,7 @@ import { loginHandler, renderGoogleButton, login2FA, registerHandler } from "../
 import { GameEvent, UserState } from "../userState";
 import { succesSVG, errorSVG } from "./outils";
 import { handleUpdateProfile, handleUpdateAvatar, enable2FA, disable2FA } from "../services/user.service";
-import { fetchUsers, loadUserProfileData } from "../users";
+import { fetchUsers, initializeUsers, loadUserProfileData } from "../users";
 import { disposeFriends, initializeFriends } from "../friends";
 import { initializeGameModeSelection } from "../gameMode";
 import { disposeChampionshipPage, initializeChampionship } from "../championship";
@@ -400,9 +400,9 @@ export async function loadChampionshipPage() {
 }
 
 export async function loadUsersPage() {
-  clearAllDisposables();
-  await fetchAndRender("users");
-  await fetchUsers();
+	clearAllDisposables();
+	await fetchAndRender("users");
+	currentDispose = await initializeUsers();
 }
 
 export async function loadUserProfilePage() {

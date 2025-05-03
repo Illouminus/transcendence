@@ -17,7 +17,8 @@ export type UserWebSocketMessage =
   | { type: 'user_online'; payload: {user: FriendOnline} } 
   | { type: 'tournament_match_start'; payload: TournamentMatchStartPayload }
   | { type: 'tournament_completed'; payload: TournamentCompletedPayload }
-  | { type: 'user_registered'; payload: UserRegisteredPayload };
+  | { type: 'user_registered'; payload: UserRegisteredPayload }
+  | { type: 'user_avatar_updated'; payload: UserAvatrUpdatedPayload }
 
   export interface IncomingRequestPayload {
     message: string;
@@ -53,6 +54,11 @@ export type UserWebSocketMessage =
   export interface FriendDeletedPayload {
     message: string;
     user: UserInfo; // user, который нас удалил
+  }
+
+  export interface UserAvatrUpdatedPayload {
+    userId: number;
+    avatarUrl: string;
   }
   
   /** Сообщение чата */

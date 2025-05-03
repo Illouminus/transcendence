@@ -209,6 +209,20 @@ export function connectUserWebSocket(token: string): WebSocket {
           break; // 🔥 ВАЖНО!
         }
 
+        // case 'user_updated': {
+        //   const { user } = data.payload;
+        //   console.log("User updated: ", user);
+        //   UserState.updateUser(user);
+        //   break;
+        // }
+
+        case 'user_avatar_updated': {
+          const { userId, avatarUrl } = data.payload;
+          console.log("User avatar updated: ", userId, avatarUrl);
+          UserState.updateUserAvatar(userId, avatarUrl);
+          break;
+        }
+
     
         default:
           console.warn('Unknown WS message type:', data);

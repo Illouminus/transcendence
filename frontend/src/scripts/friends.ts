@@ -342,7 +342,6 @@ export const initializeFriends = async () => {
                     case 'friend_online':
                         await loadFriends();
                         await loadFriendRequests();
-
                         getFriendsNumber();
                         break;
                 }

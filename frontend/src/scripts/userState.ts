@@ -144,6 +144,22 @@ export class UserState {
 		this.allUsers = users;
 	}
 
+	static updateUserAvatar(userId: number, avatarUrl: string) {
+		if (this.allUsers) {
+			const user = this.allUsers.find(user => user.id === userId);
+			if (user) {
+				user.avatar_url = avatarUrl;
+			}
+			const fiendUser = this.user?.friends?.find(friend => friend.friend_id === userId);
+			if (fiendUser) {
+				fiendUser.friend_avatar = avatarUrl;
+			}
+			this.notifyConnectionChange();
+		}
+	}
+
+
+
 	static getAllUsers() {
 		return this.allUsers;
 	}
