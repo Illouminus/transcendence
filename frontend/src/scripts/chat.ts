@@ -299,9 +299,7 @@ type Friend = {
 
 // Fonction d'initialisation du chat
 export function chat(): void {
-    console.log('Chat - Initialisation');
     const { me } = getUserData();
-    console.log('Chat - User:', me);
     const friends = me?.friends;
     
 
@@ -324,10 +322,16 @@ export function chat(): void {
 
     friends?.forEach((friend) => {
         if (friend.friend_id !== UserState.getUser()?.id) {
-            const userRow = createChatUserRow(friend);
-            friendsListContainer?.insertAdjacentHTML('beforeend', userRow);
+            // Vérifier si l'utilisateur est déjà dans la liste
+            const existingUserRow = friendsListContainer?.querySelector(`[data-user-id="${friend.friend_id}"]`);
+            
+            if (!existingUserRow) {
+                const userRow = createChatUserRow(friend);
+                friendsListContainer?.insertAdjacentHTML('beforeend', userRow);
+            }
         }
     });
+    
 
     // Ajoute des événements sur les utilisateurs
     attachChatEventListeners();
