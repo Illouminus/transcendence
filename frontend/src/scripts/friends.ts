@@ -234,8 +234,9 @@ const acceptFriendRequest = async (requestId: number, card: HTMLElement) => {
         await updateUser();
         UserState.notifyFriendEvent({
             type: 'friend_request_accepted',
-            friendId: requestId
+            friendId: requestId,
         });
+        UserState.updateFriendStatus(requestId, true);
         
         card.classList.add('opacity-0', 'scale-95');
         setTimeout(() => {

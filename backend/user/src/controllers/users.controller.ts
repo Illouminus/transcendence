@@ -58,7 +58,6 @@ export async function updateAvatarController(req: FastifyRequest<{Body: UpdatePr
 export async function updateUsernameController(userId: number, username: string, email: string) {
 	try {
 	  const response = await updateUsernameService(userId, username , email);
-	  console.log("Username updated", response);
 	} catch (error) {
 	  logError(error, "updateProfile");
 	}

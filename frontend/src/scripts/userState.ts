@@ -247,6 +247,20 @@ export class UserState {
 		}
 	}
 
+	static updateUserUsername(userId: number, username: string) {
+		if (this.allUsers) {
+			const user = this.allUsers.find(user => user.id === userId);
+			if (user) {
+				user.username = username;
+			}
+			const fiendUser = this.user?.friends?.find(friend => friend.friend_id === userId);
+			if (fiendUser) {
+				fiendUser.friend_username = username;
+			}
+			this.notifyConnectionChange();
+		}
+	}
+
 	// Subscribe to connection changes
 	static onConnectionChange(callback: ConnectionChangeCallback) {
 		this.connectionChangeCallbacks.add(callback);

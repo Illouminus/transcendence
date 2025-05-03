@@ -19,6 +19,7 @@ export type UserWebSocketMessage =
   | { type: 'tournament_completed'; payload: TournamentCompletedPayload }
   | { type: 'user_registered'; payload: UserRegisteredPayload }
   | { type: 'user_avatar_updated'; payload: UserAvatrUpdatedPayload }
+  | { type: 'user_username_updated'; payload: UserUserNameUpdatedPayload }
 
   export interface IncomingRequestPayload {
     message: string;
@@ -29,6 +30,7 @@ export type UserWebSocketMessage =
   export interface FriendRequestAcceptedPayload {
     message: string;
     user: UserInfo; // user, который принял заявку
+    isOnline: boolean; // true, если пользователь онлайн
   }
   
   /** Заявка отклонена */
@@ -59,6 +61,11 @@ export type UserWebSocketMessage =
   export interface UserAvatrUpdatedPayload {
     userId: number;
     avatarUrl: string;
+  }
+
+  export interface UserUserNameUpdatedPayload {
+    userId: number;
+    username: string;
   }
   
   /** Сообщение чата */

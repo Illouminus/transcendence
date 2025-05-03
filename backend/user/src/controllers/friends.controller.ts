@@ -64,8 +64,8 @@ export async function acceptFriendRequestController(request: FastifyRequest<{Par
 
         const response = await acceptFriendRequestService(userId, friendId);
         const user = await getUserById(userId);
-        sendNotification(Number(friendId), {type: 'friend_request_accepted', payload: {message: 'Your friend request has been accepted', user: user}});
-
+        const isOnline = activeConnections.has(Number(friendId));
+        sendNotification(Number(friendId), {type: 'friend_request_accepted', payload: {message: 'Your friend request has been accepted', user: user, isOnline: isOnline}});
         reply.code(200).send(response);
     } catch (error) {
         reply.code(getErrorStatusCode(error)).send({error: getErrorMessage(error)});

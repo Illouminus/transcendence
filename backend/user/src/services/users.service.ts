@@ -3,6 +3,7 @@ import { UserProfile, PublicUserProfile, User } from "../@types/user.types";
 import * as fileService from "./file.service";
 import { createNotFoundError,createValidationError,createDatabaseError,logError } from "../utils/errorHandler";
 import { getFriendsListFromDB, getIncomingRequestsDb, getOutgoingRequestsDb } from "../models/friends.model";
+import { sendNotificationToAll } from "../server";
 
 
 export async function getUserProfileService(userId: number): Promise<PublicUserProfile> {
@@ -98,12 +99,11 @@ export async function getUserProfileService(userId: number): Promise<PublicUserP
   export async function updateUsernameService( userId: number, username: string, email: string): Promise<void> {
 	try {
 		const response = await updateUserData(userId, {username, email});
-		console.log("Username updated", response);
+		sendNotificationToAll({ type: "user_username_updated", payload: { userId, username }});
 	} catch (error) {
 		logError(error, "updateProfile");
 	}
 	}
-
 
 
 

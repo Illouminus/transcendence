@@ -60,15 +60,18 @@ export function connectUserWebSocket(token: string): WebSocket {
           break;
         }
         case 'friend_request_accepted': {
-          const { message, user } = data.payload;
+          console.log("Friend request accepted: ", data.payload);
+          const { message, user, isOnline } = data.payload;
           showAlert(message, 'success');
           await updateUser();
+          UserState.updateFriendStatus(user.id, isOnline, user.email);
           UserState.notifyFriendEvent({
             type: 'friend_added',
             friendId: user.id,
             friendEmail: user.email
           });
-          fetchUsers();
+          if(UserState.getCurrentPage() === 'users')
+            fetchUsers();
           break;
         }
     
@@ -218,8 +221,14 @@ export function connectUserWebSocket(token: string): WebSocket {
 
         case 'user_avatar_updated': {
           const { userId, avatarUrl } = data.payload;
-          console.log("User avatar updated: ", userId, avatarUrl);
           UserState.updateUserAvatar(userId, avatarUrl);
+          break;
+        }
+
+        case 'user_username_updated': {
+          const { userId, username } = data.payload;
+          console.log("User username updated: ", userId, username);
+          UserState.updateUserUsername(userId, username);
           break;
         }
 
