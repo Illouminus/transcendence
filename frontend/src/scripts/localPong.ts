@@ -9,6 +9,7 @@ import "@babylonjs/loaders";
 import { UserState } from "./userState";
 import { showGameOverModal } from './endGame';
 import { GameEvent } from './userState';
+import { redirectTo } from "./router";
 
 // Global game state synced with server updates
 export const clientGameState = {
@@ -197,6 +198,13 @@ function showGameEndModal() {
   document.body.appendChild(modal);
 }
 
+function removeGameEndModal() {
+  const modal = document.querySelector('div[style*="position: fixed"]');
+  if (modal) {
+    modal.parentNode?.removeChild(modal);
+  }
+}
+
 function resetLocalBall() {
   localGameState.ball.x = 0;
   localGameState.ball.y = 0;
@@ -212,26 +220,26 @@ function updateLocalGame() {
   localGameState.ball.y += localGameState.ball.velY;
 
   // Столкновение с боковыми стенками
-  if (Math.abs(localGameState.ball.x) > 10) {
+  if (Math.abs(localGameState.ball.x) > 5) {
     localGameState.ball.velX *= -1;
-    localGameState.ball.x = Math.sign(localGameState.ball.x) * 10;
+    localGameState.ball.x = Math.sign(localGameState.ball.x) * 5;
   }
 
   // Столкновение с ракеткой player1 (нижняя)
   if (
-    Math.abs(localGameState.ball.y + 11.885) < 0.7 &&
-    Math.abs(localGameState.ball.x - localGameState.player1.x) < 1.7
+    Math.abs(localGameState.ball.y + 11.885) < 0.5 &&
+    Math.abs(localGameState.ball.x - localGameState.player1.x) < 1.5
   ) {
     localGameState.ball.velY = Math.abs(localGameState.ball.velY);
-    localGameState.ball.y = -11.885 + 0.7;
+    localGameState.ball.y = -11.885 + 0.5;
   }
   // Столкновение с ракеткой player2 (верхняя)
   if (
-    Math.abs(localGameState.ball.y - 11.885) < 0.7 &&
-    Math.abs(localGameState.ball.x - localGameState.player2.x) < 1.7
+    Math.abs(localGameState.ball.y - 11.885) < 0.5 &&
+    Math.abs(localGameState.ball.x - localGameState.player2.x) < 1.5
   ) {
     localGameState.ball.velY = -Math.abs(localGameState.ball.velY);
-    localGameState.ball.y = 11.885 - 0.7;
+    localGameState.ball.y = 11.885 - 0.5;
   }
 
   // ГОЛЫ
@@ -249,7 +257,8 @@ function updateLocalGame() {
     localGameOver = true;
     showGameEndModal();
     setTimeout(() => {
-      window.location.href = '/';
+      removeGameEndModal();
+      redirectTo("/");
     }, 1500);
   }
 }
@@ -263,18 +272,6 @@ export async function loadLocalPongPageScript(): Promise< ()  => void> {
   engine.loadingUIText = "Loading...";
   engine.loadingUIBackgroundColor = "black";
 
-  // Subscribe to game events
-  const handleGameEvent = (event: GameEvent) => {
-    if (event.type === 'game_result' && event.gameResult) {
-      showGameOverModal(event.gameResult);
-    }
-  };
-  UserState.onGameEvent(handleGameEvent);
-
-  // Cleanup subscription when component unmounts
-  window.addEventListener('beforeunload', () => {
-    UserState.offGameEvent(handleGameEvent);
-  });
 
   const scene = new Scene(engine);
   
@@ -291,7 +288,7 @@ export async function loadLocalPongPageScript(): Promise< ()  => void> {
   engine.hideLoadingUI();
 
   // Локальное управление двумя ракетками на одной клавиатуре
-  const paddleSpeed = 0.3;
+  const paddleSpeed = 0.5;
   const keyDownHandler = (event: KeyboardEvent) => {
     switch (event.key) {
       case "a":
@@ -340,27 +337,12 @@ export async function loadLocalPongPageScript(): Promise< ()  => void> {
 
   window.addEventListener("resize", () => engine.resize());
 
-  // Update the WebSocket message handler
-  // const socket = UserState.getGameSocket();
-  // if (socket) {
-  //   const existingOnMessage = socket.onmessage;
-  //   socket.onmessage = (event) => {
-  //     const message = JSON.parse(event.data);
-      
-  //     // Вызываем существующий обработчик, если он есть
-  //     if (existingOnMessage) {
-  //       existingOnMessage.call(socket, event);
-  //     }
-
-  //   };
-  // }
 
   function cleanup() {
     window.removeEventListener('beforeunload', cleanup);
     window.removeEventListener('popstate', cleanup);
     window.removeEventListener('keydown', keyDownHandler);
 
-    UserState.offGameEvent(handleGameEvent);
     
     for (const container of assetContainers) {
       container.dispose();
