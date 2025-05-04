@@ -152,7 +152,7 @@ function createChatUserRow(user: Friend): string {
         <div data-user-id="${user.friend_id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
             <div class="relative flex-shrink-0 h-10 w-10">
                 <img class="h-10 w-10 rounded-full object-cover" src=${`${BASE_URL}/user${user.friend_avatar}`} alt="">
-                <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-gray-800 ${user.online ? 'bg-green-500' : 'bg-yellow-500'}"></span>
+                <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-gray-800 ${user.online ? 'bg-green-500' : 'bg-gray-500'}"></span>
             </div>
             <div class="ml-4">
                 <div class="text-left text-sm font-medium text-gray-900 dark:text-white">${user.friend_username}</div>
@@ -170,8 +170,8 @@ export function updateChatUserRowStatus(userId: number, online: boolean) {
 
         if (statusIndicator) {
             // Supprimer les classes existantes et ajouter la bonne classe
-            statusIndicator.classList.remove('bg-green-500', 'bg-yellow-500');
-            statusIndicator.classList.add(online ? 'bg-green-500' : 'bg-yellow-500');
+            statusIndicator.classList.remove('bg-green-500', 'bg-gray-500');
+            statusIndicator.classList.add(online ? 'bg-green-500' : 'bg-gray-500');
         }
     }
 }
