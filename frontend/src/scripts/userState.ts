@@ -287,6 +287,8 @@ export class UserState {
 					case 'friend_unblocked':
 						friend.status = 'accepted';
 						friend.online = event.isOnline ?? false;
+						if (chatTitle?.innerHTML == friend.friend_username)
+							chatInput?.classList.remove("hidden"); 
 						break;
 					case 'user_unblocked':
 						console.log("Event in unblocked case", event);
