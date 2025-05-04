@@ -3,6 +3,7 @@ import { ChatState } from "./chatState";
 import { showAlert } from "./services/alert.service";
 import { redirectTo } from "./router";
 import { BASE_URL } from "./outils/config";
+import { CreateScreenshotAsync } from "babylonjs";
 
 
 export interface ChatArray {
@@ -175,7 +176,6 @@ export function updateChatUserRowStatus(userId: number, online: boolean) {
     }
 }
 
-
 async function openChatWindow(userId: string) {
     openedChatWindow = true;
     const { me } = getUserData();
@@ -192,7 +192,7 @@ async function openChatWindow(userId: string) {
         chatInput?.classList.remove("hidden");
 
     if (him?.status === 'blocked') {
-        showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
+        // showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
         toggleElementClass('chatInput', 'hidden', true);
     }
     else if (!him?.online) {
@@ -227,6 +227,7 @@ async function openChatWindow(userId: string) {
         redirectTo(`/user-profile?id=${himId}`);
     });
 
+    await ChatState.fetchMessagesForUser(meId); 
     const messages = ChatState.filterMessages(meId, himId);
     messages.forEach(message => {
         displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sent_at);

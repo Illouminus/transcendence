@@ -5,6 +5,7 @@ import { showAlert } from "./services/alert.service";
 import { UserArray } from "./users";
 import { BASE_URL } from "./outils/config";
 import { ChatState } from "./chatState";
+import { revealChatInput } from "./chat";
 //import { disposeGlobalListeners } from "./main";
 
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
