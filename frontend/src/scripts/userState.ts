@@ -274,6 +274,7 @@ export class UserState {
 		if (this.user && this.user.friends) {
 			const friend = this.user.friends.find(f => f.friend_id === event.friendId || f.friend_email === event.friendEmail);
 			const chatInput = document.getElementById('chatInput');
+			const chatTitle = document.getElementById("chatTitle")
 			
 			if (friend) {
 				switch (event.type) {
@@ -291,6 +292,8 @@ export class UserState {
 						console.log("Event in unblocked case", event);
 						friend.status = 'accepted';
 						friend.online = event.isOnline ?? false;
+						if (chatTitle?.innerHTML == friend.friend_username)
+							chatInput?.classList.remove("hidden"); 
 						break;
 					case 'friend_connected':
 					case 'friend_online':

@@ -192,7 +192,7 @@ async function openChatWindow(userId: string) {
         chatInput?.classList.remove("hidden");
 
     if (him?.status === 'blocked') {
-        // showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
+        showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
         toggleElementClass('chatInput', 'hidden', true);
     }
     else if (!him?.online) {
