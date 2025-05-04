@@ -283,6 +283,41 @@ function hideChatMenu(isOpen: boolean): void {
 }
 
 
+export function renderChatRows() {
+    console.log('Render chat Rows');
+    const friendsListContainer = document.getElementById("chat-friends-list");
+    if (!friendsListContainer) return;
+    
+    const friends = UserState.getUser()?.friends || [];
+    const activeFriends = friends.filter(friend => friend.status !== 'pending');
+    const friendIds = new Set(activeFriends.map(friend => friend.friend_id));
+    
+    // Check for users in the container that are no longer friends
+    const existingRows = friendsListContainer.querySelectorAll('[data-user-id]');
+    existingRows.forEach(row => {
+        const userId = parseInt(row.getAttribute('data-user-id') || '0');
+        if (!friendIds.has(userId) && userId !== UserState.getUser()?.id) {
+            // User is no longer a friend, remove from list
+            row.remove();
+        }
+    });
+    
+    // Add new friends to the list
+    activeFriends.forEach((friend) => {
+        if (friend.friend_id !== UserState.getUser()?.id) {
+            // Check if the user is already in the list
+            const existingUserRow = friendsListContainer.querySelector(`[data-user-id="${friend.friend_id}"]`);
+            
+            if (!existingUserRow) {
+                const userRow = createChatUserRow(friend);
+                friendsListContainer.insertAdjacentHTML('beforeend', userRow);
+            }
+        }
+    });
+    
+    // Reattach event listeners
+    attachChatEventListeners();
+}
 
 
 // Fonction pour afficher/masquer le menu de chat
@@ -309,9 +344,8 @@ export function chat(): void {
     // Éléments du DOM
     const chatButton = document.getElementById('chatButton');
     const closeChatButton = document.getElementById('closeChat');
-    const friendsListContainer = document.getElementById("chat-friends-list");
 
-    if (!chatButton || !closeChatButton || !friendsListContainer) {
+    if (!chatButton || !closeChatButton) {
         console.error("Éléments du DOM manquants pour initialiser le chat.");
         return;
     }
@@ -323,17 +357,7 @@ export function chat(): void {
     });
 
 
-    friends?.forEach((friend) => {
-        if (friend.friend_id !== UserState.getUser()?.id) {
-            // Vérifier si l'utilisateur est déjà dans la liste
-            const existingUserRow = friendsListContainer?.querySelector(`[data-user-id="${friend.friend_id}"]`);
-            
-            if (!existingUserRow) {
-                const userRow = createChatUserRow(friend);
-                friendsListContainer?.insertAdjacentHTML('beforeend', userRow);
-            }
-        }
-    });
+    renderChatRows();
     
 
     // Ajoute des événements sur les utilisateurs

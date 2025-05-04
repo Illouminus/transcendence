@@ -1,5 +1,6 @@
 import { friendCard } from "../components/friendCard";
 import { requestComponent } from "../components/requestList";
+import { renderChatRows } from "./chat";
 import { updateUser } from "./loaders/outils";
 import { BASE_URL } from "./outils/config";
 import { trackedAddEventListener } from "./outils/eventManager";
@@ -313,6 +314,7 @@ export const initializeFriends = async () => {
         await loadFriends();
         await loadFriendRequests();
         getFriendsNumber();
+        UserState.onConnectionChange(renderChatRows);
         UserState.onConnectionChange(getFriendsNumber);
 
         if (friendsContainer)
@@ -343,6 +345,7 @@ export const initializeFriends = async () => {
                         await loadFriendRequests();
 
                         getFriendsNumber();
+                        renderChatRows();
                         break;
                 }
             });
