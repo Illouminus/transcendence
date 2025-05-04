@@ -12,6 +12,7 @@ import {
   insertFinalMatchDB,
   insertMatchDB,
   insertUserTournamentDB,
+  leaveTournamentDB,
   setTournamentWinner,
   updateMatchWithGameDB,
   updateReadyDB
@@ -64,12 +65,24 @@ export async function createTournament(hostId: number, alias: string): Promise<n
 export async function joinTournament(tournamentId: number, userId: number, alias: string): Promise<void> {
   const tournament = await getTournamentDB(tournamentId);
   if (!tournament || tournament.status !== 'waiting') {
-    throw new Error('Tournament not available for joining');
+    sendNotification(userId, {
+      type: 'error',
+      payload: {
+        message: 'Tournament not available for joining'
+      }
+    });
+    return;
   }
 
   const players = await getExistingPlayersDB(tournamentId);
   if (players.includes(userId)) {
-    throw new Error('User already joined');
+    sendNotification(userId, {
+      type: 'error',
+      payload: {
+        message: 'You are already in this tournament'
+      }
+    });
+    return;
   }
   await insertUserTournamentDB(tournamentId, userId, alias);
 
@@ -293,5 +306,30 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
     }
   
     state.phase = 'completed';
+    delete activeTournaments[tournamentId];
+  }
+}
+
+
+
+export async function leaveTournament(tournamentId: number, userId: number): Promise<void> {
+  const state = activeTournaments[tournamentId];
+  if (!state) return;
+
+  const playerIndex = state.players.findIndex(p => p.id === userId);
+  if (playerIndex !== -1) {
+    state.players.splice(playerIndex, 1);
+    await leaveTournamentDB(tournamentId, userId);
+    broadcastTournamentState(tournamentId);
+    for(const player of state.players) {
+      sendNotification(player.id, {
+        type: 'tournament_player_left',
+        payload: { userId, tournamentId }
+      });
+    }
+    if (state.players.length === 0) {
+      delete activeTournaments[tournamentId];
+      return;
+    }
   }
 }

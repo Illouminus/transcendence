@@ -23,6 +23,7 @@ export type GameEvent = {
 		| 'tournament_state_update'
 		| 'tournament_match_start'
 		| 'tournament_match_complete'
+		| 'tournament_player_left'
 		| 'tournament_completed';
 	friendId?: number;
 	gameResult?: {
@@ -31,6 +32,7 @@ export type GameEvent = {
 		score2: number;
 	};
 	tournamentId?: number;
+	userId?: number;
 	tournamentState?: {
 		phase: 'waiting' | 'semifinals'  | 'final' | 'completed';
 		tournamentId: number;
@@ -124,7 +126,8 @@ export class UserState {
 	}
 
 	static isLoggedIn() {
-		return this.user !== null;
+		const token = localStorage.getItem("token");
+		return token !== null && this.user !== null;
 	}
 
 	static logout() {

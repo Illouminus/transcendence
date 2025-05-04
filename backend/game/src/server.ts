@@ -7,12 +7,13 @@ import { logError } from "./utils/errorHandler";
 import { connectRabbit } from "./rabbit/rabbit";
 import config from "./config";
 import { createAndStartGame, createAndStartAIGame, updatePlayerPosition, receiveGameReady, forceEndGame } from "./services/game.service";
-import { createTournament, joinTournament, toggleReady } from "./services/tournament.service";
+import { createTournament, joinTournament, leaveTournament, toggleReady } from "./services/tournament.service";
 import { JwtPayload } from "./@types/user.types";
 //import { TournamentWebSocketMessage } from "./@types/tournament.types";
 
 // Import the database connection - auto launches the connection
 import "./database";
+import { activeTournaments } from "./state/tournament.state";
 
 // Create an instance of Fastify server
 const server = fastify({
@@ -40,6 +41,24 @@ server.register(async function (fastify: FastifyInstance) {
 
 	  
 	  activeConnections.set(userId, connection);
+
+
+	  // Send tournament created notification if we have an active tournament
+
+	  // При новом подключении — если уже есть активный турнир, отправляем уведомление
+	//   for (const [tournamentId, state] of Object.entries(activeTournaments)) {
+	// 	if (state.players.some(p => p.id === userId)) {
+	// 		return;
+	// 	  }
+	// 	  else {
+	// 		connection.send(JSON.stringify({
+	// 			type: 'tournament_created',
+	// 			payload: { tournamentId: Number(tournamentId) }
+	// 		  }));
+	// 	  }
+	//   }
+
+	  
 	  
 	  connection.on('close', () => {
 		console.log(`User ${userId} disconnected`);
@@ -133,6 +152,9 @@ server.register(async function (fastify: FastifyInstance) {
 					break;
 				case 'player_left': 
 					forceEndGame(data.gameId);
+				case 'left_tournament':
+					leaveTournament(data.payload.tournamentId, userId);
+					break;
 				case 'ping':
 					// Send a pong response
 					connection.send(JSON.stringify({ type: 'pong' }));

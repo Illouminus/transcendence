@@ -1,5 +1,5 @@
 import { UserState } from '../userState';
-import { getFriendById } from '../outils/outils';
+import { getUserById } from '../outils/outils';
 import { BASE_URL } from '../outils/config';
 
 interface PodiumEntry {
@@ -24,10 +24,10 @@ export function renderPodium(podium: PodiumEntry[]) {
         isCurrent: true,
       };
     } else {
-      const friend = getFriendById(entry.userId);
+      const friend = getUserById(entry.userId);
       return {
-        username: friend?.friend_username || 'Unknown',
-        avatar: friend?.friend_avatar || '/images/default_avatar.png',
+        username: friend?.username || 'Unknown',
+        avatar: friend?.avatar_url || '/images/default_avatar.png',
         place: entry.place,
         isCurrent: false,
       };

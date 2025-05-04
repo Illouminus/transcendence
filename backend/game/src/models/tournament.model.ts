@@ -35,6 +35,25 @@ export function insertUserTournamentDB(tournamentId: number, userId: number, ali
   });
 }
 
+
+
+export function leaveTournamentDB(tournamentId: number, userId: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `DELETE FROM tournament_players WHERE tournament_id = ? AND user_id = ?`,
+      [tournamentId, userId],
+      function (this: sqlite3.RunResult, err: string) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }
+    );
+  });
+}
+
+
 export function getTournamentDB(tournamentId: number): Promise<DbTournament | undefined> {
   return new Promise((resolve, reject) => {
     db.get(

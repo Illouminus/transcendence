@@ -16,6 +16,12 @@ export async function fetchUserProfile(): Promise<User | null> {
             console.log("User profile fetched successfully", user);
             return user;
         }
+        if(res.status === 401) {
+          UserState.logout();
+          localStorage.removeItem("token");
+          return null;
+        }
+
         return null;
     } catch (error: any) {
         console.error("Error fetching user profile:", error);

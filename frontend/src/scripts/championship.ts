@@ -3,7 +3,7 @@ import { showAlert } from './services/alert.service';
 import { redirectTo } from './router';
 import { TournamentState } from './types/tournament.types';
 import { trackedAddEventListener } from './outils/eventManager';
-import { getFriendById } from './outils/outils';
+import { getUserById } from './outils/outils';
 import { BASE_URL } from './outils/config';
 
 interface Player {
@@ -86,7 +86,7 @@ function updatePlayersList(): void {
     const otherPlayers = players.filter(p => p.id !== currentPlayer?.id );
     
     for (const player of otherPlayers) {
-        const playerInfo = getFriendById(player.id);
+        const playerInfo = getUserById(player.id);
         if (!playerInfo) continue;
 
         const card = template.content.cloneNode(true) as DocumentFragment;
@@ -95,8 +95,8 @@ function updatePlayersList(): void {
         const status = card.querySelector('.player-status');
         const indicator = card.querySelector('.status-indicator');
 
-        if (img) img.src =  `${BASE_URL}/user${playerInfo.friend_avatar}` || '/images/default_avatar.png';
-        if (name) name.textContent = player.alias || playerInfo.friend_username || "Anonymous";
+        if (img) img.src =  `${BASE_URL}/user${playerInfo.avatar_url}` || '/images/default_avatar.png';
+        if (name) name.textContent = player.alias || playerInfo.username || "Anonymous";
         if (status) status.textContent = player.ready ? 'Ready' : 'Not Ready';
         if (indicator) {
             indicator.classList.remove('bg-green-500', 'bg-yellow-500');
@@ -162,7 +162,7 @@ function leaveTournament(): void {
     const tournamentId = getTournamentState().tournamentId;
     if (gameSocket && tournamentId) {
         gameSocket.send(JSON.stringify({
-            type: 'leave_tournament',
+            type: 'left_tournament',
             payload: { tournamentId }
         }));
         
@@ -172,6 +172,17 @@ function leaveTournament(): void {
         if (readyBtn) readyBtn.disabled = true;
         if (leaveBtn) leaveBtn.disabled = true;
     }
+
+    // Clear tournament state
+    UserState.setTournamentState({
+        tournamentId: null,
+        phase: 'waiting',
+        players: [],
+    });
+    UserState.setTournamentAlias("");
+    userAlias = null;
+    currentPlayer = null;
+
     redirectTo('/');
 }
 
@@ -254,18 +265,24 @@ export function initializeChampionship(): void {
 
     // Показываем модалку для alias и только после этого отправляем join
     const tournamentId = UserState.getGameMode()?.tournamentId;
-    showAliasModal((alias) => {
-        if(alias.length < 1) {
-            alias = UserState.getUser()?.username || 'Anonymous';
-        }
-        userAlias = alias;
-        UserState.setTournamentAlias(alias);
-        if (tournamentId) {
-            joinTournamentWithAlias(tournamentId, alias);
-        } else {
-            gameSocket?.send(JSON.stringify({ type: 'create_tournament', payload: { alias } }));
-        }
-    });
+
+    // if user is already in tournament - don't show alias modal
+    if (!(getTournamentState().players.some(p => p.id === UserState.getUser()?.id)))
+    {
+        showAliasModal((alias) => {
+            if(alias.length < 1) {
+                alias = UserState.getUser()?.username || 'Anonymous';
+            }
+            userAlias = alias;
+            UserState.setTournamentAlias(alias);
+            if (tournamentId) {
+                joinTournamentWithAlias(tournamentId, alias);
+            } else {
+                gameSocket?.send(JSON.stringify({ type: 'create_tournament', payload: { alias } }));
+            }
+        });
+    }
+
 
     updateCurrentPlayer();
 
@@ -285,7 +302,7 @@ export function initializeChampionship(): void {
             case 'player_ready':
                 updateTournamentState({ players: data.payload.players });
                 break;
-            case 'player_left':
+            case 'tournament_player_left':
                 updateTournamentState({ players: data.payload.players });
                 break;
             case 'tournament_completed':

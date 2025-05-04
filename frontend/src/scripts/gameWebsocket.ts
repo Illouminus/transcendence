@@ -273,6 +273,13 @@ export function connectGameWebSocket(token: string): WebSocket {
           // }, 1000);
           
           break;
+        case 'tournament_player_left':
+          UserState.notifyGameEvent({
+            type: 'tournament_player_left',
+            userId: data.payload.userId,
+            tournamentId: data.payload.tournamentId
+          });
+        break;
       }
     };
     return socket;

@@ -49,8 +49,6 @@ async function initializeApp() {
 
         if (user) {
             UserState.setUser(user);
-            setupUI();
-            console.log("User connected");
             chat();
 
             const allUsers = await fetchAllUsers();
@@ -85,17 +83,13 @@ async function initializeApp() {
 
 
             chat();
-            setupUI();
         } else {
             UserState.logout();
             localStorage.removeItem("token");
-            setupUI();
         }
     }
-
     setupUI();
     handleRouting();
 }
 
 document.addEventListener("DOMContentLoaded", initializeApp);
-

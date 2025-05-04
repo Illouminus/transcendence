@@ -151,8 +151,8 @@ export type GameWebSocketMessage =
     score1: number;
     score2: number;
   }}
-| { type: 'tournament_completed'; payload: TournamentCompletedPayload };
-
+| { type: 'tournament_completed'; payload: TournamentCompletedPayload }
+| { type: 'tournament_player_left'; payload: { userId: number; tournamentId: number } }
 
 export interface GameInvitationIncomePayload {
   fromUserId: number;

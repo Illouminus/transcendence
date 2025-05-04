@@ -1,12 +1,16 @@
 import { Friend } from "../friends";
+import { UserArray } from "../users";
 import UserState from "../userState";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export const getFriendById = (id : number) : Friend | null => {
-    const user = UserState.getUser();
-    if (!user || !user.friends) return null;
-    return user.friends.find(friend => friend.friend_id === id) || null;
+export const getUserById = (id : number) : UserArray | null => {
+    const allUsers = UserState.getAllUsers();
+	const user = allUsers.find((user) => user.id === id);
+	if (!user) {
+		return null;
+	}
+	return user;
 }
 
 
