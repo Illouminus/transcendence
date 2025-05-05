@@ -44,3 +44,16 @@ export function waitForElement(selector: string, timeout = 3000): Promise<Elemen
 		}, timeout);
 	});
 }
+
+
+export function verifyTournamentStateAndUserIn(): boolean {
+	const user = UserState.getUser();
+	const tournament = UserState.getTournamentState();
+	if (!user || !tournament) {
+		return false;
+	}
+	if(tournament.players.find((player) => player.id === user.id))
+		return true;
+	else
+		return false;
+}

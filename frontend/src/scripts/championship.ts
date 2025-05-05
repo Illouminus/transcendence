@@ -161,6 +161,8 @@ function toggleReady(): void {
 
 function leaveTournament(): void {
     const tournamentId = getTournamentState().tournamentId;
+
+    console.log("Leaving tournament", tournamentId);
     if (gameSocket && tournamentId) {
         gameSocket.send(JSON.stringify({
             type: 'left_tournament',
@@ -339,7 +341,7 @@ function showAliasFlowIfNotAlreadyInTournament() {
 			userAlias = alias.trim();
 			UserState.setTournamentAlias(alias);
 
-			const tournamentId = UserState.getGameMode()?.tournamentId;
+            const tournamentId = UserState.getTournamentState()?.tournamentId;
 			if (tournamentId) {
 				joinTournamentWithAlias(tournamentId, alias);
 			} else {

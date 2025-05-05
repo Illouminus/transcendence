@@ -278,9 +278,6 @@ export function connectGameWebSocket(token: string): WebSocket {
             phase: 'waiting',
             players: [],
         });
-          // setTimeout(() => {
-          //   redirectTo('/');
-          // }, 1000);
           
           break;
         case 'tournament_player_left':

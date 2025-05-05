@@ -2,6 +2,7 @@ import { UserState } from './userState';
 import { showAlert } from './services/alert.service';
 import { redirectTo } from './router';
 import { loadLocalPongPage } from './loaders/loaders';
+import { verifyTournamentStateAndUserIn } from './outils/outils';
 
 export type GameMode = 'vsComputer' | 'vsFriend' | 'championship' | 'local';
 export type Difficulty = 'easy' | 'medium' | 'hard';
@@ -58,18 +59,6 @@ export function initializeGameModeSelection(): void {
     // Populate friends list
     populateFriendsList();
     
-    // Setup WebSocket listeners for game invitations
-    // const gameSocket = UserState.getGameSocket();
-    // if (gameSocket) {
-    //     wsListener = (event: MessageEvent) => {
-    //         const data = JSON.parse(event.data);
-    //         if (data.type === 'game_invite_response') {
-    //             handleGameInviteResponse(data.payload);
-    //         }
-    //     };
-    //     gameSocket.addEventListener('message', wsListener);
-    // }
-
     // Subscribe to game events
     unsubscribeGameEvent = UserState.onGameEvent((event) => {
         switch (event.type) {
@@ -118,11 +107,21 @@ export function initializeGameModeSelection(): void {
         }
     }
     
-    // Setup cards
-    // Храним функции, чтобы можно было потом удалить
 
+    const userInTournament = verifyTournamentStateAndUserIn();
 
     cards.forEach(card => {
+
+
+        const mode = card.getAttribute('data-mode') as GameMode;
+        const buttonSel = card.querySelector('button') as HTMLButtonElement | null;
+
+        if (buttonSel && userInTournament && mode !== 'championship') {
+            buttonSel.disabled = true;
+            buttonSel.textContent = 'Unavailable during tournament';
+            buttonSel.classList.add('bg-gray-600', 'cursor-not-allowed');
+        }
+
         // Обработчик клика по карточке
         const handleCardClick = (e: Event) => {
             const mode = (card.getAttribute('data-mode') as GameMode) || 'vsComputer';
@@ -175,27 +174,27 @@ export function initializeGameModeSelection(): void {
 }
 
 
-function handleGameInviteResponse(payload: { accepted: boolean, friendId: number }): void {
-    invitationPending = false;
-    const button = document.querySelector(`[data-mode="vsFriend"] button`) as HTMLButtonElement;
+// function handleGameInviteResponse(payload: { accepted: boolean, friendId: number }): void {
+//     invitationPending = false;
+//     const button = document.querySelector(`[data-mode="vsFriend"] button`) as HTMLButtonElement;
     
-    if (payload.accepted) {
-        showAlert('Friend accepted your invitation!', 'success');
-        const selection: GameModeSelection = {
-            mode: 'vsFriend',
-            friendId: payload.friendId.toString()
-        };
-        UserState.setGameMode(selection);
-        redirectTo('/pong');
-    } else {
-        showAlert('Friend declined your invitation', 'warning');
-        if (button) {
-            button.textContent = 'Start Game';
-            button.disabled = false;
-            button.classList.remove('bg-gray-600', 'cursor-not-allowed');
-        }
-    }
-}
+//     if (payload.accepted) {
+//         showAlert('Friend accepted your invitation!', 'success');
+//         const selection: GameModeSelection = {
+//             mode: 'vsFriend',
+//             friendId: payload.friendId.toString()
+//         };
+//         UserState.setGameMode(selection);
+//         redirectTo('/pong');
+//     } else {
+//         showAlert('Friend declined your invitation', 'warning');
+//         if (button) {
+//             button.textContent = 'Start Game';
+//             button.disabled = false;
+//             button.classList.remove('bg-gray-600', 'cursor-not-allowed');
+//         }
+//     }
+// }
 
 // Populate friends list in the select element
 function populateFriendsList(): void {
