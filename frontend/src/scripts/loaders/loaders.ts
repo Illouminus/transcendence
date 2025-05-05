@@ -330,6 +330,7 @@ export async function load2FAPage() {
       e.preventDefault();
       const code = (document.getElementById("code") as HTMLInputElement).value;
       const email = UserState.getTempEmail();
+      console.log("Email in 2FA page: ", email);
       await login2FA(email, code);
     };
     trackedAddEventListener(form, "submit", handler);

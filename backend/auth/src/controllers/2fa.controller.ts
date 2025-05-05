@@ -58,8 +58,8 @@ export async function disable2FAController(req: FastifyRequest, res: FastifyRepl
 export async function verify2FAController( req: FastifyRequest<{Body: TwoFABody}>, res: FastifyReply,) {
     try {
         const response = await verifyTwoFactorAuth( res.server, req.body.email, req.body.code);
-        await issueAndSetToken(res.server, res, response);
-        return res.send({ message: "Login successful!" });
+        const token = await issueAndSetToken(res.server, res, response);
+        return res.status(200).send({message: "Login successful", token: token});
     } catch (error) {
         return res.status(400).send({ error: getErrorMessage(error) });
     }
