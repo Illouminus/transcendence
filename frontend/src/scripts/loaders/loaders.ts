@@ -152,7 +152,7 @@ export function createGameRow(player1: { username: string, avatar: string }, pla
       <div class="col-span-3 flex items-center space-x-2 justify-end">
           <span class="text-gray-900 dark:text-white font-medium truncate">${player2.username}</span>
           <div class="relative group">
-              <img src="http://localhost:8080/user${player2.avatar}" alt="${player2.username}" 
+              <img src="${BASE_URL}/user${player2.avatar}" alt="${player2.username}" 
                    class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 transition-transform duration-200 group-hover:scale-110">
           </div>
       </div>
@@ -233,22 +233,26 @@ export async function loadProfilePage() {
   }
 	else {
     games.forEach((game: any) => {
+        console.log(games);
         // Déterminer si l'utilisateur actuel est Player1
         const isPlayer1 = user?.id === game.player1_id;
         const opponentId = isPlayer1 ? game.player2_id : game.player1_id;
 
         // Chercher l'opponent parmi les amis de l'utilisateur
-        let opponent = user?.friends?.find(friend => friend.friend_id === opponentId);
+        let opponent = UserState.getAllUsers()?.find(user => user?.id === opponentId);
 
         // Si le type de jeu est "ai" et l'opponentId est 999999, définir l'opponent comme AI
         if (game.game_type === 'ai' && opponentId === 999999) {
           opponent = {
-              friend_id: 999999,
-              friend_username: 'The Computer',
-              friend_avatar: '/images/default_avatar.png', // Vous pouvez ajuster l'URL de l'avatar
-              friend_email: '',
-              status: 'accepted',
-              online: false
+              id: 999999,
+              username: 'The Computer',
+              avatar_url: '/images/default_avatar.png', // Vous pouvez ajuster l'URL de l'avatar
+              auth_user_id: 999999,
+              wins: 0,
+              losses: 0,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(), 
+              email: 'fakeemail'
           };
       }
 
@@ -259,7 +263,7 @@ export async function loadProfilePage() {
         // Créer la ligne du jeu avec les informations correctement ordonnées
         createGameRow(
             { username: user?.username ?? 'inconnu', avatar: user?.avatar || "" },
-            { username: opponent?.friend_username ?? 'inconnu', avatar: opponent?.friend_avatar || "" },
+            { username: opponent?.username ?? 'inconnu', avatar: opponent?.avatar_url || "" },
             playerScore,
             opponentScore,
             formatDate(game.started_at), 
