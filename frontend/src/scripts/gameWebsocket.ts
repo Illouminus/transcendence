@@ -39,7 +39,7 @@ export function connectGameWebSocket(token: string): WebSocket {
       console.log("WebSocket connection closed");
       socket = null;
 
-      if (reconnectAttempts < maxReconnectAttempts) {
+      if (reconnectAttempts < maxReconnectAttempts && UserState.getUser()?.id !== undefined) {
         setTimeout(() => {
           console.log(`Attempting reconnect (#${reconnectAttempts + 1})`);
           reconnectAttempts++;

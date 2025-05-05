@@ -212,17 +212,30 @@ export async function loadProfilePage() {
 	const online = true;
 
 	username.innerHTML = user?.username ?? "";
-	if (verified) {
-		statusSpan.innerHTML = succesSVG;
-	  } else {
-		statusSpan.innerHTML = errorSVG;
-	  }
 
-	  if (twoFactor) {
-		factorVerificationSpan.innerHTML = succesSVG
-	  } else {
-		factorVerificationSpan.innerHTML = errorSVG
-	  }
+
+  if(!user?.is_google_auth)
+  {
+    if (verified) {
+      statusSpan.innerHTML = succesSVG;
+      } else {
+      statusSpan.innerHTML = errorSVG;
+      }
+  
+      if (twoFactor) {
+      factorVerificationSpan.innerHTML = succesSVG
+      } else {
+      factorVerificationSpan.innerHTML = errorSVG
+      }
+  } else {
+    const verificationStatus = document.getElementById('verificationContainer') as HTMLSpanElement;
+    const twoFAContainer = document.getElementById('2faContainer') as HTMLSpanElement;
+
+    verificationStatus.style.display = "none";
+    twoFAContainer.style.display = "none";
+  }
+
+	
 
 	  if (online) {
 		isOnlineSpan.innerHTML = succesSVG
@@ -337,6 +350,18 @@ export async function loadSettingsPage() {
   await fetchAndRender("settings");
 
   const avatarForm = document.querySelector("#update-avatar-form");
+
+  if(UserState.getUser()?.is_google_auth) {
+    const twoFALable = document.getElementById("2faLabel") as HTMLLabelElement;
+    const passwordInput = document.getElementById("password-div") as HTMLInputElement;
+
+    // and we need to hide the password input and 2fa label
+  
+    twoFALable.style.display = "none";
+    passwordInput.style.display = "none";
+  }
+
+
   if (avatarForm) {
     trackedAddEventListener(avatarForm, "submit", handleUpdateAvatar);
     //avatarForm.addEventListener("submit", handleUpdateAvatar);

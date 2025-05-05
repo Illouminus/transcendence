@@ -28,7 +28,7 @@ export function connectUserWebSocket(token: string): WebSocket {
       console.log("User WS closed");
       socket = null;
       activeConnections.clear();
-      if (reconnectAttempts < maxReconnectAttempts) {
+      if (reconnectAttempts < maxReconnectAttempts  && UserState.getUser()?.id !== undefined) {
         setTimeout(() => {
           console.log(`Attempting reconnect (#${reconnectAttempts + 1})`);
           reconnectAttempts++;
