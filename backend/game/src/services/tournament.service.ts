@@ -63,6 +63,7 @@ export async function createTournament(hostId: number, alias: string): Promise<n
   return tournamentId;
 }
 
+
 export async function joinTournament(tournamentId: number, userId: number, alias: string): Promise<void> {
   const tournament = await getTournamentDB(tournamentId);
   if (!tournament || tournament.status !== 'waiting') {

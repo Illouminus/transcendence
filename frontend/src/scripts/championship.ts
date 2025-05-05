@@ -183,6 +183,10 @@ function leaveTournament(): void {
         players: [],
     });
     UserState.setTournamentAlias("");
+    UserState.setGameMode({
+        mode: 'none',
+        tournamentId: undefined,
+    });
     userAlias = null;
     currentPlayer = null;
     redirectTo('/');
@@ -341,7 +345,8 @@ function showAliasFlowIfNotAlreadyInTournament() {
 			userAlias = alias.trim();
 			UserState.setTournamentAlias(alias);
 
-            const tournamentId = UserState.getTournamentState()?.tournamentId;
+            //const tournamentId = UserState.getTournamentState()?.tournamentId;
+            const tournamentId = UserState.getGameMode()?.tournamentId;
 			if (tournamentId) {
 				joinTournamentWithAlias(tournamentId, alias);
 			} else {

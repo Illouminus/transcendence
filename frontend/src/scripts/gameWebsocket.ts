@@ -246,7 +246,7 @@ export function connectGameWebSocket(token: string): WebSocket {
 
           const currentUserI = UserState.getUser();
           if (!currentUserI) return;
-          const opponentU = currentUserI.friends?.find(f => f.friend_id === data.payload.opponentId);
+          const opponentU = UserState.getAllUsers().find((u) => u.id === data.payload.opponentId);
           if (!opponentU) return;
           clientGameState.player1.id = data.payload.isPlayer1 ? data.payload.opponentId : UserState.getUser()!.id ;
           clientGameState.player2.id = data.payload.isPlayer1 ? UserState.getUser()!.id : data.payload.opponentId;  
@@ -257,9 +257,9 @@ export function connectGameWebSocket(token: string): WebSocket {
             username: UserState.getTournamentAlias() || currentUserI.username,
             avatar: `${BASE_URL}/user${currentUserI.avatar}` || '/images/default_avatar.png'
             }, {
-            id: opponentU.friend_id,
-            username: data.payload.opponentAlias || opponentU.friend_username,
-            avatar: `${BASE_URL}/user${opponentU.friend_avatar}` || '/images/default_avatar.png'
+            id: opponentU.id,
+            username: data.payload.opponentAlias || opponentU.username,
+            avatar: `${BASE_URL}/user${opponentU.avatar_url}` || '/images/default_avatar.png'
             });
           break;
 
@@ -278,7 +278,7 @@ export function connectGameWebSocket(token: string): WebSocket {
             phase: 'waiting',
             players: [],
         });
-          
+          UserState.setGameMode({ mode: 'none' });
           break;
         case 'tournament_player_left':
           UserState.notifyGameEvent({

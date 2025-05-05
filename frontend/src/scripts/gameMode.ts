@@ -4,7 +4,7 @@ import { redirectTo } from './router';
 import { loadLocalPongPage } from './loaders/loaders';
 import { verifyTournamentStateAndUserIn } from './outils/outils';
 
-export type GameMode = 'vsComputer' | 'vsFriend' | 'championship' | 'local';
+export type GameMode = 'vsComputer' | 'vsFriend' | 'championship' | 'local' | 'none';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export interface GameModeSelection {

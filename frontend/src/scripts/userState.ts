@@ -225,7 +225,7 @@ export class UserState {
 		return this.userSocket;
 	}
 
-	static setGameMode(mode: GameModeSelection) {
+	static setGameMode(mode: GameModeSelection ) {
 		const currentMode = this.gameMode || {};
 
 		this.gameMode = {
