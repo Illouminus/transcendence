@@ -272,6 +272,12 @@ export function connectGameWebSocket(token: string): WebSocket {
           removeEliminationWait();
           redirectTo('/');
           renderPodium(data.payload.podium);
+          UserState.setTournamentAlias('');
+          UserState.setTournamentState({
+            tournamentId: null,
+            phase: 'waiting',
+            players: [],
+        });
           // setTimeout(() => {
           //   redirectTo('/');
           // }, 1000);
@@ -283,6 +289,7 @@ export function connectGameWebSocket(token: string): WebSocket {
             userId: data.payload.userId,
             tournamentId: data.payload.tournamentId
           });
+          
         break;
       }
     };

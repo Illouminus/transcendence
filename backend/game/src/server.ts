@@ -152,12 +152,11 @@ server.register(async function (fastify: FastifyInstance) {
 					break;
 				case 'player_left': 
 					forceEndGame(data.gameId);
+					break;
 				case 'left_tournament':
-					console.log('User left tournament:', data.payload.tournamentId);
 					leaveTournament(data.payload.tournamentId, userId);
 					break;
 				case 'get_my_tournament':
-					// Get the active tournament by userId
 						  for (const [tournamentId, state] of Object.entries(activeTournaments)) {
 							if (state.players.some(p => p.id === userId)) {
 								connection.send(JSON.stringify({

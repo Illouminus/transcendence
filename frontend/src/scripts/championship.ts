@@ -183,7 +183,6 @@ function leaveTournament(): void {
     UserState.setTournamentAlias("");
     userAlias = null;
     currentPlayer = null;
-
     redirectTo('/');
 }
 
