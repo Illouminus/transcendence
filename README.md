@@ -10,7 +10,8 @@
 * chatState.ts: Quand on change d’interlocuteur, à chaque fois `fetchMessagesForUser` fetchet `allChats` tous les messages de l’utilisateur, pas seulement ceux liés à ce chat
 * chatState.ts: pendingChats sont sauvegardés en inMemory storage et pas en localStorage (si F5, on perd les messages non-envoyés)
 * usetState.ts: user, sentFriendRequests, gameMode: le même
-* championship.html: on doit avoir un seul html - index.html ? 
+* championship.html: on doit avoir un seul html - index.html ?
+* function renderGoogleButton() pas besoin d'être async
 * Ces components ne sont pas utilisés ?
   + 'sendEmail' dans conteneur 'user'
   + 'declare module "fastify"'
