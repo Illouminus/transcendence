@@ -278,7 +278,7 @@ export function connectGameWebSocket(token: string): WebSocket {
             phase: 'waiting',
             players: [],
         });
-          UserState.setGameMode({ mode: 'none' });
+          UserState.setGameMode({ mode: 'none' , tournamentId: undefined });
           break;
         case 'tournament_player_left':
           UserState.notifyGameEvent({
@@ -286,8 +286,15 @@ export function connectGameWebSocket(token: string): WebSocket {
             userId: data.payload.userId,
             tournamentId: data.payload.tournamentId
           });
-          
         break;
+        case 'tournament_deleted':
+          UserState.setGameMode({ mode: 'none' , tournamentId: undefined });
+          UserState.setTournamentState({
+            tournamentId: null,
+            phase: 'waiting',
+            players: [],
+        });
+          break;
       }
     };
     return socket;

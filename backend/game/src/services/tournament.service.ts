@@ -1,4 +1,4 @@
-import { sendNotification } from '../server';
+import { sendNotification, sendNotificationToAll } from '../server';
 import { createAndStartGame, receiveGameReady } from './game.service';
 import {
   completeMatchDB,
@@ -311,6 +311,8 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
   
     state.phase = 'completed';
     delete activeTournaments[tournamentId];
+    await setTournamentWinner(tournamentId, winnerId);
+    return;
   }
 }
 
@@ -334,6 +336,10 @@ export async function leaveTournament(tournamentId: number, userId: number): Pro
     if (state.players.length === 0 ) {
       console.log("Tournament is empty, deleting it");
       delete activeTournaments[tournamentId];
+      sendNotificationToAll({
+        type: 'tournament_deleted',
+        payload: { tournamentId }
+      })
       return;
     }
   }

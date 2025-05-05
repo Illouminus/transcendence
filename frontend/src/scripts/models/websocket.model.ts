@@ -153,6 +153,7 @@ export type GameWebSocketMessage =
   }}
 | { type: 'tournament_completed'; payload: TournamentCompletedPayload }
 | { type: 'tournament_player_left'; payload: { userId: number; tournamentId: number } }
+| { type: 'tournament_deleted'; payload: { tournamentId: number } }
 
 export interface GameInvitationIncomePayload {
   fromUserId: number;
