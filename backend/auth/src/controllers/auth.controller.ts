@@ -107,7 +107,6 @@ export async function registerController(req: FastifyRequest<{Body: RegisterUser
 		return reply.status(400).send({ error: "Invalid email format" });
 	  }
 
-
 	  if(!username || !email || !password) {
 		return reply.status(400).send({ error: "All fields are required" });
 	  }
