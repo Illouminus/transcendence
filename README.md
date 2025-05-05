@@ -1,24 +1,17 @@
-## A voir (?)
-* je me connect avec le compte internet124816@gmail.com, mais ça ne marche pas avec internet12481632@gmail.com
-  ![screencast-from-04-22-2025-035331-pm_xHvIjMef](https://github.com/user-attachments/assets/75af8113-374e-4598-a9ef-06eb0cb1fab6)
-* confetti is not defined (des fois)
-  ![Screenshot from 2025-04-22 16-38-56](https://github.com/user-attachments/assets/238a201e-b399-4e2b-aba1-21a2ea6b64c7)
-* toujours le meme chiffre 3  
-  ![Screenshot from 2025-04-22 16-41-51](https://github.com/user-attachments/assets/5784b356-b2bb-4714-af2c-dc869f84d834)
-* friendSelect is null
-  ![Screenshot from 2025-04-22 16-46-48](https://github.com/user-attachments/assets/86c15633-4529-4cd3-995e-dac8c8ccfe52)
-* mdp 123456 accepté
-* selectionner un niveau (easy / medium / hard) ne marche pas en Mozilla Firefox
-  + sur Chrome ça fonctionne   
-
-## Questions
-* Pourquoi pas de 'disableRequestLogging' dans gateway/src/server.ts ?
+## Questions (pas très importantes, juste pour information)
+* gateway/src/server.ts: Pourquoi pas de 'disableRequestLogging' ?
 * Pourquoi on n'utilise pas ORM ?
 * Pourquoi deux façons pour que les conteneurs communiquent : fetch (in server.get('/aggregated/profile') et rabbit mesages ?
-* Pourquoi un seul endpoint '/auth' (sauf '/auth/update', '/auth/enable-2fa', '/auth/disable-2fa') est exclue de verifyJWT ?
+* Pourquoi '/auth' (sauf '/auth/update', '/auth/enable-2fa', '/auth/disable-2fa') est exclue de verifyJWT ?
 * Pourquoi nginx ne s'occupe pas de routage ?
-* Un service publie via Rabbit un update de données -> l'autre service met à jour sa DB, pour quel but ce deuxième service publie le messqge d'acceptation ?
+* Un service publie via Rabbit un update de données -> l'autre service met à jour sa DB, pour quel but ce deuxième service publie le message d'acceptation ?
 * On peut utiliser UUID рour avoir un id commun pour deux tables 'users' et 'profiles' ?
+* docker-compose.yml: `working_dir: /app` est inutile ? on a `WORKDIR /app` dans Docekfile
+* chatState.ts: Quand on change d’interlocuteur, à chaque fois `fetchMessagesForUser` fetchet `allChats` tous les messages de l’utilisateur, pas seulement ceux liés à ce chat
+* chatState.ts: pendingChats sont sauvegardés en inMemory storage et pas en localStorage (si F5, on perd les messages non-envoyés)
+* usetState.ts: user, sentFriendRequests, gameMode: le même
+* championship.html: on doit avoir un seul html - index.html ?
+* function renderGoogleButton() pas besoin d'être async
 * Ces components ne sont pas utilisés ?
   + 'sendEmail' dans conteneur 'user'
   + 'declare module "fastify"'
@@ -29,3 +22,5 @@
   + champ 'created_at' de la table 'user_profile'
   + champ 'created_at' de la table 'friends'
   + backend/game/src/rabbit/connectRabbit()
+  + index.html: 2 fois `defer` (juste déjà `defer` par default)
+

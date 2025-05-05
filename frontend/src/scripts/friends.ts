@@ -1,5 +1,6 @@
 import { friendCard } from "../components/friendCard";
 import { requestComponent } from "../components/requestList";
+import { renderChatRows } from "./chat";
 import { updateUser } from "./loaders/outils";
 import { BASE_URL } from "./outils/config";
 import { trackedAddEventListener } from "./outils/eventManager";
@@ -25,7 +26,6 @@ let unsubscribeConnectionChange: (() => void) | null = null;
 
 
 export const getFriendsNumber = (): void => {
-    console.log("Coucou");
     const sidebarFriendsCount = document.getElementById("sidebarFriendsCount");
     let friendsCount = 0;
 
@@ -315,6 +315,7 @@ export const initializeFriends = async () => {
         await loadFriends();
         await loadFriendRequests();
         getFriendsNumber();
+        UserState.onConnectionChange(renderChatRows);
         UserState.onConnectionChange(getFriendsNumber);
 
         if (friendsContainer)
@@ -344,6 +345,7 @@ export const initializeFriends = async () => {
                         await loadFriends();
                         await loadFriendRequests();
                         getFriendsNumber();
+                        renderChatRows();
                         break;
                 }
             });

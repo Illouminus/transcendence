@@ -11,6 +11,7 @@ import { connectUserWebSocket } from "./userWebsocket";
 import { connectGameWebSocket } from "./gameWebsocket";
 import { connectChatWebSocket } from "./chatWebSocket";
 import { chat } from "./chat";
+import { getFriendsNumber } from "./friends";
 
 
 
@@ -49,8 +50,6 @@ async function initializeApp() {
 
         if (user) {
             UserState.setUser(user);
-            chat();
-
             const allUsers = await fetchAllUsers();
             if (allUsers) {
                 UserState.setAllUsers(allUsers);
@@ -80,7 +79,9 @@ async function initializeApp() {
                     socket.send(JSON.stringify({ type: 'ping' }));
                 }
             }, 30_000); 
+
             chat();
+            getFriendsNumber();
         } else {
             UserState.logout();
             localStorage.removeItem("token");

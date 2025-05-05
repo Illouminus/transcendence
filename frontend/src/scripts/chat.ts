@@ -3,6 +3,7 @@ import { ChatState } from "./chatState";
 import { showAlert } from "./services/alert.service";
 import { redirectTo } from "./router";
 import { BASE_URL } from "./outils/config";
+import { CreateScreenshotAsync } from "babylonjs";
 
 
 export interface ChatArray {
@@ -151,7 +152,7 @@ function createChatUserRow(user: Friend): string {
         <div data-user-id="${user.friend_id}" class="chatConv flex items-center p-5 dark:hover:bg-gray-700 hover:cursor-pointer">
             <div class="relative flex-shrink-0 h-10 w-10">
                 <img class="h-10 w-10 rounded-full object-cover" src=${`${BASE_URL}/user${user.friend_avatar}`} alt="">
-                <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-gray-800 ${user.online ? 'bg-green-500' : 'bg-yellow-500'}"></span>
+                <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-gray-800 ${user.online ? 'bg-green-500' : 'bg-gray-500'}"></span>
             </div>
             <div class="ml-4">
                 <div class="text-left text-sm font-medium text-gray-900 dark:text-white">${user.friend_username}</div>
@@ -169,12 +170,11 @@ export function updateChatUserRowStatus(userId: number, online: boolean) {
 
         if (statusIndicator) {
             // Supprimer les classes existantes et ajouter la bonne classe
-            statusIndicator.classList.remove('bg-green-500', 'bg-yellow-500');
-            statusIndicator.classList.add(online ? 'bg-green-500' : 'bg-yellow-500');
+            statusIndicator.classList.remove('bg-green-500', 'bg-gray-500');
+            statusIndicator.classList.add(online ? 'bg-green-500' : 'bg-gray-500');
         }
     }
 }
-
 
 async function openChatWindow(userId: string) {
     openedChatWindow = true;
@@ -185,8 +185,11 @@ async function openChatWindow(userId: string) {
     const himId = him?.friend_id ?? 0;
     const meUsername = me?.username ?? "Utilisateur inconnu";
     const meId = me?.id ?? 0;
+
+
     const chatInput = document.getElementById("chatInput");
-    chatInput?.classList.remove("hidden");
+    if (him?.status != 'blocked')
+        chatInput?.classList.remove("hidden");
 
     if (him?.status === 'blocked') {
         showAlert(`${himUsername} is blocked, cannot send messages.`, 'warning');
@@ -224,7 +227,7 @@ async function openChatWindow(userId: string) {
         redirectTo(`/user-profile?id=${himId}`);
     });
 
-    console.log('Chat - Retrieving Messages');
+    await ChatState.fetchMessagesForUser(meId); 
     const messages = ChatState.filterMessages(meId, himId);
     messages.forEach(message => {
         displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sent_at);
@@ -280,6 +283,41 @@ function hideChatMenu(isOpen: boolean): void {
 }
 
 
+export function renderChatRows() {
+    console.log('Render chat Rows');
+    const friendsListContainer = document.getElementById("chat-friends-list");
+    if (!friendsListContainer) return;
+    
+    const friends = UserState.getUser()?.friends || [];
+    const activeFriends = friends.filter(friend => friend.status !== 'pending');
+    const friendIds = new Set(activeFriends.map(friend => friend.friend_id));
+    
+    // Check for users in the container that are no longer friends
+    const existingRows = friendsListContainer.querySelectorAll('[data-user-id]');
+    existingRows.forEach(row => {
+        const userId = parseInt(row.getAttribute('data-user-id') || '0');
+        if (!friendIds.has(userId) && userId !== UserState.getUser()?.id) {
+            // User is no longer a friend, remove from list
+            row.remove();
+        }
+    });
+    
+    // Add new friends to the list
+    activeFriends.forEach((friend) => {
+        if (friend.friend_id !== UserState.getUser()?.id) {
+            // Check if the user is already in the list
+            const existingUserRow = friendsListContainer.querySelector(`[data-user-id="${friend.friend_id}"]`);
+            
+            if (!existingUserRow) {
+                const userRow = createChatUserRow(friend);
+                friendsListContainer.insertAdjacentHTML('beforeend', userRow);
+            }
+        }
+    });
+    
+    // Reattach event listeners
+    attachChatEventListeners();
+}
 
 
 // Fonction pour afficher/masquer le menu de chat
@@ -299,18 +337,15 @@ type Friend = {
 
 // Fonction d'initialisation du chat
 export function chat(): void {
-    console.log('Chat - Initialisation');
     const { me } = getUserData();
-    console.log('Chat - User:', me);
     const friends = me?.friends;
     
 
     // Éléments du DOM
     const chatButton = document.getElementById('chatButton');
     const closeChatButton = document.getElementById('closeChat');
-    const friendsListContainer = document.getElementById("chat-friends-list");
 
-    if (!chatButton || !closeChatButton || !friendsListContainer) {
+    if (!chatButton || !closeChatButton) {
         console.error("Éléments du DOM manquants pour initialiser le chat.");
         return;
     }
@@ -322,12 +357,8 @@ export function chat(): void {
     });
 
 
-    friends?.forEach((friend) => {
-        if (friend.friend_id !== UserState.getUser()?.id) {
-            const userRow = createChatUserRow(friend);
-            friendsListContainer?.insertAdjacentHTML('beforeend', userRow);
-        }
-    });
+    renderChatRows();
+    
 
     // Ajoute des événements sur les utilisateurs
     attachChatEventListeners();
