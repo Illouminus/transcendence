@@ -59,6 +59,7 @@ export async function createTournament(hostId: number, alias: string): Promise<n
     players: [{ id: hostId, ready: false, alias }]
   };
 
+  broadcastTournamentState(tournamentId);
   return tournamentId;
 }
 
@@ -74,8 +75,10 @@ export async function joinTournament(tournamentId: number, userId: number, alias
     return;
   }
 
+
   const players = await getExistingPlayersDB(tournamentId);
   if (players.includes(userId)) {
+  console.log(" USER ID EXISTING : ", userId);
     sendNotification(userId, {
       type: 'error',
       payload: {
@@ -327,7 +330,8 @@ export async function leaveTournament(tournamentId: number, userId: number): Pro
         payload: { userId, tournamentId }
       });
     }
-    if (state.players.length === 0) {
+    if (state.players.length === 0 ) {
+      console.log("Tournament is empty, deleting it");
       delete activeTournaments[tournamentId];
       return;
     }

@@ -14,6 +14,7 @@ import { showTournamentProgress } from "./tournament/tournamentProgress";
 import { renderPodium } from "./components/podium";
 import { removeEliminationWait, renderEliminationWait } from "./components/eliminationWait";
 import { BASE_URL, WS_GAME_URL } from "./outils/config";
+import { updateTournamentState } from "./championship";
 
 let socket : WebSocket | null = null;
 let reconnectAttempts = 0;
@@ -31,6 +32,7 @@ export function connectGameWebSocket(token: string): WebSocket {
 
     socket.onopen = () => {
       console.log("WebSocket connection established");
+      socket?.send(JSON.stringify({ type: 'get_my_tournament' }));
       reconnectAttempts = 0;
     };
     socket.onclose = () => {
@@ -197,6 +199,8 @@ export function connectGameWebSocket(token: string): WebSocket {
             });
             break;
         case 'tournament_state_update':
+          UserState.setTournamentAlias(data.payload.players.find((p) => p.id === UserState.getUser()?.id)?.alias || UserState.getUser()!.username);
+          updateTournamentState(data.payload as any);
           UserState.notifyGameEvent({
             type: 'tournament_state_update',
             tournamentState: data.payload

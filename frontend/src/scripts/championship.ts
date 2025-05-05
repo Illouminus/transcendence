@@ -19,6 +19,7 @@ let messageListener: ((event: MessageEvent) => void) | null = null;
 let gameSocket: WebSocket | null = null;
 let currentPlayer: Player | null = null;
 let userAlias: string | null = null;
+let waitingForTournamentRecovery = false;
 
 // Инициализация начального состояния
 UserState.setTournamentState({
@@ -33,7 +34,7 @@ function getTournamentState(): TournamentState {
     return state;
 }
 
-function updateTournamentState(newState: Partial<TournamentState>): void {
+export function updateTournamentState(newState: Partial<TournamentState>): void {
     const currentState = getTournamentState();
     UserState.setTournamentState({
         ...currentState,
@@ -263,27 +264,23 @@ export function initializeChampionship(): void {
     trackedAddEventListener(leaveBtn, 'click', leaveTournament);
     trackedAddEventListener(readyBtn, 'click', toggleReady);
 
-    // Показываем модалку для alias и только после этого отправляем join
-    const tournamentId = UserState.getGameMode()?.tournamentId;
+    // let responded = false;
+    // const tournamentId = UserState.getGameMode()?.tournamentId;
+    // if (!tournamentId) {
+    //     gameSocket.send(JSON.stringify({ type: 'get_my_tournament' }));
+    
+    // setTimeout(() => {
+    //         if (!responded) {
+    //             showAliasModal((alias) => {
+    //                 alias = alias.trim() || UserState.getUser()?.username || 'Anonymous';
+    //                 UserState.setTournamentAlias(alias);
+    //                 gameSocket?.send(JSON.stringify({ type: 'create_tournament', payload: { alias } }));
+    //             });
+    //         }
+    //     }, 1000);   
+    // }
 
-    // if user is already in tournament - don't show alias modal
-    if (!(getTournamentState().players.some(p => p.id === UserState.getUser()?.id)))
-    {
-        showAliasModal((alias) => {
-            if(alias.length < 1) {
-                alias = UserState.getUser()?.username || 'Anonymous';
-            }
-            userAlias = alias;
-            UserState.setTournamentAlias(alias);
-            if (tournamentId) {
-                joinTournamentWithAlias(tournamentId, alias);
-            } else {
-                gameSocket?.send(JSON.stringify({ type: 'create_tournament', payload: { alias } }));
-            }
-        });
-    }
-
-
+    showAliasFlowIfNotAlreadyInTournament();
     updateCurrentPlayer();
 
     messageListener = (event: MessageEvent) => {
@@ -328,4 +325,27 @@ export function initializeChampionship(): void {
 export function disposeChampionshipPage(): void {
     if (championshipGameEventHandler) UserState.offGameEvent(championshipGameEventHandler);
     if (messageListener && gameSocket) gameSocket.removeEventListener('message', messageListener);
+}
+
+
+function showAliasFlowIfNotAlreadyInTournament() {
+	const userId = UserState.getUser()?.id;
+	if (!userId) return;
+
+	if (!getTournamentState().players.some(p => p.id === userId)) {
+		showAliasModal((alias) => {
+			if(alias.length < 1) {
+				alias = UserState.getUser()?.username || 'Anonymous';
+			}
+			userAlias = alias.trim();
+			UserState.setTournamentAlias(alias);
+
+			const tournamentId = UserState.getGameMode()?.tournamentId;
+			if (tournamentId) {
+				joinTournamentWithAlias(tournamentId, alias);
+			} else {
+				gameSocket?.send(JSON.stringify({ type: 'create_tournament', payload: { alias } }));
+			}
+		});
+	}
 }

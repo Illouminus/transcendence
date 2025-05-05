@@ -59,16 +59,16 @@ export function initializeGameModeSelection(): void {
     populateFriendsList();
     
     // Setup WebSocket listeners for game invitations
-    const gameSocket = UserState.getGameSocket();
-    if (gameSocket) {
-        wsListener = (event: MessageEvent) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'game_invite_response') {
-                handleGameInviteResponse(data.payload);
-            }
-        };
-        gameSocket.addEventListener('message', wsListener);
-    }
+    // const gameSocket = UserState.getGameSocket();
+    // if (gameSocket) {
+    //     wsListener = (event: MessageEvent) => {
+    //         const data = JSON.parse(event.data);
+    //         if (data.type === 'game_invite_response') {
+    //             handleGameInviteResponse(data.payload);
+    //         }
+    //     };
+    //     gameSocket.addEventListener('message', wsListener);
+    // }
 
     // Subscribe to game events
     unsubscribeGameEvent = UserState.onGameEvent((event) => {

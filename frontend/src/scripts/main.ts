@@ -80,8 +80,6 @@ async function initializeApp() {
                     socket.send(JSON.stringify({ type: 'ping' }));
                 }
             }, 30_000); 
-
-
             chat();
         } else {
             UserState.logout();

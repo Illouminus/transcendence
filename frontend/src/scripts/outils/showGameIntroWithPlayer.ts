@@ -72,14 +72,14 @@ function getPlayerInfo(playerId: number): DisplayPlayer {
       status: 'playing'
     };
   }
-  const friend = user?.friends.find(f => f.friend_id === playerId);
-  if (!friend) {
+  const participant = UserState.getAllUsers().find(p => p.id === playerId);
+  if (!participant) {
     throw new Error(`Player with ID ${playerId} not found among friends or yourself`);
   }
   return {
-    id: friend.friend_id,
-    username: tournament.players.find(p => p.id === playerId)?.alias || friend.friend_username,
-    avatar: `${BASE_URL}/user${friend.friend_avatar || '/images/default_avatar.png'}`,
+    id: participant.id,
+    username: tournament.players.find(p => p.id === playerId)?.alias || participant.username,
+    avatar: `${BASE_URL}/user${participant.avatar_url || '/images/default_avatar.png'}`,
     status: 'playing'
   };
 }
