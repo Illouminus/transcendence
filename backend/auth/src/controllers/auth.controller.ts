@@ -96,6 +96,17 @@ export async function googleAuthLogin( req: FastifyRequest<{ Body: { idToken: st
 export async function registerController(req: FastifyRequest<{Body: RegisterUser}>, reply: FastifyReply) {
 	try {
 	  const { username, email, password } = req.body;
+	  // quick validation of password with regex
+	  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{7,}$/;
+	  if (!passwordRegex.test(password)) {
+		return reply.status(400).send({ error: "Password must be at least 7 characters long, contain at least one uppercase letter, one lowercase letter, and one number." });
+	  }
+	  // check the email format
+	  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	  if (!emailRegex.test(email)) {
+		return reply.status(400).send({ error: "Invalid email format" });
+	  }
+
 
 	  if(!username || !email || !password) {
 		return reply.status(400).send({ error: "All fields are required" });
