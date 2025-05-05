@@ -9,6 +9,7 @@
 * docker-compose.yml: `working_dir: /app` est inutile ? on a `WORKDIR /app` dans Docekfile
 * chatState.ts: Quand on change d’interlocuteur, `fetchMessagesForUser` fetchet `allChats` à chaque fois (tous les messages de l’utilisateur, pas seulement ceux liés à ce chat)
 * chatState.ts: pendingChats sont sauvegardés en inMemory storage et pas en localStorage(si F5, on perd les messages non-envoyés)
+* championship.html: on doit avoir un seul html - index.html ? 
 * Ces components ne sont pas utilisés ?
   + 'sendEmail' dans conteneur 'user'
   + 'declare module "fastify"'
