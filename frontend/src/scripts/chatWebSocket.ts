@@ -75,6 +75,9 @@ export function connectChatWebSocket(token: string): WebSocket {
           displayMessage(data.payload.username, data.payload.username, data.payload.fromUserId,data.payload.text, data.payload.sent_at);
           break;
         }
+        case 'ping':
+          break; // Ignore ping messages
+    
         default:
           console.warn('Unknown WS message type:', data);
       }

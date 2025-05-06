@@ -295,6 +295,9 @@ export function connectGameWebSocket(token: string): WebSocket {
             players: [],
         });
           break;
+        case 'ping':
+            break; // Ignore ping messages
+      
       }
     };
     return socket;

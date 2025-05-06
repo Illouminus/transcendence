@@ -232,6 +232,8 @@ export function connectUserWebSocket(token: string): WebSocket {
           break;
         }
 
+        case 'ping':
+          break; // Ignore ping messages
     
         default:
           console.warn('Unknown WS message type:', data);

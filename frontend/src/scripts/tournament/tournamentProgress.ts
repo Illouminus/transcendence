@@ -10,7 +10,13 @@ export function showTournamentProgress(): HTMLDivElement {
 
     const phase = tournamentState.phase;
     const semifinals: MatchPair[] = tournamentState.matches.semifinals.map(mapTournamentMatchToDisplay);
+
+    console.log('semifinals', semifinals);
+
     const finalMatch = tournamentState.matches.final ? mapTournamentMatchToDisplay(tournamentState.matches.final) : null;
+
+
+    console.log('finalMatch', finalMatch);
 
     // Определяем проигравших в полуфиналах
     let losers: DisplayPlayer[] = [];
@@ -34,6 +40,9 @@ export function showTournamentProgress(): HTMLDivElement {
     document.head.appendChild(style);
 
     if (phase === 'final' && finalMatch) {
+
+        console.log('finalMatch UU', finalMatch);
+
         // UI для финала: финалисты в центре, проигравшие по бокам
         content.innerHTML = `
             <div class="relative z-[1001] w-full">
