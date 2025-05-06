@@ -175,6 +175,10 @@ export class UserState {
 		this.sentFriendRequests.add(userId);
 	}
 	
+	static getTournamentStarted() {
+		return this.tournamentState?.phase === 'semifinals' || this.tournamentState?.phase === 'final';
+	}
+
 	static setTournamentAlias(alias: string) {
 		this.tournamentAlias = alias;
 	}

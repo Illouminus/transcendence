@@ -112,11 +112,18 @@ export function initializeGameModeSelection(): void {
 
     cards.forEach(card => {
 
-
         const mode = card.getAttribute('data-mode') as GameMode;
         const buttonSel = card.querySelector('button') as HTMLButtonElement | null;
 
+        const isTournamentStarted = UserState.getTournamentStarted();
+
         if (buttonSel && userInTournament && mode !== 'championship') {
+            buttonSel.disabled = true;
+            buttonSel.textContent = 'Unavailable during tournament';
+            buttonSel.classList.add('bg-gray-600', 'cursor-not-allowed');
+        }
+
+        if(buttonSel && isTournamentStarted && mode === 'championship') {
             buttonSel.disabled = true;
             buttonSel.textContent = 'Unavailable during tournament';
             buttonSel.classList.add('bg-gray-600', 'cursor-not-allowed');
