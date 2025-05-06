@@ -57,6 +57,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: data.payload.user.id,
             friendEmail: data.payload.user.email
           });
+          UserState.notifyConnectionChange();
           break;
         }
         case 'friend_request_accepted': {
@@ -70,8 +71,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: user.id,
             friendEmail: user.email
           });
-          if(UserState.getCurrentPage() === 'users')
-            fetchUsers();
+          UserState.notifyConnectionChange();
           break;
         }
     
@@ -88,6 +88,7 @@ export function connectUserWebSocket(token: string): WebSocket {
           if(allUsers)
             UserState.setAllUsers(allUsers);
           fetchUsers();
+          UserState.notifyConnectionChange();
           break;
         }
     
@@ -149,6 +150,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendId: user.id,
             friendEmail: user.email
           });
+          UserState.notifyConnectionChange();
           break;
         }
         case 'system_notification': {

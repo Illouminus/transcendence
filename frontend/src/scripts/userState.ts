@@ -290,7 +290,7 @@ export class UserState {
 	}
 
 	// Notify all subscribers about connection changes
-	private static notifyConnectionChange() {
+	static notifyConnectionChange() {
 		this.connectionChangeCallbacks.forEach(callback => callback());
 	}
 
