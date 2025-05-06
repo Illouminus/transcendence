@@ -144,6 +144,8 @@ export class UserState {
 		this.gameSocket = null;
 		this.chatSocket = null;
 		localStorage.removeItem("token");
+		const chatMenu = document.getElementById("chatMenu");
+		chatMenu?.classList.add("hidden");
 		//disposeGlobalListeners();
 	}
 

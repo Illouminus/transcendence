@@ -303,10 +303,12 @@ export function renderChatRows() {
     });
     
     // Add new friends to the list
+    console.log(activeFriends);
     activeFriends.forEach((friend) => {
         if (friend.friend_id !== UserState.getUser()?.id) {
             // Check if the user is already in the list
             const existingUserRow = friendsListContainer.querySelector(`[data-user-id="${friend.friend_id}"]`);
+            console.log(existingUserRow);
             
             if (!existingUserRow) {
                 const userRow = createChatUserRow(friend);
