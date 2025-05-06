@@ -113,9 +113,7 @@ export function connectUserWebSocket(token: string): WebSocket {
             friendEmail: user.email,
             isOnline: isOnline
           });
-          
           await updateUser();
-          
           UserState.updateFriendStatus(user.id, isOnline, user.email);
           break;
         }
