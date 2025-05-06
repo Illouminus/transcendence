@@ -54,10 +54,11 @@ function updateElementContent(elementId: string, content: string): void {
 function addEventListenerToElement(elementId: string, event: string, handler: EventListener): void {
     const element = document.getElementById(elementId);
     if (element) {
-        element.replaceWith(element.cloneNode(true)); // Nettoyage des anciens listeners
-        document.getElementById(elementId)?.addEventListener(event, handler);
+        element.removeEventListener(event, handler); // Supprimer le gestionnaire précédent
+        element.addEventListener(event, handler);
     }
 }
+
 
 // Fonction pour envoyer un message
 async function sendMessage(meId: number, himID: number, messageText: string): Promise<void> {
@@ -229,6 +230,7 @@ async function openChatWindow(userId: string) {
 
     await ChatState.fetchMessagesForUser(meId); 
     const messages = ChatState.filterMessages(meId, himId);
+    console.log(messages); 
     messages.forEach(message => {
         displayMessage(meUsername, himUsername, message.fromUserId, message.content, message.sent_at);
     });
@@ -249,8 +251,12 @@ async function openChatWindow(userId: string) {
 function attachChatEventListeners(): void {
     const chatConvs = document.querySelectorAll('.chatConv');
     chatConvs.forEach(chatConv => {
-        chatConv.addEventListener('click', () => {
-            const userId = chatConv.getAttribute('data-user-id');
+        // Remove any existing click event listeners
+        const newChatConv = chatConv.cloneNode(true) as HTMLElement;
+        chatConv.parentNode?.replaceChild(newChatConv, chatConv);
+        
+        newChatConv.addEventListener('click', () => {
+            const userId = newChatConv.getAttribute('data-user-id');
             if (userId) openChatWindow(userId);
         });
     });
@@ -287,8 +293,6 @@ export function renderChatRows() {
     const friendsListContainer = document.getElementById("chat-friends-list");
     if (!friendsListContainer) return;
     
-    setTimeout(() => {}, 2000);
-
     const friends = UserState.getUser()?.friends || [];
     const activeFriends = friends.filter(friend => friend.status !== 'pending');
     const friendIds = new Set(activeFriends.map(friend => friend.friend_id));
@@ -356,7 +360,6 @@ export function chat(): void {
     closeChatButton?.addEventListener('click', () => {
         toggleChatMenu(false);
     });
-
 
     renderChatRows();
     

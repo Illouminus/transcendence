@@ -80,7 +80,7 @@ async function initializeApp() {
                 }
             }, 30_000); 
 
-            // chat();
+            chat();
             getFriendsNumber();
         } else {
             UserState.logout();
