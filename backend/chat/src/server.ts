@@ -78,7 +78,7 @@ server.register(async function (fastify: FastifyInstance) {
 					});
 				}
 				else if (data.type == "ping") {
-					connection.send(JSON.stringify({ type: "pong" }));
+					console.log("Type de message:", data.type);
 				} else {
 					console.log("❌ Type de message inconnu:", data.type);
 				}
