@@ -210,7 +210,7 @@ export async function loadProfilePage() {
       } else {
       statusSpan.innerHTML = errorSVG;
       }
-  
+
       if (twoFactor) {
       factorVerificationSpan.innerHTML = succesSVG
       } else {
@@ -371,6 +371,7 @@ export async function loadSettingsPage() {
 
   const faInput = document.getElementById("2faInput") as HTMLInputElement;
   if (faInput) {
+    faInput.checked = UserState.getUser()?.two_factor_enabled ?? false;
     const handler = async () => {
       if (faInput.checked) await enable2FA();
       else await disable2FA();
