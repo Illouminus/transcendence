@@ -115,6 +115,7 @@ export async function logout() {
 }
 
 
+
 export async function renderGoogleButton() {
 	try {
 		google.accounts.id.initialize({
