@@ -284,7 +284,6 @@ function hideChatMenu(isOpen: boolean): void {
 
 
 export function renderChatRows() {
-    console.log('Render chat Rows');
     const friendsListContainer = document.getElementById("chat-friends-list");
     if (!friendsListContainer) return;
     
@@ -305,7 +304,6 @@ export function renderChatRows() {
     });
     
     // Add new friends to the list
-    console.log(activeFriends);
     activeFriends.forEach((friend) => {
         if (friend.friend_id !== UserState.getUser()?.id) {
             // Check if the user is already in the list
