@@ -254,6 +254,11 @@ export function initializeChampionship(): void {
         return;
     }
 
+    
+    setTimeout(() => {
+        gameSocket?.send(JSON.stringify({ type: 'get_my_tournament' }));
+    }, 1000);
+
     if (messageListener) gameSocket.removeEventListener('message', messageListener);
     if (championshipGameEventHandler) UserState.offGameEvent(championshipGameEventHandler);
 
