@@ -280,7 +280,7 @@ function hideChatMenu(isOpen: boolean): void {
 
     toggleElementClass('goBack', 'hidden', true);
     toggleElementClass('closeChat', 'hidden', false);
-}
+}   
 
 
 export function renderChatRows() {
@@ -288,6 +288,8 @@ export function renderChatRows() {
     const friendsListContainer = document.getElementById("chat-friends-list");
     if (!friendsListContainer) return;
     
+    setTimeout(() => {}, 2000);
+
     const friends = UserState.getUser()?.friends || [];
     const activeFriends = friends.filter(friend => friend.status !== 'pending');
     const friendIds = new Set(activeFriends.map(friend => friend.friend_id));
@@ -308,7 +310,6 @@ export function renderChatRows() {
         if (friend.friend_id !== UserState.getUser()?.id) {
             // Check if the user is already in the list
             const existingUserRow = friendsListContainer.querySelector(`[data-user-id="${friend.friend_id}"]`);
-            console.log(existingUserRow);
             
             if (!existingUserRow) {
                 const userRow = createChatUserRow(friend);

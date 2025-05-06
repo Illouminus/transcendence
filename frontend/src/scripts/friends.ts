@@ -321,7 +321,7 @@ export const initializeFriends = async () => {
         await loadFriends();
         await loadFriendRequests();
         getFriendsNumber();
-        UserState.onConnectionChange(renderChatRows);
+        // UserState.onConnectionChange(renderChatRows);
         UserState.onConnectionChange(getFriendsNumber);
 
         if (friendsContainer)
