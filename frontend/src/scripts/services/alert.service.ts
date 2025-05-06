@@ -1,3 +1,5 @@
+import { redirectTo } from "../router";
+
 export type AlertType = "info" | "danger" | "success" | "warning" | "dark";
 
 export function showAlert(message: string, type: AlertType = "info", duration: number = 3000): void {
@@ -21,6 +23,44 @@ export function showAlert(message: string, type: AlertType = "info", duration: n
 	setTimeout(() => {
 		alertEl.remove();
 	}, duration);
+}
+
+async function safeRedirectTo(path: string) {
+	try {
+	  const { redirectTo } = await import("../router"); // Import dynamique avec ES Modules
+	  redirectTo(path);
+	} catch (error) {
+	  console.error("Failed to redirect:", error);
+	}
+}
+
+export function showAlertTournament(message: string, type: AlertType = "info", duration: number = 3000): void {
+    const container = document.getElementById("alert-container");
+    if (!container) return;
+
+    const alertEl = document.createElement("div");
+    alertEl.className = `flex items-center p-4 mb-4 text-sm rounded-lg border ${getAlertClasses(type)}`;
+    alertEl.role = "alert";
+    alertEl.innerHTML = `
+        <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+        </svg>
+        <div class="flex-1">
+          <span class="font-medium">${message}</span>
+        </div>
+    `;
+
+    const button = document.createElement("button");
+    button.className = "ml-4 px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700";
+    button.textContent = "Join championship";
+    button.addEventListener("click", () => safeRedirectTo('/championship'));
+
+    alertEl.appendChild(button);
+    container.appendChild(alertEl);
+
+    setTimeout(() => {
+        alertEl.remove();
+    }, duration);
 }
 
 function getAlertClasses(type: AlertType): string {

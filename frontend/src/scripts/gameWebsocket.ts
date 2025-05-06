@@ -4,7 +4,7 @@ import { fetchAllUsers, updateUser } from "./loaders/outils";
 import { GameWebSocketMessage } from "./models/websocket.model";
 import { clientGameState } from "./pong";
 import { redirectTo } from "./router";
-import { showAlert } from "./services/alert.service";
+import { showAlert, showAlertTournament } from "./services/alert.service";
 import { fetchUsers } from "./users";
 import { UserState } from "./userState";
 import { showGameOverModal } from "./endGame";
@@ -197,6 +197,7 @@ export function connectGameWebSocket(token: string): WebSocket {
               type: 'new_tournament_created',
               tournamentId: data.payload.tournamentId
             });
+            showAlertTournament('New tournament is about to start', 'info');
             break;
         case 'tournament_state_update':
           UserState.setTournamentAlias(data.payload.players.find((p) => p.id === UserState.getUser()?.id)?.alias || UserState.getUser()!.username);
