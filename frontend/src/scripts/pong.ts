@@ -228,7 +228,7 @@ export async function loadPongPageScript(): Promise< ()  => void> {
     } else if (event.key === "a") {
       UserState.getGameSocket()?.send(JSON.stringify({ type: "player_move", gameId: clientGameState.gameId, userId, direction: "RIGHT" }));
     }
-    else if (event.key === "Escape") {
+    else if (event.key === "Escape" && !UserState.getTournamentStarted()) {
       UserState.getGameSocket()?.send(JSON.stringify({ type: "player_left", gameId: clientGameState.gameId }));
     }
   };
