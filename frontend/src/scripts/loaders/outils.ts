@@ -79,3 +79,12 @@ export const updateUser = async () => {
         console.error('Error updating user:', error);
     }
 };
+
+
+
+export function setupConsoleSilencing() {
+	  ['log', 'warn', 'error', 'debug', 'info'].forEach(fn => {
+		console[fn] = () => {};
+	  });
+	
+  }

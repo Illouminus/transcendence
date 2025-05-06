@@ -150,7 +150,7 @@ async function fetchUsers(): Promise<void> {
 
         usersList.innerHTML = filtredFriends.map(user => {
             const isFriend = acceptedFriendIds.includes(user.id);
-            const isRequestSent = UserState.hasSentFriendRequest(user.id);
+            const isRequestSent = currentUser.outgoingRequests?.some(request => request.id === user.id) || false;
             // we need to check if we have already recieved a request from this user
             const hasReceivedRequest = currentUser.incomingRequests?.some(request => request.id === user.id) || false;
             return createUserRow(user, isFriend, isRequestSent, hasReceivedRequest);

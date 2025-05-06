@@ -211,6 +211,10 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
       const finalMatchId = await insertFinalMatchDB(tournamentId, finalPlayer1, finalPlayer2);
       await updateMatchWithGameDB(finalMatchId, tournamentId, finalPlayer1, finalPlayer2);
 
+
+      state.phase = 'final';
+      
+
       const finalGameId = await createAndStartGame({
         player_1_id: finalPlayer1,
         player_2_id: finalPlayer2,
@@ -220,7 +224,7 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
         match_type: MathType.FINAL
       });
 
-      state.phase = 'final';
+      
 
       state.matches = {
         semifinals: state.matches?.semifinals || [],
@@ -256,6 +260,11 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
           }
         });
 
+
+        state.phase = 'final';
+        broadcastTournamentState(tournamentId);
+
+
         sendNotification(playerId, {
           type: 'tournament_match_start',
           payload: {
@@ -275,8 +284,6 @@ export async function handleGameComplete(matchId: number, winnerId: number): Pro
           }
         });
       }
-      state.phase = 'final';
-      broadcastTournamentState(tournamentId);
     }
   }
 

@@ -87,8 +87,12 @@ async function initializeApp() {
             localStorage.removeItem("token");
         }
     }
+    
     setupUI();
     handleRouting();
-}
 
+}
+console.log = () => {};
+console.warn = () => {};
+console.error = () => {};
 document.addEventListener("DOMContentLoaded", initializeApp);
