@@ -183,10 +183,7 @@ function leaveTournament(): void {
         players: [],
     });
     UserState.setTournamentAlias("");
-    UserState.setGameMode({
-        mode: 'none',
-        tournamentId: undefined,
-    });
+    gameSocket?.send(JSON.stringify({ type: 'get_my_tournament' }));
     userAlias = null;
     currentPlayer = null;
     redirectTo('/');
@@ -253,6 +250,10 @@ export function initializeChampionship(): void {
         showAlert('Game socket not available', 'danger');
         return;
     }
+
+    gameSocket?.send(JSON.stringify({ type: 'get_my_tournament' }));
+    setTimeout(() => {
+    }, 1000);
 
     if (messageListener) gameSocket.removeEventListener('message', messageListener);
     if (championshipGameEventHandler) UserState.offGameEvent(championshipGameEventHandler);

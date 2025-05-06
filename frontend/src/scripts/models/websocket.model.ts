@@ -20,6 +20,7 @@ export type UserWebSocketMessage =
   | { type: 'user_registered'; payload: UserRegisteredPayload }
   | { type: 'user_avatar_updated'; payload: UserAvatrUpdatedPayload }
   | { type: 'user_username_updated'; payload: UserUserNameUpdatedPayload }
+  | { type: 'ping'}
 
   export interface IncomingRequestPayload {
     message: string;
@@ -154,6 +155,7 @@ export type GameWebSocketMessage =
 | { type: 'tournament_completed'; payload: TournamentCompletedPayload }
 | { type: 'tournament_player_left'; payload: { userId: number; tournamentId: number } }
 | { type: 'tournament_deleted'; payload: { tournamentId: number } }
+| { type: 'ping' }
 
 export interface GameInvitationIncomePayload {
   fromUserId: number;

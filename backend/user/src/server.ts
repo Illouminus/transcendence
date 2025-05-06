@@ -35,13 +35,13 @@ server.register(async function (fastify: FastifyInstance) {
 	  console.log("WebSocket connected", req.url);
 	  const token = req.query.token; 
 	  const payload = server.jwt.verify(token) as JwtPayload;
-	  const userAuthId = await getUserByAuthId(Number(payload.userId));
+	  const user = await getUserById(Number(payload.userId));
 
-	  if (!userAuthId) {
+	  if (!user) {
 		connection.close(4000, 'User not found');
 		return;
 	  }
-	  activeConnections.set(userAuthId?.id, connection);
+	  activeConnections.set(user?.id, connection);
 	  
 	  // Получаем профиль нового пользователя
 	//   const userConnected = await getUserById(Number(payload.userId));
@@ -53,11 +53,11 @@ server.register(async function (fastify: FastifyInstance) {
 	  // Рассылаем всем уведомление, что новый пользователь подключился
 	  sendNotificationToAll({
 		type: 'user_connected',
-		payload: { user: userAuthId },
+		payload: { user: user },
 	  });
 	  
 
-		const friendsList = await getFriendsListFromDB(Number(userAuthId.id));
+		const friendsList = await getFriendsListFromDB(Number(user.id));
 		for (const friend of friendsList) {
 
 		  if (activeConnections.has(friend.friend_id)) {
@@ -81,7 +81,7 @@ server.register(async function (fastify: FastifyInstance) {
 		activeConnections.delete(payload.userId);
 		sendNotificationToAll({
 		  type: 'user_disconnected',
-		  payload: { user: userAuthId },
+		  payload: { user: user },
 		});
 	  });
 	  

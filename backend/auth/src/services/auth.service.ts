@@ -143,6 +143,7 @@ export async function registerUserService( username: string, email: string, pass
 	if (existingUser) {
 		throw new Error("User already exists");
 	}
+
 	const passwordHash = await bcrypt.hash(password, 10);
 
 	const newUser = await dbCreateUser(username, email, passwordHash );

@@ -4,9 +4,6 @@ import { User } from "./models/user.model";
 import { showAlert } from "./services/alert.service";
 import { UserArray } from "./users";
 import { BASE_URL } from "./outils/config";
-import { ChatState } from "./chatState";
-import { revealChatInput } from "./chat";
-//import { disposeGlobalListeners } from "./main";
 
 const avatarImg = document.getElementById("user-photo") as HTMLImageElement;
 
@@ -177,6 +174,10 @@ export class UserState {
 		this.sentFriendRequests.add(userId);
 	}
 	
+	static getTournamentStarted() {
+		return this.tournamentState?.phase === 'semifinals' || this.tournamentState?.phase === 'final';
+	}
+
 	static setTournamentAlias(alias: string) {
 		this.tournamentAlias = alias;
 	}
