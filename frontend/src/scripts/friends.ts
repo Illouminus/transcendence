@@ -7,6 +7,7 @@ import { trackedAddEventListener } from "./outils/eventManager";
 import { showAlert } from "./services/alert.service";
 import { fetchUserProfile } from "./services/user.service";
 import { UserState } from "./userState";
+import { activeConnections } from "./userWebsocket";
 
 
 
@@ -90,7 +91,12 @@ export const loadFriends = async () => {
             friend.status === 'accepted' || friend.status === 'blocked'
         );
 
+        console.log('Filtered friends:', filteredFriends);
+
         filteredFriends.forEach(friend => {
+            if(!friend.online && activeConnections.has(friend.friend_id)){
+                friend.online = true;
+            }
             const card = createFriendCard(friend);
             fragment.appendChild(card);
         });

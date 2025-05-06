@@ -104,7 +104,7 @@ export function showGameOverModal(gameResult: { winnerId: number, score1: number
         setTimeout(() => {
             modal.remove();
             style.remove();
-            redirectTo('/profile');
+            redirectTo('/');
         }, 500);
     }, 4500);
 } 

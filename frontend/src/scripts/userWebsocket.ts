@@ -12,7 +12,7 @@ let reconnectAttempts = 0;
 const maxReconnectAttempts = 10;
 const reconnectDelay = 3000; 
 
-let activeConnections: Set<number> = new Set();
+export let activeConnections: Set<number> = new Set();
 
 export function connectUserWebSocket(token: string): WebSocket {
   
@@ -176,6 +176,7 @@ export function connectUserWebSocket(token: string): WebSocket {
         case 'user_online': {
           const { user } = data.payload;
           showAlert(`${user.friend_username} is online`, 'info');
+          activeConnections.add(user.friend_id);
           UserState.notifyFriendEvent({
             type: 'friend_online',
             friendId: user.friend_id,
@@ -186,6 +187,7 @@ export function connectUserWebSocket(token: string): WebSocket {
         }
 
         case 'user_disconnected': {
+          console.log("User disconnected: ", data.payload);
           const { user } = data.payload;
           activeConnections.delete(user.id);
           showAlert(`${user.username} disconnected`, 'info');
